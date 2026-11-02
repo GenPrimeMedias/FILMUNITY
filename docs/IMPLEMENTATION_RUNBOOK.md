@@ -18,6 +18,7 @@ This runbook covers repository creation, CI and Laravel bootstrap only. It does 
 ## Phase B — Install prerequisites
 
 Use supported, mutually compatible versions of:
+
 - PHP 8.3 or later as required by the selected Laravel 13 release;
 - Composer 2;
 - Node.js LTS compatible with the selected frontend toolchain;
@@ -26,6 +27,7 @@ Use supported, mutually compatible versions of:
 - Docker Desktop or Docker Engine (recommended).
 
 Verify versions:
+
 ```bash
 php -v
 composer --version
@@ -39,6 +41,7 @@ docker --version
 ## Phase C — Create Laravel application
 
 From a clean workspace:
+
 ```bash
 composer global require laravel/installer
 laravel new uni360
@@ -46,6 +49,7 @@ cd uni360
 ```
 
 During the Laravel installer prompts:
+
 - choose the **React** starter kit (React + TypeScript + Inertia);
 - choose the built-in Laravel authentication option for the initial baseline;
 - choose Pest or PHPUnit consistently with the team preference;
@@ -54,17 +58,19 @@ During the Laravel installer prompts:
 The current official React starter kit includes React, TypeScript, Inertia, Tailwind and shadcn/ui. It is preferable to assembling these integrations manually. See the official [Laravel 13 starter-kit documentation](https://laravel.com/docs/13.x/starter-kits).
 
 If the installer version differs from the current docs, follow the prompts and official docs for the installed Laravel release.
-```
+
+````
 
 Confirm the installed Laravel version and PHP constraints before proceeding:
 ```bash
 php artisan --version
 composer show laravel/framework
-```
+````
 
 If the selected Laravel starter kit supports the desired React + TypeScript + Inertia stack for the current release, use its official React starter kit. Review generated dependencies and scripts rather than blindly accepting defaults. Keep frontend package versions locked.
 
 Configure PostgreSQL in `.env`:
+
 ```dotenv
 DB_CONNECTION=pgsql
 DB_HOST=127.0.0.1
@@ -77,6 +83,7 @@ DB_PASSWORD=local_only_change_me
 Create the local database/user securely. For Docker-based local development, use the supplied `docker-compose.dev.yml` and do not reuse its sample password outside local development.
 
 Then:
+
 ```bash
 cp .env.example .env
 php artisan key:generate
@@ -93,6 +100,7 @@ The exact scripts may differ depending on the official starter kit generated. Up
 Copy the documentation, governance, GitHub workflow and configuration files from this project pack into the Laravel root. Merge `.gitignore` carefully with Laravel's generated file; do not replace framework-required ignores blindly.
 
 Check:
+
 ```bash
 git status --short
 git diff --check
@@ -128,6 +136,7 @@ Replace `YOUR-ORG` with the actual GitHub organisation. Do not publish until the
 ## Phase G — First pull request validation
 
 Create a branch and make a small documentation or health-check change. Open a PR and verify:
+
 - CI starts for pull requests;
 - PostgreSQL service becomes healthy;
 - Composer install completes;

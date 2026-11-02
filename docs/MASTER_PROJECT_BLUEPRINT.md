@@ -83,6 +83,7 @@ A `person` is a human identity record. A `user` is an authentication principal. 
 Every tenant-owned table must have a non-null `tenant_id` unless the data is explicitly global reference data. Tenant context must be resolved server-side from an authenticated, authorised organisation selection or tenant-specific host mapping. Never trust a raw client-supplied tenant ID.
 
 Apply defence in depth:
+
 - central tenant context middleware/service;
 - tenant-aware policies and query scopes;
 - database foreign keys and composite unique constraints;
@@ -112,6 +113,7 @@ A global platform operator must not receive automatic unrestricted access to mem
 ## 8. Functional scope and delivery priority
 
 ### Release 0 — Engineering foundation
+
 - Repository, licence, contribution governance.
 - Laravel bootstrap and environment configuration.
 - CI, lint/static analysis and test harness.
@@ -119,6 +121,7 @@ A global platform operator must not receive automatic unrestricted access to mem
 - Health endpoint and deployment documentation.
 
 ### Release 0.1 — Tenant foundation
+
 - Organisations and organisation status.
 - Tenant context resolution.
 - Users, people and tenant memberships.
@@ -127,6 +130,7 @@ A global platform operator must not receive automatic unrestricted access to mem
 - Tenant-aware audit events.
 
 ### Release 0.2 — Membership MVP
+
 - Membership categories and configurable requirements.
 - Application, review and approval workflow.
 - Member profile and status history.
@@ -135,18 +139,21 @@ A global platform operator must not receive automatic unrestricted access to mem
 - Digital membership card and privacy-preserving QR verification.
 
 ### Release 0.3 — Administration
+
 - Office-bearers and committee terms.
 - Notices, meetings, documents.
 - Basic welfare application workflow.
 - Basic grievance workflow with restricted access.
 
 ### Release 0.4 — Financial and directory modules
+
 - Double-entry ledger, receipts and reconciliation.
 - Payment gateway adapter (provider selected separately).
 - Professional directory and visibility controls.
 - Reports and controlled exports.
 
 ### Release 0.5+ — Advanced governance
+
 - Elections after independent legal/security design.
 - Compliance calendars.
 - Advanced analytics.
@@ -155,6 +162,7 @@ A global platform operator must not receive automatic unrestricted access to mem
 ## 9. Acceptance criteria for first milestone
 
 The first milestone is complete only when:
+
 1. A public GitHub repository exists with Apache-2.0 licence and governance files.
 2. Laravel application boots from documented clean-install instructions.
 3. `.env.example` contains placeholders only.
@@ -181,6 +189,7 @@ The first milestone is complete only when:
 ## 11. Project success measures
 
 Track actual values, not vanity metrics:
+
 - number of active pilot organisations;
 - active members managed (aggregated, privacy-safe);
 - issue response and resolution times;
@@ -195,6 +204,7 @@ Track actual values, not vanity metrics:
 ## 12. Open decisions
 
 Before production:
+
 - legal review of licence, privacy notices and organisation data-processing roles;
 - final identity and account recovery model;
 - tenant host/domain mapping strategy;

@@ -18,6 +18,7 @@ For self-hosting, deploy the same application release with an organisation-speci
 ## Consequences
 
 ### Positive
+
 - Lower operational overhead.
 - Easier contribution and local development.
 - Shared release and test process.
@@ -25,6 +26,7 @@ For self-hosting, deploy the same application release with an organisation-speci
 - Central and self-hosted modes share the same code.
 
 ### Trade-offs
+
 - Tenant isolation must be rigorously implemented and tested.
 - Shared database workloads may require later partitioning or dedicated databases.
 - Module boundaries must be enforced by conventions and architecture tests.

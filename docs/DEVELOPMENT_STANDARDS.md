@@ -74,6 +74,7 @@ UNI360 is an independent open-source project. Do not access, modify, import, cop
 ## 8. Testing
 
 Minimum checks for a pull request:
+
 - formatter;
 - static analysis;
 - unit tests;
@@ -100,6 +101,7 @@ Add browser-level tests for critical user journeys. Tests must use isolated data
 ## 10. Codex / AI coding-agent instructions
 
 AI tools may draft code, tests, documentation and review notes. They must not:
+
 - access or modify the separate OTT project;
 - invent completed maintenance activity or application evidence;
 - bypass tests, policies or tenant isolation;

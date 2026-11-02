@@ -192,6 +192,7 @@ erDiagram
 ## 5. Tenant constraints
 
 For a tenant-owned entity, prefer:
+
 - primary key `(id)` or UUID `id`;
 - unique key `(tenant_id, business_key)`;
 - foreign key `(tenant_id, parent_id)` referencing a matching unique `(tenant_id, id)` parent key.
@@ -201,6 +202,7 @@ This prevents accidental cross-tenant references at the database layer. Confirm 
 ## 6. PostgreSQL Row-Level Security (RLS)
 
 RLS is an additional defence, not a replacement for application authorisation. If used:
+
 - set tenant context transaction-locally, e.g. `SET LOCAL app.tenant_id = '...'`;
 - never use a persistent connection-level tenant setting that can leak between pooled requests;
 - use a restricted application database role that does not bypass RLS;
@@ -223,6 +225,7 @@ Do not enable RLS casually before connection pooling and transaction boundaries 
 ## 8. Indexing
 
 Initial candidates:
+
 - `(tenant_id, status)` on memberships and applications;
 - `(tenant_id, membership_number)` unique;
 - `(tenant_id, created_at)` on audit events;

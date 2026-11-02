@@ -1,4 +1,5 @@
-name: CI
+
+name: UNI360 CI
 
 on:
   push:
@@ -10,13 +11,14 @@ permissions:
   contents: read
 
 concurrency:
-  group: ci-${{ github.workflow }}-${{ github.ref }}
+  group: uni360-ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  backend:
-    name: Backend tests
+  ci:
+    name: Laravel and React CI
     runs-on: ubuntu-latest
+
     services:
       postgres:
         image: postgres:16
@@ -31,53 +33,63 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+
+    env:
+      APP_ENV: testing
+      DB_CONNECTION: pgsql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 5432
+      DB_DATABASE: uni360_test
+      DB_USERNAME: uni360
+      DB_PASSWORD: uni360_test_password
+
     steps:
-      - uses: actions/checkout@v4
-      - name: Set up PHP
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.3'
           extensions: mbstring, dom, fileinfo, pgsql, pdo_pgsql, bcmath, intl
           coverage: none
-      - name: Install Composer dependencies
-        run: composer install --prefer-dist --no-interaction --no-progress
-      - name: Prepare environment
-        run: |
-          cp .env.example .env
-          php artisan key:generate
-      - name: Run migrations
-        env:
-          DB_CONNECTION: pgsql
-          DB_HOST: 127.0.0.1
-          DB_PORT: 5432
-          DB_DATABASE: uni360_test
-          DB_USERNAME: uni360
-          DB_PASSWORD: uni360_test_password
-        run: php artisan migrate --force
-      - name: Run tests
-        env:
-          DB_CONNECTION: pgsql
-          DB_HOST: 127.0.0.1
-          DB_PORT: 5432
-          DB_DATABASE: uni360_test
-          DB_USERNAME: uni360
-          DB_PASSWORD: uni360_test_password
-        run: php artisan test
 
-  frontend:
-    name: Frontend checks
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: npm
-      - name: Install dependencies
+
+      - name: Install PHP dependencies
+        run: composer install --prefer-dist --no-interaction --no-progress
+
+      - name: Install Node dependencies
         run: npm ci
-      - name: Typecheck
-        run: npm run typecheck --if-present
-      - name: Lint
-        run: npm run lint --if-present
-      - name: Build
+
+      - name: Prepare Laravel
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+          cp .env .env.testing
+
+      - name: Run database migrations
+        run: php artisan migrate --force
+
+      - name: Production build
         run: npm run build
+
+      - name: Frontend checks
+        run: |
+          npm run check
+          npm run types:check
+
+      - name: PHP formatting
+        run: composer lint:check
+
+      - name: PHP static analysis
+        run: composer types:check
+
+      - name: Laravel tests
+        run: php artisan test
