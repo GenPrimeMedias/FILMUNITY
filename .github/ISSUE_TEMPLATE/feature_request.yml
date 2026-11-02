@@ -1,0 +1,28 @@
+name: Feature request
+description: Propose an improvement to UNI360
+title: "[Feature]: "
+labels: ["feature-request"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem / user need
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+    validations:
+      required: true
+  - type: textarea
+    id: impact
+    attributes:
+      label: Organisations or workflows affected
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Review
+      options:
+        - label: I have not included personal data, credentials or confidential records.
+          required: true
