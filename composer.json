@@ -1,8 +1,8 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "genprimemedias/uni360",
+    "name": "genprimemedias/filmunity",
     "type": "project",
-    "description": "UNI360 - Open-source association and union management platform",
+    "description": "FILMUNITY - Open-source association and union management platform",
     "keywords": [
         "laravel",
         "framework"

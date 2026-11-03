@@ -46,10 +46,11 @@ yarn-error.log
 /.zed
 
 # Temporary merge files
-/uni360/
+/filmunity/
 /laravel-tests.yml.reference
 /laravel.env.example.reference
 /laravel.gitignore.reference
-/uni360-foundation.env.reference
+/filmunity-foundation.env.reference
 
 /.claude/
+/uni360-foundation.env.reference

@@ -1,4 +1,4 @@
-# UNI360 — Database Architecture
+# FILMUNITY — Database Architecture
 
 **Status:** Initial logical schema; not a production migration specification.  
 **Database:** PostgreSQL

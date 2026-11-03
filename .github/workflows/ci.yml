@@ -1,5 +1,5 @@
 
-name: UNI360 CI
+name: FILMUNITY CI
 
 on:
   push:
@@ -11,7 +11,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: uni360-ci-${{ github.workflow }}-${{ github.ref }}
+  group: filmunity-ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -23,13 +23,13 @@ jobs:
       postgres:
         image: postgres:16
         env:
-          POSTGRES_DB: uni360_test
-          POSTGRES_USER: uni360
-          POSTGRES_PASSWORD: uni360_test_password
+          POSTGRES_DB: filmunity_test
+          POSTGRES_USER: filmunity
+          POSTGRES_PASSWORD: filmunity_test_password
         ports:
           - 5432:5432
         options: >-
-          --health-cmd "pg_isready -U uni360 -d uni360_test"
+          --health-cmd "pg_isready -U filmunity -d filmunity_test"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
@@ -39,9 +39,9 @@ jobs:
       DB_CONNECTION: pgsql
       DB_HOST: 127.0.0.1
       DB_PORT: 5432
-      DB_DATABASE: uni360_test
-      DB_USERNAME: uni360
-      DB_PASSWORD: uni360_test_password
+      DB_DATABASE: filmunity_test
+      DB_USERNAME: filmunity
+      DB_PASSWORD: filmunity_test_password
 
     steps:
       - name: Checkout repository

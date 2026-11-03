@@ -1,8 +1,8 @@
-# UNI360 — Agent Instructions
+# FILMUNITY — Agent Instructions
 
 ## Mission and boundary
 
-This repository contains UNI360, an open-source multi-tenant association and union management platform. It is completely separate from any proprietary OTT platform. Do not inspect, modify, import, copy or reference external proprietary OTT code, databases, secrets, media or customer data.
+This repository contains FILMUNITY, an open-source multi-tenant association and union management platform. It is completely separate from any proprietary OTT platform. Do not inspect, modify, import, copy or reference external proprietary OTT code, databases, secrets, media or customer data.
 
 ## Architecture
 
