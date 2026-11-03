@@ -5,7 +5,7 @@
 
 ## Context
 
-UNI360 must support multiple independent associations and unions in a centralised service and must also be deployable as a self-hosted installation. The project begins with a founder-led maintenance model, so operational complexity must remain manageable. Confidential member, grievance and financial records require strict isolation.
+FILMUNITY must support multiple independent associations and unions in a centralised service and must also be deployable as a self-hosted installation. The project begins with a founder-led maintenance model, so operational complexity must remain manageable. Confidential member, grievance and financial records require strict isolation.
 
 ## Decision
 

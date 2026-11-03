@@ -1,8 +1,8 @@
-# UNI360 — Development Standards
+# FILMUNITY — Development Standards
 
 ## 1. Non-negotiable repository boundary
 
-UNI360 is an independent open-source project. Do not access, modify, import, copy or depend on the founder's proprietary OTT repository, production database, media files, credentials, deployment secrets or private business logic. Do not reuse OTT user records or other personal data as test fixtures.
+FILMUNITY is an independent open-source project. Do not access, modify, import, copy or depend on the founder's proprietary OTT repository, production database, media files, credentials, deployment secrets or private business logic. Do not reuse OTT user records or other personal data as test fixtures.
 
 ## 2. Branching and commits
 

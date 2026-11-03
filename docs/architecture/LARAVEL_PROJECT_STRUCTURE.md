@@ -1,9 +1,9 @@
-# UNI360 — Laravel Application Structure
+# FILMUNITY — Laravel Application Structure
 
 This is the recommended target structure after generating a fresh Laravel 13 React starter-kit application. Preserve framework defaults unless a clear need justifies moving files.
 
 ```text
-uni360/
+filmunity/
 ├── app/
 │   ├── Console/
 │   ├── Exceptions/

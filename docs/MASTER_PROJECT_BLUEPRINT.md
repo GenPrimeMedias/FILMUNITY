@@ -1,4 +1,4 @@
-# UNI360 — Master Project Blueprint
+# FILMUNITY — Master Project Blueprint
 
 **Document status:** Baseline specification  
 **Version:** 0.1.0  
@@ -8,7 +8,7 @@
 
 ## 1. Executive summary
 
-UNI360 is an open-source, multi-tenant platform for the operational administration of film-industry associations, federations, councils and workers' unions. It provides reusable software for organisation administration, membership, digital identity, office-bearers, welfare, grievances, finance, professional directories, meetings, documents, communications, compliance records and reporting.
+FILMUNITY is an open-source, multi-tenant platform for the operational administration of film-industry associations, federations, councils and workers' unions. It provides reusable software for organisation administration, membership, digital identity, office-bearers, welfare, grievances, finance, professional directories, meetings, documents, communications, compliance records and reporting.
 
 The platform is not an industry regulator or governing authority. Each participating organisation retains its own constitution, leadership, membership rules, decisions, financial accountability and data governance.
 
@@ -24,12 +24,12 @@ The platform is not an industry regulator or governing authority. Each participa
 
 ## 3. Non-goals
 
-- UNI360 will not govern or represent participating associations.
-- UNI360 will not make membership eligibility decisions automatically.
-- UNI360 will not provide legal, tax or accounting advice.
-- UNI360 will not initially provide legally binding electronic voting. Election workflows are administrative until legal and security review establishes otherwise.
-- UNI360 will not contain OTT streaming, content delivery, subscription, advertising or media-encoding functionality.
-- UNI360 will not publish member data merely because the software is open source.
+- FILMUNITY will not govern or represent participating associations.
+- FILMUNITY will not make membership eligibility decisions automatically.
+- FILMUNITY will not provide legal, tax or accounting advice.
+- FILMUNITY will not initially provide legally binding electronic voting. Election workflows are administrative until legal and security review establishes otherwise.
+- FILMUNITY will not contain OTT streaming, content delivery, subscription, advertising or media-encoding functionality.
+- FILMUNITY will not publish member data merely because the software is open source.
 
 ## 4. Deployment models
 
@@ -39,7 +39,7 @@ A single application deployment serves multiple organisations. Each request is b
 
 ### 4.2 Self-hosted installation
 
-An organisation or approved operator deploys a separate instance, database, storage, secrets and backups. The same tagged application release and documented upgrade process are used. Self-hosted mode must not depend on a central UNI360 service for core membership workflows.
+An organisation or approved operator deploys a separate instance, database, storage, secrets and backups. The same tagged application release and documented upgrade process are used. Self-hosted mode must not depend on a central FILMUNITY service for core membership workflows.
 
 ### 4.3 Deployment-neutral design
 

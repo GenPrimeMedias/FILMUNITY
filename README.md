@@ -1,8 +1,8 @@
-# UNI360
+# FILMUNITY
 
 **A unified, open-source digital infrastructure for film industry associations, federations, councils and workers' unions across South India.**
 
-UNI360 is designed as a multi-tenant association and union management platform. Each participating organisation operates independently while sharing a common, maintainable software foundation.
+FILMUNITY is designed as a multi-tenant association and union management platform. Each participating organisation operates independently while sharing a common, maintainable software foundation.
 
 ## Project principles
 
@@ -48,4 +48,4 @@ Apache License 2.0. See [LICENSE](LICENSE).
 
 ## Important separation boundary
 
-UNI360 is a separate codebase, repository, deployment, database, credentials set and infrastructure boundary from the founder's proprietary OTT product. Do not copy OTT source code, secrets, production data, customer records, media assets, database dumps or proprietary business logic into this repository.
+FILMUNITY is a separate codebase, repository, deployment, database, credentials set and infrastructure boundary from the founder's proprietary OTT product. Do not copy OTT source code, secrets, production data, customer records, media assets, database dumps or proprietary business logic into this repository.

@@ -1,11 +1,11 @@
-# UNI360 — First Milestone Implementation Runbook
+# FILMUNITY — First Milestone Implementation Runbook
 
 This runbook covers repository creation, CI and Laravel bootstrap only. It does not implement membership or business modules yet.
 
 ## Phase A — Create GitHub organisation and repository
 
 1. Create a dedicated GitHub organisation or use a dedicated account-owned repository if appropriate.
-2. Create a public repository named `uni360`.
+2. Create a public repository named `filmunity`.
 3. Initialise without GitHub-generated README/licence if you will push this prepared scaffold.
 4. Set repository description: `Open-source multi-tenant association and union management platform for the South Indian film industry.`
 5. Add topics: `laravel`, `postgresql`, `multi-tenant`, `association-management`, `membership-management`, `open-source`, `south-india`.
@@ -44,8 +44,8 @@ From a clean workspace:
 
 ```bash
 composer global require laravel/installer
-laravel new uni360
-cd uni360
+laravel new filmunity
+cd filmunity
 ```
 
 During the Laravel installer prompts:
@@ -75,8 +75,8 @@ Configure PostgreSQL in `.env`:
 DB_CONNECTION=pgsql
 DB_HOST=127.0.0.1
 DB_PORT=5432
-DB_DATABASE=uni360
-DB_USERNAME=uni360
+DB_DATABASE=filmunity
+DB_USERNAME=filmunity
 DB_PASSWORD=local_only_change_me
 ```
 
@@ -125,9 +125,9 @@ Ensure `.env`, database files, local storage, logs and secrets are not staged.
 git init
 git add .
 git diff --cached --check
-git commit -m "chore: establish UNI360 project foundation"
+git commit -m "chore: establish FILMUNITY project foundation"
 git branch -M main
-git remote add origin https://github.com/YOUR-ORG/uni360.git
+git remote add origin https://github.com/YOUR-ORG/filmunity.git
 git push -u origin main
 ```
 
