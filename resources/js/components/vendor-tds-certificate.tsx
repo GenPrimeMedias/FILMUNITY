@@ -1,0 +1,8 @@
+type Certificate = { id: string; vendor_id: string; effective_from: string; certificate_reference?: string | null; valid_from?: string | null; valid_until?: string | null; reviewed_rate: string; supporting_reference: string | null; evidence_url?: string | null };
+export function VendorTdsCertificate({ reviews, vendor, bookDate, selected, onSelect }: { reviews: Certificate[]; vendor?: string | null; bookDate: string; selected: string; onSelect: (id: string) => void }) {
+    const certificates = reviews.filter(r => r.vendor_id === vendor && r.certificate_reference);
+    return <section className="grid gap-3 rounded-lg border p-4"><h3 className="font-semibold">Vendor TDS certificates</h3>{!certificates.length && <p>Certificate absent for this vendor.</p>}{certificates.map(c => {
+        const status = bookDate < c.valid_from! || bookDate < c.effective_from ? 'Not yet valid' : bookDate > c.valid_until! ? 'Expired' : 'Valid on book date';
+        return <div key={c.id}><p>{c.certificate_reference} · {status}</p><p>{c.valid_from} to {c.valid_until} (inclusive) · Reviewed rate {c.reviewed_rate}%</p><p>Supporting reference: {c.supporting_reference || 'None'}</p>{c.evidence_url && <a className="underline" href={c.evidence_url}>Download private evidence</a>}<label className="block"><input type="checkbox" disabled={status !== 'Valid on book date'} checked={selected === c.id && status === 'Valid on book date'} onChange={e => onSelect(e.target.checked ? c.id : '')} /> Use this certificate as reviewed context and freeze its details. Enter and approve the bill rate explicitly.</label></div>;
+    })}</section>;
+}

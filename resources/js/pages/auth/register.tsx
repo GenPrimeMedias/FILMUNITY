@@ -1,4 +1,5 @@
-import { Form, Head } from '@inertiajs/react';
+import { Form, Head, usePage } from '@inertiajs/react';
+import GoogleSignIn from '@/components/google-sign-in';
 import InputError from '@/components/input-error';
 import PasswordInput from '@/components/password-input';
 import TextLink from '@/components/text-link';
@@ -14,9 +15,24 @@ type Props = {
 };
 
 export default function Register({ passwordRules }: Props) {
+    const { url } = usePage();
+    const association = new URLSearchParams(url.split('?')[1]).get('association') === '1';
+
     return (
         <>
-            <Head title="Register" />
+            <Head title={association ? 'Register an association or union' : 'Register'} />
+
+            {association && (
+                <div className="grid gap-1 rounded-lg border border-border p-3">
+                    <h2 className="text-sm font-semibold">Register an association or union</h2>
+                    <p className="text-sm text-muted-foreground">
+                        Create a FILMUNITY account for your association. After email verification, continue to the association application.
+                    </p>
+                </div>
+            )}
+
+            <GoogleSignIn associationSignup={association} />
+
             <Form
                 {...store.form()}
                 resetOnSuccess={['password', 'password_confirmation']}
@@ -25,6 +41,7 @@ export default function Register({ passwordRules }: Props) {
             >
                 {({ processing, errors }) => (
                     <>
+                        {association && <input type="hidden" name="association_signup" value="1" />}
                         <div className="grid gap-6">
                             <div className="grid gap-2">
                                 <Label htmlFor="name">Name</Label>
@@ -97,7 +114,7 @@ export default function Register({ passwordRules }: Props) {
                                 data-test="register-user-button"
                             >
                                 {processing && <Spinner />}
-                                Create account
+                                {association ? 'Create account and continue' : 'Create account'}
                             </Button>
                         </div>
 
@@ -106,6 +123,11 @@ export default function Register({ passwordRules }: Props) {
                             <TextLink href={login()} tabIndex={6}>
                                 Log in
                             </TextLink>
+                        </div>
+                        <div className="text-center text-sm">
+                            <a className="underline underline-offset-4" href={association ? '/association-registration/start?mode=member' : '/association-registration/start'}>
+                                {association ? 'Sign up as an individual' : 'Register an association or union'}
+                            </a>
                         </div>
                     </>
                 )}

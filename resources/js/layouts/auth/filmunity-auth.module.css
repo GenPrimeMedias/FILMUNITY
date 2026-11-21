@@ -1,0 +1,82 @@
+.cover {
+    display: grid;
+    min-height: 100svh;
+    place-items: center;
+    padding: clamp(1rem, 5vw, 3rem);
+    background:
+        linear-gradient(105deg, rgb(6 27 19 / 13%), rgb(6 27 19 / 35%)),
+        var(--filmunity-cover) center / cover no-repeat #10291e;
+}
+
+.panel {
+    --background: #14291e;
+    --foreground: #f4faf5;
+    --muted-foreground: #d4e3d9;
+    --input: #7c9486;
+    --border: #60786a;
+    --primary: #17633f;
+    --primary-foreground: #fff;
+    --accent: #294635;
+    --accent-foreground: #fff;
+    --ring: #f2cf86;
+    display: flex;
+    width: min(100%, 27rem);
+    flex-direction: column;
+    gap: 1.25rem;
+    border: 1px solid #60786a;
+    border-radius: 1rem;
+    padding: clamp(1.25rem, 4vw, 2rem);
+    background: linear-gradient(160deg, rgb(13 42 30 / 96%), rgb(23 42 25 / 94%));
+    color: var(--foreground);
+    box-shadow: 0 1rem 3rem rgb(0 0 0 / 25%);
+}
+
+.brand {
+    align-self: center;
+}
+
+.panel a:not(.brand, [data-slot='button']) {
+    color: #f2cf86;
+}
+
+.panel :is(input[type='email'], input[type='text'], input[type='password']) {
+    background-color: #f4faf5;
+    color: #14291e;
+}
+
+.panel :is(input[type='email'], input[type='text'], input[type='password'])::placeholder {
+    color: #52695c;
+}
+
+.panel :has(> input[type='password']) > button {
+    color: #14291e;
+}
+
+
+.panel button[data-slot='button'][type='submit'] {
+    background: #17633f;
+    color: #fff;
+    border: 1px solid #668978;
+}
+
+.panel button[data-slot='button'][type='submit']:hover {
+    background: #20764c;
+}
+
+.panel [data-slot='button']:is(a, button[type='button']) {
+    background: #14291e;
+    border-color: #60786a;
+    color: #f4faf5;
+}
+
+.panel [data-slot='button']:is(a, button[type='button']):hover {
+    background: #294635;
+    color: #f2cf86;
+}
+
+@media (min-width: 64rem) {
+    .cover {
+        justify-items: end;
+        padding-inline-end: clamp(3rem, 9vw, 12rem);
+    }
+}

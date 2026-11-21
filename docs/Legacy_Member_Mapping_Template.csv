@@ -1,0 +1,3 @@
+source_system,source_member_id,membership_number,full_name,email,phone,membership_type,status,joined_at,valid_until,source_timezone,legacy_payment_reference,legacy_document_filename,decision_note
+legacy_app,OLD-001,SISA-6000325,Example Member One,member.one@example.org,+919000000001,yearly,active,2020-04-25,2027-04-25,Asia/Kolkata,OLD-PAY-001,OLD-001-certificate.pdf,Sample mapping row only
+legacy_app,OLD-002,SISA-6000324,Example Member Two,member.two@example.org,+919000000002,lifetime,active,2018-01-01,,Asia/Kolkata,OLD-PAY-002,,Sample mapping row only

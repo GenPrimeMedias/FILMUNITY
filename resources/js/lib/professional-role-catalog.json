@@ -1,0 +1,39 @@
+{
+    "groups": {
+        "The 24 Traditional Crafts": [
+            "Direction",
+            "Story & Screenwriting",
+            "Music",
+            "Cast (Actors)",
+            "Junior Artists",
+            "Junior Artist Agents",
+            "Stunt Direction",
+            "Choreography",
+            "Dubbing Artists",
+            "Cinematography",
+            "Still Photography",
+            "Art Direction",
+            "Costume Designing",
+            "Makeup",
+            "Editing",
+            "Audiography",
+            "Publicity Designing",
+            "Outdoor Lightmen",
+            "Outdoor Unit Technicians",
+            "Studio Workers",
+            "Production Executives",
+            "Production Assistants",
+            "Production Women",
+            "Cinema Drivers"
+        ],
+        "Modern & Emerging Departments": [
+            "VFX & CGI (Visual Effects)",
+            "DI (Digital Intermediate) & Color Grading",
+            "PRO & Digital Marketing",
+            "Casting Direction",
+            "Subtitling & Localization",
+            "Catering & Craft Services"
+        ]
+    },
+    "legacy": ["Actor", "Director", "Writer", "Producer", "Cinematographer", "Editor", "Composer", "Other"]
+}

@@ -1,0 +1,1218 @@
+{
+    "reviewed": "2026-11-21",
+    "scope": "Current application routes, visible workflow screens, controllers/validation, services and feature tests. This inventory supports Help Centre maintenance; it is not a claim that every project test was run in this pass.",
+    "role_access": {
+        "approved_association_applicant": "All four Help Centre sections; association data still resolved and authorized by each destination.",
+        "pending_representative": "Profile help only; management sections and downloads return 404.",
+        "verified_individual": "Existing Help Centre returns 403; member-facing behavior is documented for association support without widening access.",
+        "unverified": "Email verification required.",
+        "platform_reviewer": "Configured independent review/audit permissions; not automatically association finance owner."
+    },
+    "limits": [
+        "Legacy import is preview-only; no member or sequence writes.",
+        "Invoice reminder delivery is fake-mail-only; no live sending or reminder schedule.",
+        "Recurring generation has a Laravel daily registration, but this work does not enable a production scheduler.",
+        "Accounts reported a successful TallyPrime 7.2 import with no errors. Per-ledger reconciliation and repeat-import behavior remain pending unless separately evidenced; this help review did not independently witness the import.",
+        "No database reset, migrations, import write phase, push or deployment in this help pass."
+    ],
+    "workflows": [
+        {
+            "controller": "app/Http/Controllers/Api/V1/HealthController.php",
+            "articles": [],
+            "routes": [
+                {
+                    "method": "GET|HEAD",
+                    "path": "/api/v1/health"
+                }
+            ],
+            "tests": ["tests/Feature/Api/V1/HealthTest.php"],
+            "screens": []
+        },
+        {
+            "controller": "app/Http/Controllers/AssociationFinanceController.php",
+            "articles": [
+                "finance/start",
+                "finance/initialize",
+                "finance/accounts",
+                "finance/membership-clearing",
+                "finance/expense",
+                "finance/receipt",
+                "finance/transfer",
+                "finance/review-correct",
+                "finance/reconcile",
+                "finance/reports-close",
+                "finance/exports",
+                "finance/troubleshoot"
+            ],
+            "routes": [
+                {
+                    "method": "GET|HEAD",
+                    "path": "/association-finance",
+                    "action": "home"
+                },
+                {
+                    "method": "GET|HEAD",
+                    "path": "/association-finance/{association}",
+                    "action": "index"
+                },
+                {
+                    "method": "POST",
+                    "path": "/association-finance/{association}/account",
+                    "action": "account"
+                },
+                {
+                    "method": "POST",
+                    "path": "/association-finance/{association}/close",
+                    "action": "close"
+                },
+                {
+                    "method": "GET|HEAD",
+                    "path": "/association-finance/{association}/export",
+                    "action": "export"
+                },
+                {
+                    "method": "POST",
+                    "path": "/association-finance/{association}/initialize",
+                    "action": "initialize"
+                },
+                {
+                    "method": "POST",
+                    "path": "/association-finance/{association}/lines/{line}/clear",
+                    "action": "clear"
+                },
+                {
+                    "method": "POST",
+                    "path": "/association-finance/{association}/settings",
+                    "action": "settings"
+                },
+                {
+                    "method": "POST",
+                    "path": "/association-finance/{association}/sync",
+                    "action": "sync"
+                },
+                {
+                    "method": "POST",
+                    "path": "/association-finance/{association}/vouchers",
+                    "action": "save"
+                },
+                {
+                    "method": "POST",
+                    "path": "/association-finance/{association}/vouchers/{voucher}",
+                    "action": "save"
+                },
+                {
+                    "method": "POST",
+                    "path": "/association-finance/{association}/vouchers/{voucher}/decision",
+                    "action": "decide"
+                },
+                {
+                    "method": "GET|HEAD",
+                    "path": "/association-finance/{association}/vouchers/{voucher}/evidence",
+                    "action": "evidence"
+                }
+            ],
+            "tests": ["tests/Feature/AssociationFinanceTest.php"],
+            "screens": ["resources/js/pages/association-finance.tsx"]
+        },
+        {
+            "controller": "app/Http/Controllers/BillSettlementController.php",
+            "articles": [
+                "finance/invoices-settlements",
+                "finance/allocations",
+                "finance/membership-clearing"
+            ],
+            "routes": [
+                {
+                    "method": "GET|HEAD",
+                    "path": "/association-finance/{association}/billing",
+                    "action": "index"
+                },
+                {
+                    "method": "POST",
+                    "path": "/association-finance/{association}/billing/allocations",
+                    "action": "allocate"
+                },
+                {
+                    "method": "POST",
+                    "path": "/association-finance/{association}/billing/allocations/{allocation}/release",
+                    "action": "release"
+                },
+                {
+                    "method": "POST",
+                    "path": "/association-finance/{association}/billing/bridge",
+                    "action": "bridge"
+                },
+                {
+                    "method": "POST",
+                    "path": "/association-finance/{association}/billing/documents",
+                    "action": "save"
+                },
+                {
+                    "method": "POST",
+                    "path": "/association-finance/{association}/billing/documents/{voucher}",
+                    "action": "save"
+                }
+            ],
+            "tests": ["tests/Feature/BillSettlementTest.php"],
+            "screens": ["resources/js/pages/association-billing.tsx"]
+        },
+        {
+            "controller": "app/Http/Controllers/FinanceDocumentController.php",
+            "articles": ["finance/print-documents"],
+            "routes": [
+                {
+                    "method": "GET|HEAD",
+                    "path": "/association-finance/{association}/billing/documents/{voucher}",
+                    "action": "show"
+                }
+            ],
+            "tests": [
+                "tests/Feature/TaxReportingAndDocumentsTest.php",
+                "tests/Feature/BillSettlementTest.php"
+            ],
+            "screens": []
+        },
+        {
+            "controller": "app/Http/Controllers/CorrectionNoteController.php",
+            "articles": ["finance/correction-notes"],
+            "routes": [
+                {
+                    "method": "POST",
+                    "path": "/association-finance/{association}/billing/notes",
+                    "action": "save"
+                },
+                {
+                    "method": "POST",
+                    "path": "/association-finance/{association}/billing/notes/{voucher}",
+                    "action": "save"
+                }
+            ],
+            "tests": [
+                "tests/Feature/CorrectionNoteTest.php",
+                "tests/Feature/TaxCorrectionWorkflowTest.php"
+            ],
+            "screens": ["resources/js/pages/association-billing.tsx"]
+        },
+        {
+            "controller": "app/Http/Controllers/BillingInvoiceReminderController.php",
+            "articles": ["finance/invoice-reminders"],
+            "routes": [
+                {
+                    "method": "GET|HEAD",
+                    "path": "/association-finance/{association}/billing/reminders",
+                    "action": "index"
+                },
+                {
+                    "method": "POST",
+                    "path": "/association-finance/{association}/billing/reminders",
+                    "action": "store"
+                },
+                {
+                    "method": "POST",
+                    "path": "/association-finance/{association}/billing/reminders/{reminder}/resolve",
+                    "action": "resolve"
+                },
+                {
+                    "method": "POST",
+                    "path": "/association-finance/{association}/billing/reminders/{reminder}/retry",
+                    "action": "retry"
+                }
+            ],
+            "tests": ["tests/Feature/BillSettlementTest.php"],
+            "screens": ["resources/js/pages/billing-invoice-reminders.tsx"]
+        },
+        {
+            "controller": "app/Http/Controllers/RecurringMemberInvoiceController.php",
+            "articles": ["finance/recurring-drafts"],
+            "routes": [
+                {
+                    "method": "GET|HEAD",
+                    "path": "/association-finance/{association}/billing/templates",
+                    "action": "index"
+                },
+                {
+                    "method": "POST",
+                    "path": "/association-finance/{association}/billing/templates",
+                    "action": "save"
+                },
+                {
+                    "method": "POST",
+                    "path": "/association-finance/{association}/billing/templates/generate",
+                    "action": "generate"
+                },
+                {
+                    "method": "POST",
+                    "path": "/association-finance/{association}/billing/templates/{template}",
+                    "action": "save"
+                },
+                {
+                    "method": "POST",
+                    "path": "/association-finance/{association}/billing/templates/{template}/state",
+                    "action": "state"
+                }
+            ],
+            "tests": ["tests/Feature/RecurringMemberInvoiceTest.php"],
+            "screens": ["resources/js/pages/recurring-member-invoices.tsx"]
+        },
+        {
+            "controller": "app/Http/Controllers/AccountingMastersController.php",
+            "articles": ["finance/accounts"],
+            "routes": [
+                {
+                    "method": "GET|HEAD",
+                    "path": "/association-finance/{association}/masters",
+                    "action": "index"
+                },
+                {
+                    "method": "POST",
+                    "path": "/association-finance/{association}/masters/groups",
+                    "action": "group"
+                },
+                {
+                    "method": "POST",
+                    "path": "/association-finance/{association}/masters/ledgers/{account}/group",
+                    "action": "classify"
+                },
+                {
+                    "method": "POST",
+                    "path": "/association-finance/{association}/masters/sync",
+                    "action": "sync"
+                },
+                {
+                    "method": "POST",
+                    "path": "/association-finance/{association}/masters/vendors",
+                    "action": "vendor"
+                }
+            ],
+            "tests": [
+                "tests/Feature/AccountingMastersTest.php",
+                "tests/Feature/AccountingMasterSearchTest.php"
+            ],
+            "screens": ["resources/js/pages/accounting-masters.tsx"]
+        },
+        {
+            "controller": "app/Http/Controllers/TallyXmlExportController.php",
+            "articles": ["finance/tally-export"],
+            "routes": [
+                {
+                    "method": "GET|HEAD",
+                    "path": "/association-finance/{association}/tally",
+                    "action": "index"
+                },
+                {
+                    "method": "GET|HEAD",
+                    "path": "/association-finance/{association}/tally/download",
+                    "action": "download"
+                },
+                {
+                    "method": "POST",
+                    "path": "/association-finance/{association}/tally/mappings",
+                    "action": "mapping"
+                }
+            ],
+            "tests": ["tests/Feature/AssociationFinanceTest.php"],
+            "screens": ["resources/js/pages/tally-xml-export.tsx"]
+        },
+        {
+            "controller": "app/Http/Controllers/AssociationTaxController.php",
+            "articles": [
+                "finance/tax-billing",
+                "finance/multi-line-billing",
+                "finance/print-documents"
+            ],
+            "routes": [
+                {
+                    "method": "GET|HEAD",
+                    "path": "/association-finance/{association}/tax",
+                    "action": "index"
+                },
+                {
+                    "method": "POST",
+                    "path": "/association-finance/{association}/tax/documents",
+                    "action": "save"
+                },
+                {
+                    "method": "GET|HEAD",
+                    "path": "/association-finance/{association}/tax/documents/{voucher}",
+                    "action": "show"
+                },
+                {
+                    "method": "POST",
+                    "path": "/association-finance/{association}/tax/settings",
+                    "action": "settings"
+                }
+            ],
+            "tests": [
+                "tests/Feature/AssociationTaxTest.php",
+                "tests/Feature/MultiLineTaxTest.php",
+                "tests/Feature/TaxReportingAndDocumentsTest.php"
+            ],
+            "screens": ["resources/js/pages/association-tax.tsx"]
+        },
+        {
+            "controller": "app/Http/Controllers/TdsReconciliationController.php",
+            "articles": ["finance/tds-challans"],
+            "routes": [
+                {
+                    "method": "GET|HEAD",
+                    "path": "/association-finance/{association}/tax/challans",
+                    "action": "index"
+                },
+                {
+                    "method": "POST",
+                    "path": "/association-finance/{association}/tax/challans",
+                    "action": "record"
+                },
+                {
+                    "method": "POST",
+                    "path": "/association-finance/{association}/tax/challans/matches",
+                    "action": "match"
+                },
+                {
+                    "method": "POST",
+                    "path": "/association-finance/{association}/tax/challans/matches/{match}/release",
+                    "action": "release"
+                }
+            ],
+            "tests": ["tests/Feature/TdsReconciliationTest.php"],
+            "screens": ["resources/js/pages/tds-reconciliation.tsx"]
+        },
+        {
+            "controller": "app/Http/Controllers/VendorTdsHistoryController.php",
+            "articles": ["finance/vendor-history"],
+            "routes": [
+                {
+                    "method": "GET|HEAD",
+                    "path": "/association-finance/{association}/tax/vendor-history",
+                    "action": "show"
+                }
+            ],
+            "tests": ["tests/Feature/VendorTdsControlsTest.php"],
+            "screens": []
+        },
+        {
+            "controller": "app/Http/Controllers/VendorTdsReviewController.php",
+            "articles": [
+                "finance/vendor-tds-reviews",
+                "finance/vendor-certificates",
+                "finance/vendor-threshold"
+            ],
+            "routes": [
+                {
+                    "method": "GET|HEAD",
+                    "path": "/association-finance/{association}/tax/vendor-reviews",
+                    "action": "index"
+                },
+                {
+                    "method": "POST",
+                    "path": "/association-finance/{association}/tax/vendor-reviews",
+                    "action": "store"
+                },
+                {
+                    "method": "GET|HEAD",
+                    "path": "/association-finance/{association}/tax/vendor-reviews/{review}/evidence",
+                    "action": "evidence"
+                }
+            ],
+            "tests": ["tests/Feature/VendorTdsControlsTest.php"],
+            "screens": ["resources/js/pages/vendor-tds-reviews.tsx"]
+        },
+        {
+            "controller": "app/Http/Controllers/VendorTdsThresholdController.php",
+            "articles": ["finance/vendor-threshold"],
+            "routes": [
+                {
+                    "method": "GET|HEAD",
+                    "path": "/association-finance/{association}/tax/vendor-threshold",
+                    "action": "show"
+                }
+            ],
+            "tests": ["tests/Feature/VendorTdsControlsTest.php"],
+            "screens": []
+        },
+        {
+            "controller": "app/Http/Controllers/AssociationHelpController.php",
+            "articles": ["profile/start", "finance/start"],
+            "routes": [
+                {
+                    "method": "GET|HEAD",
+                    "path": "/association-help/{section?}",
+                    "action": "index"
+                },
+                {
+                    "method": "GET|HEAD",
+                    "path": "/association-help/{section}/download",
+                    "action": "download"
+                }
+            ],
+            "tests": ["tests/Feature/AssociationHelpTest.php"],
+            "screens": ["resources/js/pages/association-help.tsx"]
+        },
+        {
+            "controller": "app/Http/Controllers/AssociationMemberController.php",
+            "articles": [
+                "members/member-records",
+                "members/member-self-service"
+            ],
+            "routes": [
+                {
+                    "method": "GET|HEAD",
+                    "path": "/association-member-workspaces/{membership}",
+                    "action": "workspace"
+                },
+                {
+                    "method": "GET|HEAD",
+                    "path": "/association-members",
+                    "action": "index"
+                },
+                {
+                    "method": "POST",
+                    "path": "/membership-applications/{application}/confirm-plan",
+                    "action": "confirmPlan"
+                },
+                {
+                    "method": "GET|HEAD",
+                    "path": "/membership-renewals",
+                    "action": "index"
+                },
+                {
+                    "method": "GET|HEAD",
+                    "path": "/my-association-workspaces",
+                    "action": "index"
+                }
+            ],
+            "tests": [
+                "tests/Feature/IndividualMembershipWorkflowTest.php",
+                "tests/Feature/AssociationPaymentWorkflowTest.php"
+            ],
+            "screens": ["resources/js/pages/association-members.tsx"]
+        },
+        {
+            "controller": "app/Http/Controllers/LegacyMembershipPreviewController.php",
+            "articles": ["members/legacy-preview", "members/legacy-template"],
+            "routes": [
+                {
+                    "method": "GET|HEAD",
+                    "path": "/association-members/legacy-preview",
+                    "action": "index"
+                },
+                {
+                    "method": "POST",
+                    "path": "/association-members/{association}/legacy-preview",
+                    "action": "preview"
+                },
+                {
+                    "method": "GET|HEAD",
+                    "path": "/association-members/{association}/legacy-template",
+                    "action": "template"
+                }
+            ],
+            "tests": ["tests/Feature/LegacyMembershipPreviewTest.php"],
+            "screens": ["resources/js/pages/legacy-membership-preview.tsx"]
+        },
+        {
+            "controller": "app/Http/Controllers/MembershipReminderController.php",
+            "articles": ["members/renewals"],
+            "routes": [
+                {
+                    "method": "POST",
+                    "path": "/association-members/{membership}/renewal-reminder",
+                    "action": "store"
+                }
+            ],
+            "tests": ["tests/Feature/MembershipRenewalTest.php"],
+            "screens": []
+        },
+        {
+            "controller": "app/Http/Controllers/MembershipApplicationController.php",
+            "articles": ["members/applications", "members/member-self-service"],
+            "routes": [
+                {
+                    "method": "GET|HEAD",
+                    "path": "/association-membership-review",
+                    "action": "queue"
+                },
+                {
+                    "method": "PATCH",
+                    "path": "/association-membership-review/{application}",
+                    "action": "decide"
+                },
+                {
+                    "method": "GET|HEAD",
+                    "path": "/membership-applications",
+                    "action": "index"
+                },
+                {
+                    "method": "POST",
+                    "path": "/membership-applications",
+                    "action": "store"
+                },
+                {
+                    "method": "GET|HEAD",
+                    "path": "/membership-applications/apply",
+                    "action": "apply"
+                },
+                {
+                    "method": "GET|HEAD",
+                    "path": "/membership-applications/{application}/documents/{field}",
+                    "action": "document"
+                }
+            ],
+            "tests": ["tests/Feature/MembershipApplicationTest.php"],
+            "screens": ["resources/js/pages/membership-applications.tsx"]
+        },
+        {
+            "controller": "app/Http/Controllers/AssociationPaymentController.php",
+            "articles": [
+                "members/application-payments",
+                "members/communication",
+                "members/print-cards"
+            ],
+            "routes": [
+                {
+                    "method": "GET|HEAD",
+                    "path": "/association-payments",
+                    "action": "index"
+                },
+                {
+                    "method": "PATCH",
+                    "path": "/association-payments/{payment}/submissions/{submission}",
+                    "action": "decide"
+                },
+                {
+                    "method": "POST",
+                    "path": "/association-payments/{payment}/zero-fee",
+                    "action": "zeroFee"
+                },
+                {
+                    "method": "GET|HEAD",
+                    "path": "/filmunity-admin/payments",
+                    "action": "index"
+                },
+                {
+                    "method": "GET|HEAD",
+                    "path": "/membership-payments",
+                    "action": "index"
+                },
+                {
+                    "method": "POST",
+                    "path": "/membership-payments/request/{application}",
+                    "action": "create"
+                },
+                {
+                    "method": "GET|HEAD",
+                    "path": "/membership-payments/{payment}",
+                    "action": "show"
+                },
+                {
+                    "method": "POST",
+                    "path": "/membership-payments/{payment}/retry-emails",
+                    "action": "retryEmails"
+                },
+                {
+                    "method": "POST",
+                    "path": "/membership-payments/{payment}/submissions",
+                    "action": "submit"
+                },
+                {
+                    "method": "GET|HEAD",
+                    "path": "/membership-payments/{payment}/submissions/{submission}/proof",
+                    "action": "proof"
+                },
+                {
+                    "method": "GET|HEAD",
+                    "path": "/membership-receipts/{receipt}",
+                    "action": "receipt"
+                }
+            ],
+            "tests": ["tests/Feature/AssociationPaymentWorkflowTest.php"],
+            "screens": ["resources/js/pages/membership-payment.tsx"]
+        },
+        {
+            "controller": "app/Http/Controllers/AssociationRegistrationController.php",
+            "articles": ["association/registration"],
+            "routes": [
+                {
+                    "method": "GET|HEAD",
+                    "path": "/association-registration",
+                    "action": "index"
+                },
+                {
+                    "method": "POST",
+                    "path": "/association-registration",
+                    "action": "store"
+                },
+                {
+                    "method": "GET|HEAD",
+                    "path": "/association-registration/review",
+                    "action": "reviewQueue"
+                },
+                {
+                    "method": "GET|HEAD",
+                    "path": "/association-registration/start",
+                    "action": "start"
+                },
+                {
+                    "method": "POST",
+                    "path": "/association-registration/{application}/approval-email",
+                    "action": "sendApprovalEmail"
+                },
+                {
+                    "method": "GET|HEAD",
+                    "path": "/association-registration/{application}/certificate",
+                    "action": "certificate"
+                },
+                {
+                    "method": "PATCH",
+                    "path": "/association-registration/{application}/review",
+                    "action": "review"
+                }
+            ],
+            "tests": ["tests/Feature/AssociationRegistrationTest.php"],
+            "screens": ["resources/js/pages/association-registration.tsx"]
+        },
+        {
+            "controller": "app/Http/Controllers/AssociationWorkspaceController.php",
+            "articles": ["association/first-day"],
+            "routes": [
+                {
+                    "method": "GET|HEAD",
+                    "path": "/association-workspaces",
+                    "action": "index"
+                },
+                {
+                    "method": "GET|HEAD",
+                    "path": "/association-workspaces/{workspace}",
+                    "action": "show"
+                }
+            ],
+            "tests": ["tests/Feature/AssociationWorkspaceTest.php"],
+            "screens": ["resources/js/pages/association-workspaces.tsx"]
+        },
+        {
+            "controller": "app/Http/Controllers/AssociationWorkspaceSetupController.php",
+            "articles": [
+                "association/branding",
+                "association/plans",
+                "association/numbering",
+                "association/form"
+            ],
+            "routes": [
+                {
+                    "method": "GET|HEAD",
+                    "path": "/association-workspaces/{workspace}/setup",
+                    "action": "edit"
+                },
+                {
+                    "method": "POST",
+                    "path": "/association-workspaces/{workspace}/setup",
+                    "action": "update"
+                },
+                {
+                    "method": "GET|HEAD",
+                    "path": "/membership-applications/{association}/logo",
+                    "action": "logo"
+                }
+            ],
+            "tests": [
+                "tests/Feature/AssociationWorkspaceTest.php",
+                "tests/Feature/CustomMembershipPlansTest.php",
+                "tests/Feature/AssociationMembershipNumberingTest.php"
+            ],
+            "screens": ["resources/js/pages/association-workspace-setup.tsx"]
+        },
+        {
+            "controller": "app/Http/Controllers/Auth/GoogleAuthenticationController.php",
+            "articles": ["profile/account-settings"],
+            "routes": [
+                {
+                    "method": "GET|HEAD",
+                    "path": "/auth/google/callback",
+                    "action": "callback"
+                },
+                {
+                    "method": "GET|HEAD",
+                    "path": "/auth/google/redirect",
+                    "action": "redirect"
+                }
+            ],
+            "tests": ["tests/Feature/Auth/GoogleAuthenticationTest.php"],
+            "screens": []
+        },
+        {
+            "controller": "app/Http/Controllers/PublicProfessionalProfileController.php",
+            "articles": ["profile/profile"],
+            "routes": [
+                {
+                    "method": "GET|HEAD",
+                    "path": "/community/@{username}",
+                    "action": "show"
+                },
+                {
+                    "method": "POST",
+                    "path": "/professional-profile/publication",
+                    "action": "publish"
+                },
+                {
+                    "method": "DELETE",
+                    "path": "/professional-profile/publication",
+                    "action": "unpublish"
+                }
+            ],
+            "tests": ["tests/Feature/PublicProfessionalProfileTest.php"],
+            "screens": []
+        },
+        {
+            "controller": "app/Http/Controllers/ProfessionalProfileController.php",
+            "articles": ["profile/profile"],
+            "routes": [
+                {
+                    "method": "GET|HEAD",
+                    "path": "/dashboard",
+                    "action": "dashboard"
+                },
+                {
+                    "method": "GET|HEAD",
+                    "path": "/professional-profile/avatar",
+                    "action": "avatar"
+                },
+                {
+                    "method": "PUT",
+                    "path": "/professional-profile/draft",
+                    "action": "store"
+                },
+                {
+                    "method": "GET|HEAD",
+                    "path": "/professional-profile/username-availability",
+                    "action": "usernameAvailability"
+                }
+            ],
+            "tests": ["tests/Feature/ProfessionalProfileTest.php"],
+            "screens": ["resources/js/pages/dashboard.tsx"]
+        },
+        {
+            "controller": "app/Http/Controllers/FilmunityAdminController.php",
+            "articles": ["association/platform-review"],
+            "routes": [
+                {
+                    "method": "GET|HEAD",
+                    "path": "/filmunity-admin",
+                    "action": "dashboard"
+                },
+                {
+                    "method": "GET|HEAD",
+                    "path": "/filmunity-admin/login",
+                    "action": "login"
+                },
+                {
+                    "method": "GET|HEAD",
+                    "path": "/filmunity-admin/members",
+                    "action": "members"
+                },
+                {
+                    "method": "GET|HEAD",
+                    "path": "/filmunity-admin/membership-applications/{application}/documents/{field}",
+                    "action": "membershipDocument"
+                }
+            ],
+            "tests": ["tests/Feature/FilmunityAdminTest.php"],
+            "screens": ["resources/js/pages/filmunity-admin.tsx"]
+        },
+        {
+            "controller": "app/Http/Controllers/ApplicationCommunicationController.php",
+            "articles": ["members/communication"],
+            "routes": [
+                {
+                    "method": "POST",
+                    "path": "/membership-applications/{application}/retry-notices",
+                    "action": "retry"
+                }
+            ],
+            "tests": ["tests/Feature/MembershipApplicationTest.php"],
+            "screens": []
+        },
+        {
+            "controller": "app/Http/Controllers/MembershipCardController.php",
+            "articles": ["members/print-cards"],
+            "routes": [
+                {
+                    "method": "GET|HEAD",
+                    "path": "/membership-cards/association/{membership}",
+                    "action": "association"
+                },
+                {
+                    "method": "GET|HEAD",
+                    "path": "/membership-cards/filmunity",
+                    "action": "platform"
+                },
+                {
+                    "method": "POST",
+                    "path": "/membership-cards/passport-photo",
+                    "action": "passport"
+                },
+                {
+                    "method": "GET|HEAD",
+                    "path": "/verify-membership/{kind}/{token}",
+                    "action": "verify"
+                }
+            ],
+            "tests": ["tests/Feature/IndividualMembershipWorkflowTest.php"],
+            "screens": []
+        },
+        {
+            "controller": "app/Http/Controllers/MembershipRenewalController.php",
+            "articles": ["members/renewals", "members/member-self-service"],
+            "routes": [
+                {
+                    "method": "GET|HEAD",
+                    "path": "/membership-renewals/{membership}",
+                    "action": "show"
+                },
+                {
+                    "method": "POST",
+                    "path": "/membership-renewals/{membership}",
+                    "action": "store"
+                }
+            ],
+            "tests": ["tests/Feature/MembershipRenewalTest.php"],
+            "screens": ["resources/js/pages/membership-renewal.tsx"]
+        },
+        {
+            "controller": "app/Http/Controllers/Settings/SecurityController.php",
+            "articles": ["profile/account-settings"],
+            "routes": [
+                {
+                    "method": "PUT",
+                    "path": "/settings/password",
+                    "action": "update"
+                },
+                {
+                    "method": "GET|HEAD",
+                    "path": "/settings/security",
+                    "action": "edit"
+                }
+            ],
+            "tests": ["tests/Feature/Settings/SecurityTest.php"],
+            "screens": ["resources/js/pages/settings/security.tsx"]
+        },
+        {
+            "controller": "app/Http/Controllers/Settings/ProfileController.php",
+            "articles": ["profile/account-settings"],
+            "routes": [
+                {
+                    "method": "GET|HEAD",
+                    "path": "/settings/profile",
+                    "action": "edit"
+                },
+                {
+                    "method": "PATCH",
+                    "path": "/settings/profile",
+                    "action": "update"
+                },
+                {
+                    "method": "DELETE",
+                    "path": "/settings/profile",
+                    "action": "destroy"
+                }
+            ],
+            "tests": ["tests/Feature/Settings/ProfileUpdateTest.php"],
+            "screens": ["resources/js/pages/settings/profile.tsx"]
+        }
+    ],
+    "infrastructure": "Fortify/passkey/authentication and settings routes are covered by profile/account-settings. Framework storage, health, devtools and CSRF routes are infrastructure, not separate user data-entry articles. API V1 currently exposes health only.",
+    "commands": [
+        {
+            "name": "filmunity:generate-recurring-invoices",
+            "source": "app/Console/Commands/GenerateRecurringMemberInvoices.php",
+            "schedule": "Daily 01:00 in config(app.timezone), currently UTC; withoutOverlapping(120).",
+            "article": "finance/recurring-drafts"
+        },
+        {
+            "name": "filmunity:deliver-payment-mail",
+            "source": "app/Console/Commands/DeliverAssociationPaymentMail.php",
+            "article": "members/communication"
+        },
+        {
+            "name": "accounting:check",
+            "source": "app/Console/Commands/CheckAccountingIntegrity.php",
+            "article": "finance/troubleshoot"
+        }
+    ],
+    "articles": [
+        {
+            "section": "profile",
+            "title": "Understand your representative account",
+            "path": "/association-help/profile?topic=start",
+            "change": "revised"
+        },
+        {
+            "section": "profile",
+            "title": "Build and publish your professional profile",
+            "path": "/association-help/profile?topic=profile",
+            "change": "revised"
+        },
+        {
+            "section": "profile",
+            "title": "Maintain account identity and security",
+            "path": "/association-help/profile?topic=account-settings",
+            "change": "added"
+        },
+        {
+            "section": "association",
+            "title": "First-day setup checklist",
+            "path": "/association-help/association?topic=first-day",
+            "change": "revised"
+        },
+        {
+            "section": "association",
+            "title": "Configure logo and official communication address",
+            "path": "/association-help/association?topic=branding",
+            "change": "revised"
+        },
+        {
+            "section": "association",
+            "title": "Configure membership plans and fees",
+            "path": "/association-help/association?topic=plans",
+            "change": "revised"
+        },
+        {
+            "section": "association",
+            "title": "Continue your existing membership numbers",
+            "path": "/association-help/association?topic=numbering",
+            "change": "revised"
+        },
+        {
+            "section": "association",
+            "title": "Build and preview the application form",
+            "path": "/association-help/association?topic=form",
+            "change": "revised"
+        },
+        {
+            "section": "association",
+            "title": "Register an association and review its approval",
+            "path": "/association-help/association?topic=registration",
+            "change": "added"
+        },
+        {
+            "section": "association",
+            "title": "Understand platform review and audit views",
+            "path": "/association-help/association?topic=platform-review",
+            "change": "added"
+        },
+        {
+            "section": "members",
+            "title": "Review an application",
+            "path": "/association-help/members?topic=applications",
+            "change": "revised"
+        },
+        {
+            "section": "members",
+            "title": "Request payment and verify proof",
+            "path": "/association-help/members?topic=application-payments",
+            "change": "revised"
+        },
+        {
+            "section": "members",
+            "title": "Find a member, card or receipt",
+            "path": "/association-help/members?topic=member-records",
+            "change": "revised"
+        },
+        {
+            "section": "members",
+            "title": "Review expiring memberships and send a reminder",
+            "path": "/association-help/members?topic=renewals",
+            "change": "revised"
+        },
+        {
+            "section": "members",
+            "title": "Handle missing emails and records",
+            "path": "/association-help/members?topic=communication",
+            "change": "revised"
+        },
+        {
+            "section": "members",
+            "title": "Legacy membership migration: read-only import preview",
+            "path": "/association-help/members?topic=legacy-preview",
+            "change": "added"
+        },
+        {
+            "section": "members",
+            "title": "Download FILMUNITY Template and a synthetic example",
+            "path": "/association-help/members?topic=legacy-template",
+            "change": "added"
+        },
+        {
+            "section": "members",
+            "title": "Member application, payment and renewal self-service",
+            "path": "/association-help/members?topic=member-self-service",
+            "change": "added"
+        },
+        {
+            "section": "members",
+            "title": "Print membership receipts and cards; verify QR",
+            "path": "/association-help/members?topic=print-cards",
+            "change": "added"
+        },
+        {
+            "section": "finance",
+            "title": "Start here: the financial workflow",
+            "path": "/association-help/finance?topic=start",
+            "change": "revised"
+        },
+        {
+            "section": "finance",
+            "title": "Open the books and enter opening balances",
+            "path": "/association-help/finance?topic=initialize",
+            "change": "revised"
+        },
+        {
+            "section": "finance",
+            "title": "Choose accounts and membership classifications",
+            "path": "/association-help/finance?topic=accounts",
+            "change": "revised"
+        },
+        {
+            "section": "finance",
+            "title": "Bring membership receipts into Bank correctly",
+            "path": "/association-help/finance?topic=membership-clearing",
+            "change": "revised"
+        },
+        {
+            "section": "finance",
+            "title": "Member invoices, vendor bills, receipts and payments",
+            "path": "/association-help/finance?topic=invoices-settlements",
+            "change": "added"
+        },
+        {
+            "section": "finance",
+            "title": "Allocate or release a settlement or correction credit",
+            "path": "/association-help/finance?topic=allocations",
+            "change": "added"
+        },
+        {
+            "section": "finance",
+            "title": "Configure reviewed GST / TDS settings",
+            "path": "/association-help/finance?topic=tax-billing",
+            "change": "revised"
+        },
+        {
+            "section": "finance",
+            "title": "Enter and review a tax-aware invoice or vendor bill",
+            "path": "/association-help/finance?topic=multi-line-billing",
+            "change": "revised"
+        },
+        {
+            "section": "finance",
+            "title": "Credit/debit corrections and reviewed TDS reversals",
+            "path": "/association-help/finance?topic=correction-notes",
+            "change": "added"
+        },
+        {
+            "section": "finance",
+            "title": "Record an effective-dated vendor TDS review profile",
+            "path": "/association-help/finance?topic=vendor-tds-reviews",
+            "change": "added"
+        },
+        {
+            "section": "finance",
+            "title": "Review certificate validity on the bill book date",
+            "path": "/association-help/finance?topic=vendor-certificates",
+            "change": "added"
+        },
+        {
+            "section": "finance",
+            "title": "Read prior vendor TDS deductions and separate challan payments",
+            "path": "/association-help/finance?topic=vendor-history",
+            "change": "added"
+        },
+        {
+            "section": "finance",
+            "title": "Use the read-only accountant-reviewed threshold comparison",
+            "path": "/association-help/finance?topic=vendor-threshold",
+            "change": "added"
+        },
+        {
+            "section": "finance",
+            "title": "Record a posted TDS remittance and reconcile a challan",
+            "path": "/association-help/finance?topic=tds-challans",
+            "change": "added"
+        },
+        {
+            "section": "finance",
+            "title": "How to record an office expense",
+            "path": "/association-help/finance?topic=expense",
+            "change": "revised"
+        },
+        {
+            "section": "finance",
+            "title": "How to record a donation or other receipt",
+            "path": "/association-help/finance?topic=receipt",
+            "change": "revised"
+        },
+        {
+            "section": "finance",
+            "title": "Move money between Bank and petty cash",
+            "path": "/association-help/finance?topic=transfer",
+            "change": "revised"
+        },
+        {
+            "section": "finance",
+            "title": "Review, reject or correct a voucher",
+            "path": "/association-help/finance?topic=review-correct",
+            "change": "revised"
+        },
+        {
+            "section": "finance",
+            "title": "Compare the bank statement with the ledger",
+            "path": "/association-help/finance?topic=reconcile",
+            "change": "revised"
+        },
+        {
+            "section": "finance",
+            "title": "Read reports and close a reviewed period",
+            "path": "/association-help/finance?topic=reports-close",
+            "change": "revised"
+        },
+        {
+            "section": "finance",
+            "title": "Branded Print / Save as PDF for financial documents",
+            "path": "/association-help/finance?topic=print-documents",
+            "change": "added"
+        },
+        {
+            "section": "finance",
+            "title": "Monthly recurring member invoice drafts",
+            "path": "/association-help/finance?topic=recurring-drafts",
+            "change": "added"
+        },
+        {
+            "section": "finance",
+            "title": "Preview invoice reminders and monitor the test-only queue",
+            "path": "/association-help/finance?topic=invoice-reminders",
+            "change": "added"
+        },
+        {
+            "section": "finance",
+            "title": "Export safely before migration or audit",
+            "path": "/association-help/finance?topic=exports",
+            "change": "revised"
+        },
+        {
+            "section": "finance",
+            "title": "TallyPrime XML: review mappings and rehearse in a test company",
+            "path": "/association-help/finance?topic=tally-export",
+            "change": "added"
+        },
+        {
+            "section": "finance",
+            "title": "Solve common form and balance problems",
+            "path": "/association-help/finance?topic=troubleshoot",
+            "change": "revised"
+        }
+    ],
+    "article_count": {
+        "revised": 26,
+        "added": 19,
+        "total": 45
+    }
+}

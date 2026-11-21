@@ -38,10 +38,12 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'name' => config('app.name'),
+            'filmunityBrandAssets' => fn () => \App\Support\FilmunityBrandAssets::paths(),
             'auth' => [
                 'user' => $request->user(),
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
+            'filmunityNavigation' => fn () => \App\Support\FilmunityNavigation::forRequest($request),
         ];
     }
 }

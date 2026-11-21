@@ -1,36 +1,110 @@
-import { Head } from '@inertiajs/react';
-import { PlaceholderPattern } from '@/components/ui/placeholder-pattern';
+import { IndividualMembershipPanel } from '@/components/individual-membership-panel';
+import { Head, Link, router, usePage } from '@inertiajs/react';
+import MemberSummary, { type MemberProfileSummary } from '@/components/member-dashboard-summary';
+import ProfileEditor, { type ProfessionalProfileDraft } from '@/components/professional-profile';
+import ProfileOverview from '@/components/professional-profile-overview';
+import ProfilePublication from '@/components/profile-publication';
+import { Button } from '@/components/ui/button';
 import { dashboard } from '@/routes';
 
-export default function Dashboard() {
+export default function Dashboard({
+    professionalProfileDraft = null,
+    memberProfileSummary = null,
+    publishedProfileUrl = null,
+}: {
+    professionalProfileDraft?: ProfessionalProfileDraft | null;
+    memberProfileSummary?: MemberProfileSummary | null;
+    publishedProfileUrl?: string | null;
+}) {
+    const { props, url } = usePage();
+    const user = props.auth.user;
+    const query = new URLSearchParams(url.split('?')[1]);
+    const panel = query.get('panel');
+    const editing = query.get('edit') === '1';
+    const step = query.get('step');
+    const editField = query.get('focus');
+    const editStep = step !== null && /^[0-6]$/.test(step) ? Number(step) : undefined;
+    const profileUrl = '/dashboard?panel=profile';
+    const title =
+        panel === 'profile'
+            ? 'Professional profile'
+            : panel === 'applications'
+              ? 'My applications'
+              : 'Overview';
+
     return (
         <>
-            <Head title="Dashboard" />
-            <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
-                <div className="grid auto-rows-min gap-4 md:grid-cols-3">
-                    <div className="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-                        <PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
-                    </div>
-                    <div className="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-                        <PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
-                    </div>
-                    <div className="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-                        <PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
-                    </div>
+            <Head title={title} />
+            <div className="flex min-w-0 flex-1 flex-col gap-4 p-4">
+                <div>
+                    <h1 className="text-xl font-semibold tracking-tight">
+                        {title}
+                    </h1>
                 </div>
-                <div className="relative min-h-[100vh] flex-1 overflow-hidden rounded-xl border border-sidebar-border/70 md:min-h-min dark:border-sidebar-border">
-                    <PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
-                </div>
+
+                {panel === 'profile' && user && (
+                    editing ? (
+                        <>
+                            <Button asChild variant="outline" className="w-fit">
+                                <Link href={profileUrl}>Return to profile overview</Link>
+                            </Button>
+                            <ProfileEditor
+                                key={user.id}
+                                userId={user.id}
+                                name={user.name}
+                                draft={professionalProfileDraft}
+                                editStep={editStep}
+                                editField={editField}
+                                onExit={() => router.visit(profileUrl)}
+                            />
+                        </>
+                    ) : (
+                        <>
+                            <ProfilePublication
+                                publishedUrl={publishedProfileUrl}
+                                hasDraft={professionalProfileDraft !== null}
+                                heroSlideCount={professionalProfileDraft?.profile.heroSlides?.length ?? 0}
+                            />
+                            <ProfileOverview
+                                accountName={user.name}
+                                email={user.email}
+                                draft={professionalProfileDraft}
+                            />
+                        </>
+                    )
+                )}
+
+                {panel === 'applications' && (
+                    <section className="grid gap-2 rounded-xl border border-sidebar-border bg-card p-5 text-card-foreground">
+                        <h2 className="font-medium">Association applications</h2>
+                        <p className="text-sm text-muted-foreground">
+                            Register an association or union and track its review status.
+                        </p>
+                        <Button asChild className="w-fit">
+                            <Link href="/association-registration">
+                                {typeof props.filmunityNavigation === 'object'
+                                    && props.filmunityNavigation !== null
+                                    && 'canApplyForAssociation' in props.filmunityNavigation
+                                    && props.filmunityNavigation.canApplyForAssociation === true
+                                    ? 'Association registration'
+                                    : 'View application history'}
+                            </Link>
+                        </Button>
+                    </section>
+                )}
+
+                {panel !== 'profile' && panel !== 'applications' && user && (
+                    <><MemberSummary
+                        accountName={user.name}
+                        photo={typeof props.professionalProfileAvatar === 'string' ? props.professionalProfileAvatar : user.avatar}
+                        summary={memberProfileSummary}
+                    /><IndividualMembershipPanel /></>
+                )}
             </div>
         </>
     );
 }
 
 Dashboard.layout = {
-    breadcrumbs: [
-        {
-            title: 'Dashboard',
-            href: dashboard(),
-        },
-    ],
+    breadcrumbs: [{ title: 'Dashboard', href: dashboard() }],
 };

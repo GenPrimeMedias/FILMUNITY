@@ -65,7 +65,10 @@ function DialogContent({
           <XIcon />
           <span className="sr-only">Close</span>
         </DialogPrimitive.Close>
-      </DialogPrimitive.Content>
+            <style>{'[role="dialog"] dl, [role="alertdialog"] dl { border: 1px solid var(--border); border-top: 3px solid var(--primary); border-radius: 10px; padding: 16px; } [role="dialog"] dl > div, [role="alertdialog"] dl > div { border: 1px solid var(--border); border-radius: 8px; padding: 10px; } [role="dialog"] h2, [role="alertdialog"] h2 { padding-right: 36px; }'}</style>
+      <DialogPrimitive.Close type="button" data-workflow-close aria-label="Close dialog" style={{ position: 'absolute', top: 12, right: 12, zIndex: 50, display: 'grid', width: 32, height: 32, placeItems: 'center', opacity: 1, visibility: 'visible', pointerEvents: 'auto' }} className="rounded-md border bg-background text-foreground hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
+      </DialogPrimitive.Close></DialogPrimitive.Content>
     </DialogPortal>
   )
 }
