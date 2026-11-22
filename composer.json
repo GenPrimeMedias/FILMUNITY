@@ -19,6 +19,7 @@
         "laravel/socialite": "5.32.*",
         "laravel/tinker": "^3.0",
         "laravel/wayfinder": "^0.1.14",
+        "resend/resend-php": "^1.19",
         "shuchkin/simplexls": "^1.0",
         "shuchkin/simplexlsx": "^1.1"
     },
