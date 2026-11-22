@@ -13,6 +13,8 @@ use Tests\TestCase;
 
 class AssociationWorkspaceTest extends TestCase
 {
+    use \Tests\Support\WorkspaceMutationRequests;
+
     use DatabaseTransactions;
 
     public function test_switching_to_individual_signup_clears_association_intent(): void
@@ -30,7 +32,7 @@ class AssociationWorkspaceTest extends TestCase
     {
         $this->get('/association-registration/start')->assertRedirect();
 
-        $this->post(route('register'), [
+        $this->postWithWorkspaceLease(route('register'), [
             'name' => 'Association applicant',
             'email' => 'association-signup@example.com',
             'password' => 'Example-password-123',
@@ -59,7 +61,7 @@ class AssociationWorkspaceTest extends TestCase
         $this->actingAs($applicant)->get('/dashboard')->assertRedirect(route('association-registration.index'));
         $this->get('/dashboard')->assertRedirect(route('association-registration.index'));
 
-        $this->post('/association-registration', [
+        $this->postWithWorkspaceLease('/association-registration', [
             'name' => 'Example Cine Workers',
             'organisation_type' => 'Union',
             'industry' => 'Tamil',

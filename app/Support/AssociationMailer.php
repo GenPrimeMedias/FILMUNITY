@@ -4,6 +4,7 @@ namespace App\Support;
 
 use App\Exceptions\AssociationMailNotSent;
 use App\Exceptions\AssociationMailUncertain;
+use App\Exceptions\BillingReminderNotSent;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailer;
 use Illuminate\Support\Facades\Crypt;
@@ -12,9 +13,12 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Testing\Fakes\MailFake;
 use Symfony\Component\HttpFoundation\IpUtils;
 use Symfony\Component\Mailer\Transport\Smtp\EsmtpTransport;
+use Symfony\Component\Mailer\Transport\Smtp\Stream\SocketStream;
+use Symfony\Component\Mime\Address;
 
 final class AssociationMailer
 {
+    /** @return array<string, mixed>|null */
     public static function configuration(string $association): ?array
     {
         $encrypted = DB::table('association_mail_settings')->where('association_id', $association)->value('encrypted_configuration');
@@ -28,13 +32,16 @@ final class AssociationMailer
         }
     }
 
+    /** @return array<string, mixed> */
     public static function publicConfiguration(string $association): array
     {
         $data = self::configuration($association) ?? ['mode' => 'managed', 'sender_email' => config('mail.from.address'), 'sender_name' => '', 'reply_to' => '', 'host' => '', 'port' => 587, 'encryption' => 'starttls', 'username' => '', 'password' => ''];
-        $data['has_password'] = ! empty($data['password']);
-        unset($data['password']);
+        $hasPassword = ! empty($data['password']);
+        $data = array_intersect_key($data, array_flip(['mode', 'sender_email', 'sender_name', 'reply_to', 'host', 'port', 'encryption', 'username', 'provider_reviewed']));
+        $data['has_password'] = $hasPassword;
         $row = DB::table('association_mail_settings')->where('association_id', $association)->first(['status', 'last_error', 'tested_at']);
-        return [...$data, 'status' => $row?->status ?? 'not_configured', 'last_error' => $row?->last_error, 'tested_at' => $row?->tested_at];
+
+        return [...$data, 'allowed_ports' => config('association-mail.smtp_ports'), 'status' => $row->status ?? 'not_configured', 'last_error' => $row?->last_error, 'tested_at' => $row?->tested_at];
     }
 
     public static function validatedAddress(string $host, int $port): string
@@ -59,6 +66,7 @@ final class AssociationMailer
         if (! $addresses) {
             throw new AssociationMailNotSent('SMTP destination could not be resolved. Verify the provider configuration.');
         }
+
         // Pin the checked address; do not resolve the hostname again while connecting.
         return $addresses[0];
     }
@@ -74,17 +82,21 @@ final class AssociationMailer
             }
             try {
                 $pending->send($message);
-            } catch (AssociationMailNotSent|\App\Exceptions\BillingReminderNotSent $error) {
+            } catch (AssociationMailNotSent|BillingReminderNotSent $error) {
                 throw $error;
             } catch (\Throwable) {
                 throw new AssociationMailUncertain('Delivery outcome is uncertain. Review provider evidence before another send.');
             }
+
             return;
         }
         self::checkIdentity($association, $configuration);
+        if ($configuration['mode'] === 'smtp' && empty($configuration['password'])) {
+            throw new AssociationMailNotSent('SMTP password is absent. Save credentials before sending.');
+        }
         $identity = array_intersect_key($configuration, array_flip(['sender_email', 'sender_name', 'reply_to']));
         $message->withSymfonyMessage(function ($email) use ($identity) {
-            $email->from(new \Symfony\Component\Mime\Address($identity['sender_email'], $identity['sender_name']));
+            $email->from(new Address($identity['sender_email'], $identity['sender_name']));
             if ($identity['reply_to']) {
                 $email->replyTo($identity['reply_to']);
             }
@@ -92,6 +104,7 @@ final class AssociationMailer
         // Never open a network connection when a workflow test installed the mail fake.
         if (Mail::getFacadeRoot() instanceof MailFake) {
             Mail::to($recipient)->send($message);
+
             return;
         }
         if ($configuration['mode'] === 'managed') {
@@ -100,6 +113,7 @@ final class AssociationMailer
             } catch (\Throwable) {
                 throw new AssociationMailUncertain('Managed provider delivery outcome is uncertain. Review provider evidence before allowing another send.');
             }
+
             return;
         }
         if (empty($configuration['password'])) {
@@ -111,8 +125,12 @@ final class AssociationMailer
         $transport->setRequireTls(true);
         $transport->setUsername($configuration['username']);
         $transport->setPassword($configuration['password']);
-        $transport->getStream()->setStreamOptions(['ssl' => ['peer_name' => $configuration['host'], 'SNI_enabled' => true, 'verify_peer' => true, 'verify_peer_name' => true]]);
-        $transport->getStream()->setTimeout(15);
+        $stream = $transport->getStream();
+        if (! $stream instanceof SocketStream) {
+            throw new AssociationMailNotSent('The configured SMTP transport does not support the required network/TLS restrictions.');
+        }
+        $stream->setStreamOptions(['ssl' => ['peer_name' => $configuration['host'], 'SNI_enabled' => true, 'verify_peer' => true, 'verify_peer_name' => true]]);
+        $stream->setTimeout(15);
         $mailer = new Mailer('association-'.$association, app('view'), $transport, app('events'));
         $mailer->alwaysFrom($configuration['sender_email'], $configuration['sender_name']);
         try {
@@ -121,10 +139,14 @@ final class AssociationMailer
             // Do not attach the raw exception: provider debug output can contain credentials/connection details.
             throw new AssociationMailUncertain('Custom SMTP delivery could not be confirmed. Check provider authentication, TLS and authorized sender configuration; review provider evidence before retry. No sender fallback was attempted.');
         } finally {
-            try { $transport->stop(); } catch (\Throwable) { /* The message result above is authoritative; never expose transport debug details. */ }
+            try {
+                $transport->stop();
+            } catch (\Throwable) { /* The message result above is authoritative; never expose transport debug details. */
+            }
         }
     }
 
+    /** @param array<string, mixed> $configuration */
     public static function checkIdentity(string $association, array $configuration): void
     {
         $permitted = [config('mail.from.address'), ...config('association-mail.managed_senders.'.$association, [])];

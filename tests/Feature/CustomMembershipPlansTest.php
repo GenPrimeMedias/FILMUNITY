@@ -12,79 +12,81 @@ use Inertia\Testing\AssertableInertia as Page;
 use Tests\TestCase;
 
 class CustomMembershipPlansTest extends TestCase {
+    use \Tests\Support\WorkspaceMutationRequests;
+
     use DatabaseTransactions;
     protected function setUp(): void { parent::setUp(); Mail::fake(); config(['association-registration.reviewer_ids' => []]); }
 
     public function test_custom_plans_are_scoped_and_defaults_remain_mandatory(): void {
         [$owner, $association] = $this->association();
         $custom = $this->plan('Associate', 'yearly', '150.25');
-        $this->actingAs($owner)->post("/association-workspaces/$association/setup", $this->settings([$custom]))->assertSessionHasNoErrors();
+        $this->actingAs($owner)->postWithWorkspaceLease("/association-workspaces/$association/setup", $this->settings([$custom]))->assertSessionHasNoErrors();
         $this->assertCount(3, AssociationPlans::choices($association));
         $this->assertDatabaseHas('association_membership_plans', ['id' => $custom['id'], 'association_id' => $association, 'amount_minor' => 15025]);
         [$otherOwner, $other] = $this->association();
-        $this->actingAs($otherOwner)->post("/association-workspaces/$other/setup", $this->settings([$custom]))->assertSessionHasErrors('custom_plans');
+        $this->actingAs($otherOwner)->postWithWorkspaceLease("/association-workspaces/$other/setup", $this->settings([$custom]))->assertSessionHasErrors('custom_plans');
         $bad = $this->settings([$this->plan('Yearly', 'yearly', '1.00')]);
         $bad['version'] = 1;
-        $this->actingAs($owner)->post("/association-workspaces/$association/setup", $bad)->assertSessionHasErrors('custom_plans.0.name');
+        $this->actingAs($owner)->postWithWorkspaceLease("/association-workspaces/$association/setup", $bad)->assertSessionHasErrors('custom_plans.0.name');
         $noDefaults = $this->settings([$custom]); unset($noDefaults['yearly_fee']);
-        $this->post("/association-workspaces/$association/setup", $noDefaults)->assertSessionHasErrors('yearly_fee');
+        $this->postWithWorkspaceLease("/association-workspaces/$association/setup", $noDefaults)->assertSessionHasErrors('yearly_fee');
     }
 
     public function test_selected_custom_fee_is_frozen_and_inactive_or_foreign_plans_are_rejected(): void {
         [$owner, $association] = $this->association(); $member = User::factory()->create();
         $plan = $this->plan('Associate', 'yearly', '150.25');
-        $this->actingAs($owner)->post("/association-workspaces/$association/setup", $this->settings([$plan]))->assertSessionHasNoErrors();
+        $this->actingAs($owner)->postWithWorkspaceLease("/association-workspaces/$association/setup", $this->settings([$plan]))->assertSessionHasNoErrors();
         $application = $this->application($member, $association);
-        $this->actingAs($member)->post("/membership-applications/$application/confirm-plan", ['plan_id' => $plan['id'], 'version' => 1])->assertSessionHasNoErrors();
+        $this->actingAs($member)->postWithWorkspaceLease("/membership-applications/$application/confirm-plan", ['plan_id' => $plan['id'], 'version' => 1])->assertSessionHasNoErrors();
         $this->assertDatabaseHas('association_membership_applications', ['id' => $application, 'plan_id' => $plan['id'], 'fee_minor' => 15025, 'membership_type' => 'yearly']);
         $updated = $plan; $updated['fee'] = '250.00';
-        $this->actingAs($owner)->post("/association-workspaces/$association/setup", [...$this->settings([$updated]), 'version' => 1])->assertSessionHasNoErrors();
-        $this->post("/membership-payments/request/$application", ['instructions' => 'Bank'])->assertSessionHasNoErrors();
+        $this->actingAs($owner)->postWithWorkspaceLease("/association-workspaces/$association/setup", [...$this->settings([$updated]), 'version' => 1])->assertSessionHasNoErrors();
+        $this->postWithWorkspaceLease("/membership-payments/request/$application", ['instructions' => 'Bank'])->assertSessionHasNoErrors();
         $this->assertDatabaseHas('association_payment_requests', ['application_id' => $application, 'amount_minor' => 15025, 'plan_id' => $plan['id']]);
         [$otherOwner, $other] = $this->association(); $otherMember = User::factory()->create(); $otherApplication = $this->application($otherMember, $other);
-        $this->actingAs($otherMember)->post("/membership-applications/$otherApplication/confirm-plan", ['plan_id' => $plan['id'], 'version' => 0])->assertSessionHasErrors('plan_id');
+        $this->actingAs($otherMember)->postWithWorkspaceLease("/membership-applications/$otherApplication/confirm-plan", ['plan_id' => $plan['id'], 'version' => 0])->assertSessionHasErrors('plan_id');
         $updated['active'] = false;
-        $this->actingAs($owner)->post("/association-workspaces/$association/setup", [...$this->settings([$updated]), 'version' => 2])->assertSessionHasNoErrors();
+        $this->actingAs($owner)->postWithWorkspaceLease("/association-workspaces/$association/setup", [...$this->settings([$updated]), 'version' => 2])->assertSessionHasNoErrors();
         $newMember = User::factory()->create(); $newApplication = $this->application($newMember, $association);
-        $this->actingAs($newMember)->post("/membership-applications/$newApplication/confirm-plan", ['plan_id' => $plan['id'], 'version' => 3])->assertSessionHasErrors('plan_id');
+        $this->actingAs($newMember)->postWithWorkspaceLease("/membership-applications/$newApplication/confirm-plan", ['plan_id' => $plan['id'], 'version' => 3])->assertSessionHasErrors('plan_id');
         $this->assertDatabaseHas('association_payment_requests', ['application_id' => $application, 'amount_minor' => 15025]);
     }
 
     public function test_yearly_custom_plan_keeps_its_identity_and_uses_its_own_renewal_fee(): void {
         [$owner, $association] = $this->association(); $member = User::factory()->create();
         $plan = $this->plan('Student', 'yearly', '0.00');
-        $this->actingAs($owner)->post("/association-workspaces/$association/setup", $this->settings([$plan]))->assertSessionHasNoErrors();
+        $this->actingAs($owner)->postWithWorkspaceLease("/association-workspaces/$association/setup", $this->settings([$plan]))->assertSessionHasNoErrors();
         $application = $this->application($member, $association);
-        $this->actingAs($member)->post("/membership-applications/$application/confirm-plan", ['plan_id' => $plan['id'], 'version' => 1])->assertSessionHasNoErrors();
-        $this->actingAs($owner)->post("/membership-payments/request/$application", [])->assertSessionHasNoErrors();
+        $this->actingAs($member)->postWithWorkspaceLease("/membership-applications/$application/confirm-plan", ['plan_id' => $plan['id'], 'version' => 1])->assertSessionHasNoErrors();
+        $this->actingAs($owner)->postWithWorkspaceLease("/membership-payments/request/$application", [])->assertSessionHasNoErrors();
         $payment = DB::table('association_payment_requests')->where('application_id', $application)->value('id');
-        $this->post("/association-payments/$payment/zero-fee")->assertSessionHasNoErrors();
+        $this->postWithWorkspaceLease("/association-payments/$payment/zero-fee")->assertSessionHasNoErrors();
         $membership = DB::table('association_memberships')->where('payment_id', $payment)->first();
         $this->assertSame($plan['id'], $membership->plan_id);
         $receipt = DB::table('association_payment_receipts')->where('payment_id', $payment)->first();
         $this->assertSame('Student', json_decode($receipt->snapshot, true)['plan_name']);
         $changed = $plan; $changed['fee'] = '75.00';
-        $this->post("/association-workspaces/$association/setup", [...$this->settings([$changed]), 'version' => 1])->assertSessionHasNoErrors();
+        $this->postWithWorkspaceLease("/association-workspaces/$association/setup", [...$this->settings([$changed]), 'version' => 1])->assertSessionHasNoErrors();
         $time = CarbonImmutable::parse($membership->ends_at)->subDays(10);
         CarbonImmutable::setTestNow($time); \Carbon\Carbon::setTestNow(\Carbon\Carbon::parse($time->toIso8601String()));
         try {
             $this->actingAs($member)->get("/membership-renewals/$membership->id")->assertInertia(fn (Page $page) => $page->where('renewalPlan.name', 'Student')->where('renewalPlan.fee', '75.00'));
-            $this->post("/membership-renewals/$membership->id", ['fee' => '75.00', 'version' => 2, 'end_token' => CarbonImmutable::parse($membership->ends_at)->toIso8601String(), 'confirmed' => true])->assertSessionHasNoErrors();
+            $this->postWithWorkspaceLease("/membership-renewals/$membership->id", ['fee' => '75.00', 'version' => 2, 'end_token' => CarbonImmutable::parse($membership->ends_at)->toIso8601String(), 'confirmed' => true])->assertSessionHasNoErrors();
             $this->assertDatabaseHas('association_payment_requests', ['renewal_membership_id' => $membership->id, 'plan_id' => $plan['id'], 'amount_minor' => 7500]);
         } finally { CarbonImmutable::setTestNow(); \Carbon\Carbon::setTestNow(); }
         $changed['term'] = 'lifetime';
-        $this->actingAs($owner)->post("/association-workspaces/$association/setup", [...$this->settings([$changed]), 'version' => 2])->assertSessionHasErrors('custom_plans.0.term');
+        $this->actingAs($owner)->postWithWorkspaceLease("/association-workspaces/$association/setup", [...$this->settings([$changed]), 'version' => 2])->assertSessionHasErrors('custom_plans.0.term');
     }
 
     public function test_lifetime_custom_plan_has_no_expiry_and_preserves_name_on_card(): void {
         [$owner, $association] = $this->association(); $member = User::factory()->create();
         $plan = $this->plan('Honorary', 'lifetime', '0.00');
-        $this->actingAs($owner)->post("/association-workspaces/$association/setup", $this->settings([$plan]))->assertSessionHasNoErrors();
+        $this->actingAs($owner)->postWithWorkspaceLease("/association-workspaces/$association/setup", $this->settings([$plan]))->assertSessionHasNoErrors();
         $application = $this->application($member, $association);
-        $this->actingAs($member)->post("/membership-applications/$application/confirm-plan", ['plan_id' => $plan['id'], 'version' => 1])->assertSessionHasNoErrors();
-        $this->actingAs($owner)->post("/membership-payments/request/$application", [])->assertSessionHasNoErrors();
+        $this->actingAs($member)->postWithWorkspaceLease("/membership-applications/$application/confirm-plan", ['plan_id' => $plan['id'], 'version' => 1])->assertSessionHasNoErrors();
+        $this->actingAs($owner)->postWithWorkspaceLease("/membership-payments/request/$application", [])->assertSessionHasNoErrors();
         $payment = DB::table('association_payment_requests')->where('application_id', $application)->value('id');
-        $this->post("/association-payments/$payment/zero-fee")->assertSessionHasNoErrors();
+        $this->postWithWorkspaceLease("/association-payments/$payment/zero-fee")->assertSessionHasNoErrors();
         $membership = DB::table('association_memberships')->where('payment_id', $payment)->first();
         $this->assertNull($membership->ends_at);
         $this->actingAs($member)->get("/membership-cards/association/$membership->id")->assertSee('Honorary membership');
@@ -93,13 +95,13 @@ class CustomMembershipPlansTest extends TestCase {
     public function test_pending_and_approved_representatives_cannot_apply_or_confirm_any_other_association(): void {
         [$owner, $association] = $this->association(); [$otherOwner, $other] = $this->association();
         $this->actingAs($owner)->get('/membership-applications/apply')->assertForbidden();
-        $this->post('/membership-applications', ['association_id' => $other, 'statement' => 'Not allowed'])->assertForbidden();
+        $this->postWithWorkspaceLease('/membership-applications', ['association_id' => $other, 'statement' => 'Not allowed'])->assertForbidden();
         $application = $this->application($owner, $other);
-        $this->post("/membership-applications/$application/confirm-plan", ['membership_type' => 'yearly', 'version' => 0])->assertForbidden();
+        $this->postWithWorkspaceLease("/membership-applications/$application/confirm-plan", ['membership_type' => 'yearly', 'version' => 0])->assertForbidden();
         $this->get('/membership-applications')->assertForbidden();
         $this->get('/association-workspaces')->assertInertia(fn (Page $page) => $page->where('filmunityNavigation.canApplyForMembership', false));
         DB::table('association_registration_applications')->where('id', $association)->update(['status' => 'pending']);
-        $this->post('/membership-applications', ['association_id' => $other, 'statement' => 'Still blocked'])->assertForbidden();
+        $this->postWithWorkspaceLease('/membership-applications', ['association_id' => $other, 'statement' => 'Still blocked'])->assertForbidden();
         DB::table('association_registration_applications')->where('id', $association)->update(['status' => 'declined']);
         $this->get('/membership-applications/apply')->assertOk();
     }

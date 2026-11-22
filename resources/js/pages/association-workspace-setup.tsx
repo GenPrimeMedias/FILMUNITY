@@ -56,7 +56,7 @@ function WorkspaceEditor({ workspaceId, settings, saved, onSaved }: {
         setPreview((values) => ({ ...values, [id]: '' }));
     };
 
-    return <WorkspaceEditProtection association={workspaceId} resource="workspace" dirty={form.isDirty} onDiscard={() => { form.reset(); }} onSaved={() => { form.defaults(); }}>(
+    return <WorkspaceEditProtection association={workspaceId} resource="workspace" dirty={form.isDirty || mailDirty} onDiscard={() => { form.reset(); setMailDirty(false); setMailRevision(value => value + 1); }} onSaved={(path) => { if (path.endsWith('/setup')) form.setDefaults(); }}>
         <main className="grid w-full min-w-0 gap-4 p-4">
             <Head title="Workspace setup" />
             <header className="flex flex-wrap items-start justify-between gap-3">
@@ -216,6 +216,7 @@ function WorkspaceEditor({ workspaceId, settings, saved, onSaved }: {
                     {saved && !form.isDirty && <p role="status" className="text-sm text-muted-foreground">Workspace settings saved.</p>}
                 </div>
             </form></ProtectedFields>
+            <AssociationEmailConfiguration key={mailRevision} association={workspaceId} onDirty={setMailDirty} />
             <section className={`${card} border-t-4`} style={{ borderTopColor: form.data.accent }}>
                 <div>
                     <h2 className="font-semibold">Membership form preview</h2>
@@ -239,7 +240,7 @@ function WorkspaceEditor({ workspaceId, settings, saved, onSaved }: {
                 <Button type="button" variant="outline" className="w-fit" onClick={() => { setPreview({}); setPreviewType(''); setPreviewVersion((version) => version + 1); }}>Clear preview answers</Button>
             </section>
         </main>
-    )</WorkspaceEditProtection>;
+    </WorkspaceEditProtection>;
 }
 
 AssociationWorkspaceSetup.layout = { breadcrumbs: [{ title: 'Association dashboard', href: '/association-workspaces' }] };

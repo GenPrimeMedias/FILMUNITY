@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Support\AssociationBranding;
 use App\Support\AssociationWorkspace;
+use App\Support\FilmunityBrandAssets;
 use App\Support\FilmunityReviewer;
 use App\Support\MembershipEligibility;
 use Illuminate\Http\Request;
@@ -28,13 +29,16 @@ final class ApplicationPrintController extends Controller
             'registered_office_address' => 'Registered office address', 'website' => 'Website',
             'representative_role' => 'Authorised representative role',
         ];
-        $answers = [];
+        $answers = [
+            ['label' => 'Applicant account reference', 'value' => $record->applicant_id],
+            ['label' => 'Applicant name / login email at submission', 'value' => 'Not retained separately on this registration. Official contact and representative role below are the submitted values.'],
+        ];
         foreach ($fields as $key => $label) {
             $answers[] = ['label' => $label, 'value' => $record->$key ?? null];
         }
 
         return $this->document('Association registration application', $record, [
-            'association_name' => 'FILMUNITY', 'logo' => '/brand/filmunity-logo-transparent.png',
+            'association_name' => 'FILMUNITY', 'logo' => FilmunityBrandAssets::paths()['full'],
         ], $answers, $record->review_note, $record->certificate_path ? ['Registration certificate supplied (original filename not retained).'] : []);
     }
 
@@ -78,6 +82,11 @@ final class ApplicationPrintController extends Controller
         return $this->document('Membership application', $record, AssociationBranding::data($record->association_id), $answers, $record->decision_note, $attachments);
     }
 
+    /**
+     * @param  array<string, mixed>  $branding
+     * @param  list<array{label: string, value: mixed, description?: mixed}>  $answers
+     * @param  list<string>  $attachments
+     */
     private function document(string $title, object $record, array $branding, array $answers, ?string $note, array $attachments): Response
     {
         return response()->view('print.application', compact('title', 'record', 'branding', 'answers', 'note', 'attachments'))

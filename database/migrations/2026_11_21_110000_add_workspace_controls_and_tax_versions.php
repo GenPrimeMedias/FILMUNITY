@@ -55,7 +55,7 @@ return new class extends Migration
             $table->unique(['association_id', 'effective_from']);
         });
         // Retain the current reviewed configuration as one legacy version, without rewriting any document.
-        DB::statement("INSERT INTO association_tax_configuration_versions(id,association_id,effective_from,reviewed_configuration,reviewed_by,reviewed_at) SELECT gen_random_uuid(),association_id,effective_from,to_jsonb(s),updated_by,updated_at FROM association_finance_tax_settings s");
+        DB::statement('INSERT INTO association_tax_configuration_versions(id,association_id,effective_from,reviewed_configuration,reviewed_by,reviewed_at) SELECT gen_random_uuid(),association_id,effective_from,to_jsonb(s),updated_by,updated_at FROM association_finance_tax_settings s');
         DB::unprepared(<<<'SQL'
 CREATE FUNCTION filmunity_configuration_version_immutable() RETURNS trigger LANGUAGE plpgsql AS $$
 BEGIN RAISE EXCEPTION 'Reviewed configuration versions are retained; create a new effective date'; END $$;

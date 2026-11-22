@@ -15,6 +15,8 @@ use Tests\TestCase;
 
 class RecurringMemberInvoiceTest extends TestCase
 {
+    use \Tests\Support\WorkspaceMutationRequests;
+
     use DatabaseTransactions;
     use FinanceWorkflowFixtures;
 
@@ -26,14 +28,14 @@ class RecurringMemberInvoiceTest extends TestCase
         $otherCounter = DB::table('association_finance_accounts')->where('association_id', $id)->where('system_key', 'other')->value('id');
         $url = "/association-finance/$id/billing/templates";
         $data = ['name' => 'Monthly synthetic member charges', 'party_account_id' => $party, 'starts_on' => '2027-01-31', 'due_days' => 7, 'items' => [['counter_account_id' => $counter, 'description' => 'Original monthly charge', 'amount' => '10.01'], ['counter_account_id' => $otherCounter, 'description' => 'Second charge', 'amount' => '2.02']]];
-        $this->actingAs($owner)->post($url, $data)->assertSessionHasNoErrors();
+        $this->actingAs($owner)->postWithWorkspaceLease($url, $data)->assertSessionHasNoErrors();
         $template = DB::table('association_invoice_templates')->where('association_id', $id)->value('id');
         CarbonImmutable::setTestNow('2027-01-30 12:00:00');
-        $this->post("$url/generate")->assertSessionHasNoErrors();
+        $this->postWithWorkspaceLease("$url/generate")->assertSessionHasNoErrors();
         $this->assertDatabaseCount('association_invoice_template_runs', 0);
         CarbonImmutable::setTestNow('2027-01-31 12:00:00');
-        $this->post("$url/generate")->assertSessionHasNoErrors();
-        $this->post("$url/generate")->assertSessionHasNoErrors();
+        $this->postWithWorkspaceLease("$url/generate")->assertSessionHasNoErrors();
+        $this->postWithWorkspaceLease("$url/generate")->assertSessionHasNoErrors();
         $this->assertDatabaseCount('association_invoice_template_runs', 1);
         $run = DB::table('association_invoice_template_runs')->where('template_id', $template)->first();
         $this->assertDatabaseHas('association_finance_vouchers', ['id' => $run->voucher_id, 'status' => 'draft', 'entry_date' => '2027-01-31']);
@@ -47,40 +49,40 @@ class RecurringMemberInvoiceTest extends TestCase
             $this->assertSame('23505', $e->errorInfo[0]);
         }
         CarbonImmutable::setTestNow('2027-03-31 12:00:00');
-        $this->post("$url/generate")->assertSessionHasNoErrors();
+        $this->postWithWorkspaceLease("$url/generate")->assertSessionHasNoErrors();
         $this->assertDatabaseCount('association_invoice_template_runs', 3);
         $this->assertDatabaseHas('association_finance_vouchers', ['entry_date' => '2027-02-28', 'kind' => 'invoice']);
         $this->assertDatabaseHas('association_finance_vouchers', ['entry_date' => '2027-03-31', 'kind' => 'invoice']);
-        $this->post("$url/$template/state", ['paused' => true])->assertSessionHasNoErrors();
+        $this->postWithWorkspaceLease("$url/$template/state", ['paused' => true])->assertSessionHasNoErrors();
         CarbonImmutable::setTestNow('2027-06-15 12:00:00');
-        $this->post("$url/generate")->assertSessionHasNoErrors();
+        $this->postWithWorkspaceLease("$url/generate")->assertSessionHasNoErrors();
         $this->assertDatabaseCount('association_invoice_template_runs', 3);
-        $this->post("$url/$template/state", ['paused' => false])->assertSessionHasNoErrors();
+        $this->postWithWorkspaceLease("$url/$template/state", ['paused' => false])->assertSessionHasNoErrors();
         $this->get($url)->assertOk()->assertInertia(fn (Page $p) => $p->where('templates.0.next_billing_date', '2027-06-30')->has('runs', 3));
-        $this->post("$url/$template", [...$data, 'due_days' => 2, 'items' => [['counter_account_id' => $counter, 'description' => 'Future edited charge', 'amount' => '20.00']]])->assertSessionHasNoErrors();
+        $this->postWithWorkspaceLease("$url/$template", [...$data, 'due_days' => 2, 'items' => [['counter_account_id' => $counter, 'description' => 'Future edited charge', 'amount' => '20.00']]])->assertSessionHasNoErrors();
         $this->assertSame($run->snapshot, DB::table('association_invoice_template_runs')->where('id', $run->id)->value('snapshot'));
         $this->assertSame($before, DB::table('association_finance_lines')->where('voucher_id', $run->voucher_id)->orderBy('id')->get()->toJson());
         $this->get("/association-finance/$id/billing/documents/$run->voucher_id")->assertOk()->assertSee('Original monthly charge')->assertSee('10.01');
         CarbonImmutable::setTestNow('2027-06-30 12:00:00');
-        $this->post("$url/generate")->assertSessionHasNoErrors();
+        $this->postWithWorkspaceLease("$url/generate")->assertSessionHasNoErrors();
         $this->assertDatabaseCount('association_invoice_template_runs', 4);
         $this->assertDatabaseMissing('association_invoice_template_runs', ['template_id' => $template, 'period' => '2027-04-01']);
         $this->assertDatabaseMissing('association_invoice_template_runs', ['template_id' => $template, 'period' => '2027-05-01']);
         $this->assertDatabaseHas('association_bill_documents', ['due_date' => '2027-07-02']);
-        $this->post("$url/$template/state", ['paused' => true]);
-        $this->post("$url/$template/state", ['paused' => false]);
-        $this->post("$url/generate")->assertSessionHasNoErrors();
+        $this->postWithWorkspaceLease("$url/$template/state", ['paused' => true]);
+        $this->postWithWorkspaceLease("$url/$template/state", ['paused' => false]);
+        $this->postWithWorkspaceLease("$url/generate")->assertSessionHasNoErrors();
         $this->assertDatabaseCount('association_invoice_template_runs', 4);
         foreach ([['2028-02-01', 31, '2028-02-29'], ['2027-02-01', 29, '2027-02-28'], ['2027-04-01', 31, '2027-04-30'], ['2027-03-01', 31, '2027-03-31']] as [$period, $anchor, $expected]) {
             $this->assertSame($expected, RecurringMemberInvoices::date($period, $anchor));
         }
         [$other, $otherId] = $this->association(true);
         $this->actingAs($other)->get($url)->assertNotFound();
-        $this->post("$url/generate")->assertNotFound();
-        $this->post("/association-finance/$otherId/billing/templates", $data)->assertSessionHasErrors('finance');
-        $this->post("/association-finance/$otherId/billing/templates/$template", $data)->assertNotFound();
-        $this->post("/association-finance/$otherId/billing/templates/$template/state", ['paused' => true])->assertNotFound();
-        $this->post("/association-finance/$otherId/billing/templates/generate")->assertSessionHasNoErrors();
+        $this->postWithWorkspaceLease("$url/generate")->assertNotFound();
+        $this->postWithWorkspaceLease("/association-finance/$otherId/billing/templates", $data)->assertSessionHasErrors('finance');
+        $this->postWithWorkspaceLease("/association-finance/$otherId/billing/templates/$template", $data)->assertNotFound();
+        $this->postWithWorkspaceLease("/association-finance/$otherId/billing/templates/$template/state", ['paused' => true])->assertNotFound();
+        $this->postWithWorkspaceLease("/association-finance/$otherId/billing/templates/generate")->assertSessionHasNoErrors();
         $this->assertDatabaseCount('association_invoice_template_runs', 4);
     }
 
@@ -102,7 +104,7 @@ class RecurringMemberInvoiceTest extends TestCase
         RecurringMemberInvoices::pause($otherId, $other, $paused, true);
         DB::table('association_finance_accounts')->where('id', $badCounter)->update(['active' => false]);
         CarbonImmutable::setTestNow('2027-01-31 12:00:00');
-        $this->actingAs($owner)->post("/association-finance/$id/billing/templates/generate")->assertSessionHasNoErrors();
+        $this->actingAs($owner)->postWithWorkspaceLease("/association-finance/$id/billing/templates/generate")->assertSessionHasNoErrors();
         $manualRun = DB::table('association_invoice_template_runs')->where('template_id', $manual)->first();
         $this->artisan('filmunity:generate-recurring-invoices')->assertExitCode(1);
         $this->assertSame(1, DB::table('association_invoice_template_runs')->where('template_id', $manual)->count());
@@ -117,7 +119,7 @@ class RecurringMemberInvoiceTest extends TestCase
         DB::table('association_finance_accounts')->where('id', $badCounter)->update(['active' => true]);
         $this->artisan('filmunity:generate-recurring-invoices')->assertExitCode(0);
         $this->artisan('filmunity:generate-recurring-invoices')->assertExitCode(0);
-        $this->actingAs($other)->post("/association-finance/$otherId/billing/templates/generate")->assertSessionHasNoErrors();
+        $this->actingAs($other)->postWithWorkspaceLease("/association-finance/$otherId/billing/templates/generate")->assertSessionHasNoErrors();
         $this->assertSame(1, DB::table('association_invoice_template_runs')->where('template_id', $bad)->count());
         $this->assertSame(1, DB::table('association_invoice_template_runs')->where('template_id', $good)->count());
         $this->assertSame($manualRun->snapshot, DB::table('association_invoice_template_runs')->where('id', $manualRun->id)->value('snapshot'));

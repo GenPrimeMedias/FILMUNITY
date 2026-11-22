@@ -10,6 +10,8 @@ use Illuminate\Http\UploadedFile;
 use Inertia\Testing\AssertableInertia as Page;
 use Tests\TestCase;
 class RepresentativeManagementTest extends TestCase {
+    use \Tests\Support\WorkspaceMutationRequests;
+
     use DatabaseTransactions;
     protected function setUp(): void { parent::setUp(); Mail::fake(); config(['association-registration.reviewer_ids' => []]); }
 
@@ -17,9 +19,9 @@ class RepresentativeManagementTest extends TestCase {
         [$owner, $association] = $this->association();
         $this->actingAs($owner)->get('/dashboard?view=member')->assertOk();
         foreach (['/membership-applications', '/membership-applications/apply', '/membership-renewals', '/membership-payments', '/my-association-workspaces'] as $url) $this->get($url)->assertForbidden();
-        $this->post('/membership-applications', [])->assertForbidden();
-        $this->post('/membership-renewals/'.Str::uuid(), [])->assertForbidden();
-        $this->post('/membership-payments/'.Str::uuid().'/submissions', [])->assertForbidden();
+        $this->postWithWorkspaceLease('/membership-applications', [])->assertForbidden();
+        $this->postWithWorkspaceLease('/membership-renewals/'.Str::uuid(), [])->assertForbidden();
+        $this->postWithWorkspaceLease('/membership-payments/'.Str::uuid().'/submissions', [])->assertForbidden();
         $this->get('/association-workspaces')->assertInertia(fn (Page $page) => $page->where('filmunityNavigation.associationRepresentative', true)->where('filmunityNavigation.canUsePersonalMemberships', false));
         foreach (['/association-members', '/association-members?view=renewals', '/association-payments', '/association-membership-review', "/association-workspaces/$association/setup"] as $url) $this->get($url)->assertOk();
         $this->get('/membership-cards/filmunity')->assertOk();
@@ -28,14 +30,14 @@ class RepresentativeManagementTest extends TestCase {
     public function test_becoming_representative_removes_personal_access_without_deleting_payment_history(): void {
         [$owner, $association] = $this->association(); $member = User::factory()->create();
         $application = $this->application($member, $association);
-        $this->actingAs($member)->post("/membership-applications/$application/confirm-plan", ['membership_type' => 'yearly', 'version' => 0])->assertSessionHasNoErrors();
-        $this->actingAs($owner)->post("/membership-payments/request/$application", [])->assertSessionHasNoErrors();
+        $this->actingAs($member)->postWithWorkspaceLease("/membership-applications/$application/confirm-plan", ['membership_type' => 'yearly', 'version' => 0])->assertSessionHasNoErrors();
+        $this->actingAs($owner)->postWithWorkspaceLease("/membership-payments/request/$application", [])->assertSessionHasNoErrors();
         $payment = DB::table('association_payment_requests')->where('application_id', $application)->value('id');
         [$representative, $represented] = $this->association();
         DB::table('association_registration_applications')->where('id', $represented)->update(['applicant_id' => $member->id]);
         $this->actingAs($member)->get("/membership-payments/$payment")->assertNotFound();
-        $this->post("/membership-payments/$payment/submissions", [])->assertForbidden();
-        $this->post("/membership-applications/$application/retry-notices")->assertNotFound();
+        $this->postWithWorkspaceLease("/membership-payments/$payment/submissions", [])->assertForbidden();
+        $this->postWithWorkspaceLease("/membership-applications/$application/retry-notices")->assertNotFound();
         $this->assertDatabaseHas('association_payment_requests', ['id' => $payment, 'member_id' => $member->id]);
         $this->actingAs($owner)->get("/membership-payments/$payment")->assertOk();
     }
@@ -49,7 +51,7 @@ class RepresentativeManagementTest extends TestCase {
     public function test_registration_and_setup_accept_representatives_login_email_as_official_email(): void {
         Storage::fake('local');
         $owner = User::factory()->create(['association_signup' => true]);
-        $this->actingAs($owner)->post('/association-registration', [
+        $this->actingAs($owner)->postWithWorkspaceLease('/association-registration', [
             'name' => 'Shared Mailbox Union', 'organisation_type' => 'Union', 'industry' => 'Tamil', 'city' => 'Chennai',
             'representative_role' => 'Secretary', 'registration_number' => 'TEST-2026', 'registering_authority' => 'Registrar',
             'state_or_region' => 'Tamil Nadu', 'official_contact_email' => $owner->email, 'registered_office_address' => '1 Main Road',
@@ -58,7 +60,7 @@ class RepresentativeManagementTest extends TestCase {
         $this->assertDatabaseHas('association_registration_applications', ['applicant_id' => $owner->id, 'official_contact_email' => $owner->email, 'status' => 'pending']);
         DB::table('association_registration_applications')->where('applicant_id', $owner->id)->update(['status' => 'approved']);
         $id = DB::table('association_registration_applications')->where('applicant_id', $owner->id)->value('id');
-        $this->post("/association-workspaces/$id/setup", [...$this->settings([]), 'official_contact_email' => $owner->email])->assertSessionHasNoErrors();
+        $this->postWithWorkspaceLease("/association-workspaces/$id/setup", [...$this->settings([]), 'official_contact_email' => $owner->email])->assertSessionHasNoErrors();
         $this->assertDatabaseHas('association_registration_applications', ['id' => $id, 'official_contact_email' => $owner->email]);
     }
 

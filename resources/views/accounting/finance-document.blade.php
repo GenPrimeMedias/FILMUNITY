@@ -12,5 +12,6 @@
 @if(!empty($recurring))
 <section><h2>Generated monthly invoice line snapshot</h2><p>Template {{ $recurring['template_id'] }} · Billing period {{ substr($recurring['period'],0,7) }}</p><table><thead><tr><th>Description / ledger</th><th>Amount · INR</th></tr></thead><tbody>@foreach($recurring['items'] as $item)<tr><td>{{ $item['description'] }} · {{ $item['counter_name'] }}</td><td>{{ $item['amount'] }}</td></tr>@endforeach</tbody></table><p>Values used at generation; later template edits do not change this snapshot.</p></section>
 @endif
+@include('accounting.configuration-reference')
 <div class="actions">@include('print.button')<a href="{{ url('/association-finance/'.$record->association_id.'/billing') }}">Back to billing</a></div>
 </main></body></html>

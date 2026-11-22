@@ -29,6 +29,9 @@ class AppServiceProvider extends ServiceProvider
             URL::forceScheme('https');
         }
         $this->configureDefaults();
+        foreach (['workspace-confirm' => 5, 'workspace-pin' => 5, 'workspace-unlock' => 6, 'workspace-lease' => 120, 'workspace-google' => 5, 'workspace-mail-save' => 10, 'workspace-mail-test' => 3, 'workspace-mail-review' => 10] as $name => $limit) {
+            \Illuminate\Support\Facades\RateLimiter::for($name, fn (\Illuminate\Http\Request $request) => \Illuminate\Cache\RateLimiting\Limit::perMinute($limit)->by(($request->user()?->getAuthIdentifier() ?? $request->ip()).'|'.($request->route('workspace') ?? 'account')));
+        }
 
         Inertia::share('professionalProfileAvatar', function (): ?string {
             $user = request()->user();

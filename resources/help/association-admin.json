@@ -331,6 +331,73 @@
                             "label": "Build and publish your professional profile"
                         }
                     ]
+                },
+                {
+                    "id": "application-printing",
+                    "title": "Print your association registration application",
+                    "why": "Prepare an offline processing copy using retained application data without changing its decision.",
+                    "before": [
+                        "Who: verified registration applicant or authorized FILMUNITY reviewer.",
+                        "Start: the submitted Association registration application details. Pending representatives may use this profile guide."
+                    ],
+                    "steps": [
+                        "Open the saved association registration application details and choose Print application / Save as PDF. The authenticated print URL contains the application reference, not a private access token.",
+                        "Check branding, application reference/submission date, recorded applicant details, saved answers, membership plan/type where present, attachment checklist and recorded decision. Historical answers are not rebuilt from the current form.",
+                        "Use Print / Save as PDF, select A4, review page breaks and save/print privately. The printed output hides controls and app navigation.",
+                        "Use the signature/date and office-use areas offline. Record any later decision through the existing authorized workflow; printing does not approve or verify the application."
+                    ],
+                    "result": "The private/no-store A4 response is read-only. Attachment paths and credentials are omitted. Missing original filenames on older records are identified rather than invented.",
+                    "example": "Print a pending synthetic application, collect an offline signature, then return to the application screen for the authorized review decision.",
+                    "avoid": [
+                        "Treat printed and saved PDF copies as private member/association information. Browser downloads can remain on the device.",
+                        "Review long answers and page breaks in the browser print preview. No live PDF/browser visual validation is implied by server tests."
+                    ],
+                    "table": [
+                        [
+                            "Area",
+                            "Source",
+                            "Limit"
+                        ],
+                        [
+                            "Answers",
+                            "Saved submission/record",
+                            "Current form changes do not reinterpret answers"
+                        ],
+                        [
+                            "Attachments",
+                            "Retained checklist/filename",
+                            "Private storage links are not printed"
+                        ],
+                        [
+                            "Decision",
+                            "Saved status/notes/date",
+                            "Printing does not change it"
+                        ]
+                    ],
+                    "terms": [
+                        "application",
+                        "A4",
+                        "print",
+                        "PDF",
+                        "offline"
+                    ],
+                    "fields": [
+                        {
+                            "label": "Print / Save as PDF",
+                            "purpose": "Open browser printing for the saved application",
+                            "required": "Optional read-only action",
+                            "example": "A4 / Save as PDF",
+                            "validation": "No application fields are edited in this view."
+                        },
+                        {
+                            "label": "Signature / Date / Office use",
+                            "purpose": "Offline review space",
+                            "required": "Optional offline entry",
+                            "example": "Fictional reviewer, 21 November 2026",
+                            "validation": "Does not update online approval status."
+                        }
+                    ],
+                    "related": []
                 }
             ]
         },
@@ -345,7 +412,8 @@
                     "why": "Consistent setup prevents wrong fees, duplicate member numbers and confusing communications.",
                     "before": [
                         "Who: approved association registration applicant. Start: Association dashboard → Workspace setup.",
-                        "Association registration must be approved; collect logo, official mailbox, authorized fees and the last issued membership number."
+                        "Association registration must be approved; collect logo, official mailbox, authorized fees and the last issued membership number.",
+                        "Before protected edits: enroll/unlock the workspace PIN and choose Start protected edit. Save consumes the lease; actual unsaved changes prompt before discard/navigation."
                     ],
                     "steps": [
                         "Open Association dashboard and confirm the organization name.",
@@ -403,6 +471,16 @@
                             "section": "finance",
                             "topic": "start",
                             "label": "Start here: the financial workflow"
+                        },
+                        {
+                            "section": "association",
+                            "topic": "workspace-protection",
+                            "label": "PIN, concurrent editing and unsaved work"
+                        },
+                        {
+                            "section": "association",
+                            "topic": "email-configuration",
+                            "label": "Configure provider-authorized email"
                         }
                     ]
                 },
@@ -412,7 +490,8 @@
                     "why": "Members should recognize the association on its workspace, communications, receipts and cards.",
                     "before": [
                         "Who: approved association registration applicant. Start: Association dashboard → Workspace setup.",
-                        "Have access to the official mailbox and a suitable logo image."
+                        "Have access to the official mailbox and a suitable logo image.",
+                        "Before protected edits: enroll/unlock the workspace PIN and choose Start protected edit. Save consumes the lease; actual unsaved changes prompt before discard/navigation."
                     ],
                     "steps": [
                         "In Workspace setup, enter the official contact email. It may match the representative login email.",
@@ -498,6 +577,11 @@
                             "section": "association",
                             "topic": "form",
                             "label": "Build and preview the application form"
+                        },
+                        {
+                            "section": "association",
+                            "topic": "workspace-protection",
+                            "label": "PIN, concurrent editing and unsaved work"
                         }
                     ]
                 },
@@ -507,7 +591,8 @@
                     "why": "Applicants choose a plan after approval; confirmed fees must remain stable for that application.",
                     "before": [
                         "Who: approved association registration applicant. Start: Association dashboard → Workspace setup.",
-                        "Have the association-approved fee schedule."
+                        "Have the association-approved fee schedule.",
+                        "Before protected edits: enroll/unlock the workspace PIN and choose Start protected edit. Save consumes the lease; actual unsaved changes prompt before discard/navigation."
                     ],
                     "steps": [
                         "Set required Yearly and Life-Time fees in Workspace setup.",
@@ -600,6 +685,11 @@
                             "section": "association",
                             "topic": "form",
                             "label": "Build and preview the application form"
+                        },
+                        {
+                            "section": "association",
+                            "topic": "workspace-protection",
+                            "label": "PIN, concurrent editing and unsaved work"
                         }
                     ]
                 },
@@ -609,7 +699,8 @@
                     "why": "You can carry forward an existing series without renumbering previous members.",
                     "before": [
                         "Who: approved association registration applicant. Start: Association dashboard → Workspace setup.",
-                        "Verify the last actually issued number and identify its prefix and numeric portion."
+                        "Verify the last actually issued number and identify its prefix and numeric portion.",
+                        "Before protected edits: enroll/unlock the workspace PIN and choose Start protected edit. Save consumes the lease; actual unsaved changes prompt before discard/navigation."
                     ],
                     "steps": [
                         "Open the membership numbering controls in Workspace setup.",
@@ -680,6 +771,11 @@
                             "section": "members",
                             "topic": "legacy-preview",
                             "label": "Preview legacy membership numbers without advancing the sequence"
+                        },
+                        {
+                            "section": "association",
+                            "topic": "workspace-protection",
+                            "label": "PIN, concurrent editing and unsaved work"
                         }
                     ]
                 },
@@ -689,7 +785,8 @@
                     "why": "Collect only the information needed to review membership.",
                     "before": [
                         "Who: approved association registration applicant. Start: Association dashboard → Workspace setup.",
-                        "Agree required information, evidence and consent wording."
+                        "Agree required information, evidence and consent wording.",
+                        "Before protected edits: enroll/unlock the workspace PIN and choose Start protected edit. Save consumes the lease; actual unsaved changes prompt before discard/navigation."
                     ],
                     "steps": [
                         "Open Membership form fields in Workspace setup. Full name and email are already provided.",
@@ -777,6 +874,11 @@
                             "section": "association",
                             "topic": "numbering",
                             "label": "Continue your existing membership numbers"
+                        },
+                        {
+                            "section": "association",
+                            "topic": "workspace-protection",
+                            "label": "PIN, concurrent editing and unsaved work"
                         }
                     ]
                 },
@@ -927,6 +1029,11 @@
                             "section": "association",
                             "topic": "form",
                             "label": "Build and preview the application form"
+                        },
+                        {
+                            "section": "profile",
+                            "topic": "application-printing",
+                            "label": "Print registration application"
                         }
                     ]
                 },
@@ -985,6 +1092,318 @@
                             "section": "members",
                             "topic": "communication",
                             "label": "Handle missing emails and records"
+                        }
+                    ]
+                },
+                {
+                    "id": "workspace-protection",
+                    "title": "Unlock protected settings and avoid conflicting edits",
+                    "why": "A PIN, session unlock and exclusive edit lease protect setup changes while members and ordinary accounting continue using saved settings.",
+                    "before": [
+                        "Who: the approved association registration applicant using a verified account. Start: Workspace setup or the protected master/settings form. Existing associations must enroll before protected edits.",
+                        "Have your account password or access to your linked Google account. The deployment administrator must authorize the workspace Google callback before Google step-up works."
+                    ],
+                    "steps": [
+                        "In Workspace edit protection, enter Account password and choose Confirm account password, or Reauthenticate linked Google account. Account confirmation lasts five minutes.",
+                        "Enter New six-digit PIN and Confirm new PIN, then Create / reset workspace PIN. Only a secure hash is retained; the previous PIN cannot be recovered.",
+                        "Enter Six-digit PIN and choose Unlock protected editing, then Start protected edit. Unlock lasts ten minutes; a lease expires after ninety seconds without its twenty-five-second heartbeat.",
+                        "Make the protected change and use its Save action. A successful save consumes the lease. Choose Start protected edit again for another protected save. Cancel protected edit releases the lease and discards unsaved values after confirmation.",
+                        "Another tab/session sees read-only editing until release/expiry. If connection, unlock or version checks fail, retain your notes and reload/review saved values before acquiring another lease; never assume a failed request saved.",
+                        "Use Reset PIN with account confirmation for recovery. A new authenticated PIN reset revokes previous unlocks and leases. Review Recent protection/configuration activity."
+                    ],
+                    "result": "Server mutation endpoints enforce owner permissions, the session-bound PIN unlock and lease/version checks. Ordinary invoices, payments, member workflows and posted history remain available.",
+                    "example": "Two tabs may read one workspace. Once tab A acquires its workspace lease, tab B cannot save workspace/email changes until A saves/cancels or the lease expires.",
+                    "avoid": [
+                        "Five wrong PIN checks lock verification for fifteen minutes; request throttles also apply. Never put a PIN/password in notes.",
+                        "The PIN does not replace authentication or association authorization. A lost browser relies on lease expiry; unsaved work is not guaranteed recoverable.",
+                        "Actual protected-form changes prompt before internal navigation, association switching, editor close/discard and browser unload where supported. Discard is not autosave; unchanged/successfully saved forms should not warn."
+                    ],
+                    "table": [
+                        [
+                            "Resource",
+                            "Protected edits",
+                            "Other work"
+                        ],
+                        [
+                            "Workspace",
+                            "Branding, plans, numbering, form and email/review settings",
+                            "Saved configuration remains in use"
+                        ],
+                        [
+                            "Masters",
+                            "Ledger/group/vendor creation, quick-ledger, classification, sync and Tally mapping",
+                            "Ordinary entries remain available"
+                        ],
+                        [
+                            "Tax / finance policy",
+                            "Tax versions, vendor TDS profiles and receipt classification policy",
+                            "Posted snapshots remain frozen"
+                        ]
+                    ],
+                    "terms": [
+                        "PIN",
+                        "concurrent editing",
+                        "unsaved changes",
+                        "lease",
+                        "reset"
+                    ],
+                    "fields": [
+                        {
+                            "label": "Account password",
+                            "purpose": "Confirm the signed-in account before enrollment/reset",
+                            "required": "Required unless linked Google step-up is used",
+                            "example": "Your own account password",
+                            "validation": "Never enter the workspace PIN here; confirmation expires after five minutes."
+                        },
+                        {
+                            "label": "New six-digit PIN",
+                            "purpose": "Create a new editing secret",
+                            "required": "Required for create/reset",
+                            "example": "Use a private six-digit value",
+                            "validation": "Exactly six ASCII digits; stored as a hash, never disclosed."
+                        },
+                        {
+                            "label": "Confirm new PIN",
+                            "purpose": "Avoid a mistyped new PIN",
+                            "required": "Required for create/reset",
+                            "example": "Repeat the private PIN",
+                            "validation": "Must match New six-digit PIN."
+                        },
+                        {
+                            "label": "Six-digit PIN",
+                            "purpose": "Unlock protected editing in this association/session",
+                            "required": "Required after enrollment",
+                            "example": "Your private PIN",
+                            "validation": "Ten-minute unlock; five failures temporarily lock attempts."
+                        }
+                    ],
+                    "related": [
+                        {
+                            "section": "association",
+                            "topic": "first-day",
+                            "label": "Workspace setup checklist"
+                        },
+                        {
+                            "section": "association",
+                            "topic": "email-configuration",
+                            "label": "Email configuration"
+                        }
+                    ]
+                },
+                {
+                    "id": "email-configuration",
+                    "title": "Configure association email and review delivery outcomes",
+                    "why": "Use an authorized provider identity for association notices without changing FILMUNITY security mail or leaking settings between associations.",
+                    "before": [
+                        "Who: approved association owner with verified email. Start: Workspace setup ? Email configuration. Enroll/unlock the PIN and Start protected edit before saving or reviewing an uncertain occurrence.",
+                        "Obtain provider authorization for the sender/domain, TLS and credentials. Possession of an official email address is not sender authorization. Managed alternatives require deployment-admin approval."
+                    ],
+                    "steps": [
+                        "Choose Sending mode. FILMUNITY-managed sending uses the platform sender or a deployment-approved association sender; Association-owned SMTP uses the provider you enter.",
+                        "Enter Official sender email, Sender display name and optional Reply-to address. For SMTP enter host, approved port, encryption, username and password.",
+                        "Review the provider statement and choose Save email configuration. Blank password retains the old secret; Explicitly remove the saved SMTP password clears it. No saved password is returned to the browser.",
+                        "Choose Send test email using saved configuration. It targets only your verified signed-in email, at most three requests per minute. Verify the provider result and inbox separately.",
+                        "Read Saved status and Existing delivery history. Known failure may be retried from the original workflow. Uncertain outcomes and interrupted sending claims block automatic retry. Claims older than five minutes become reviewable.",
+                        "For uncertainty, acquire a protected edit, select Occurrence, Decision and Review reason and provider evidence reference, then Record delivery review. Close without another send, or confirm non-delivery to permit an explicit original-workflow retry. Review itself sends nothing."
+                    ],
+                    "result": "Application/plan, membership payment/receipt, renewal and supported invoice-reminder delivery resolve tenant settings per send. FILMUNITY authentication/security and platform registration decisions retain platform delivery. Custom SMTP never silently falls back to another identity.",
+                    "example": "For Synthetic Film Association use a provider-authorized sender, send the test to your own verified administrator account, then verify that account received it. A test acceptance alone does not verify domain ownership.",
+                    "avoid": [
+                        "Check provider sender/domain policy, SPF/DKIM/DMARC, authentication and TLS with your provider. Do not paste credentials in review notes.",
+                        "Internal/reserved SMTP networks and unsupported ports are blocked. Only a deployment administrator may add a narrow self-hosted exception.",
+                        "Invoice reminder live sending and scheduling remain disabled; fake tests do not prove live connectivity. Workers must be restarted after an authorized deployment/configuration change."
+                    ],
+                    "table": [
+                        [
+                            "Outcome",
+                            "Meaning",
+                            "Action"
+                        ],
+                        [
+                            "sent",
+                            "Recorded successful delivery submission",
+                            "Do not resend completed occurrence"
+                        ],
+                        [
+                            "failed",
+                            "Known non-delivery",
+                            "Correct setup and explicitly retry the original workflow"
+                        ],
+                        [
+                            "sending / uncertain",
+                            "In-progress or unknown result",
+                            "Do not resend without provider evidence and authorized review"
+                        ]
+                    ],
+                    "terms": [
+                        "SMTP",
+                        "email",
+                        "provider",
+                        "TLS",
+                        "uncertain delivery"
+                    ],
+                    "fields": [
+                        {
+                            "label": "Sending mode",
+                            "purpose": "Select managed provider or association SMTP",
+                            "required": "Required",
+                            "example": "FILMUNITY-managed sending",
+                            "validation": "Managed sender must be platform/default or deployment-approved."
+                        },
+                        {
+                            "label": "Official sender email",
+                            "purpose": "Authorized From address",
+                            "required": "Required",
+                            "example": "authorized-sender@example.test",
+                            "validation": "Valid email, max 254; no CR/LF. Provider must authorize it."
+                        },
+                        {
+                            "label": "Sender display name",
+                            "purpose": "Name shown to recipients",
+                            "required": "Required",
+                            "example": "Synthetic Film Association",
+                            "validation": "Max 160; no CR/LF."
+                        },
+                        {
+                            "label": "Reply-to address",
+                            "purpose": "Reply destination",
+                            "required": "Optional",
+                            "example": "office@example.test",
+                            "validation": "Valid email, max 254; no CR/LF."
+                        },
+                        {
+                            "label": "SMTP host",
+                            "purpose": "Provider server",
+                            "required": "Required for SMTP",
+                            "example": "smtp.your-approved-provider.example",
+                            "validation": "Max 253; resolves only to permitted network destinations."
+                        },
+                        {
+                            "label": "SMTP port",
+                            "purpose": "Approved provider port",
+                            "required": "Required",
+                            "example": "587",
+                            "validation": "Choose a deployment-approved port; defaults 465, 587, 2525."
+                        },
+                        {
+                            "label": "Encryption",
+                            "purpose": "TLS transport mode",
+                            "required": "Required",
+                            "example": "Required STARTTLS",
+                            "validation": "Required STARTTLS or Implicit TLS; certificate verification remains enabled."
+                        },
+                        {
+                            "label": "SMTP username",
+                            "purpose": "Provider account identity",
+                            "required": "Required for SMTP",
+                            "example": "provider-issued-user",
+                            "validation": "Max 255; no CR/LF; encrypted at rest."
+                        },
+                        {
+                            "label": "SMTP password",
+                            "purpose": "Provider credential",
+                            "required": "Required for sending through SMTP; blank edit retains saved value",
+                            "example": "Use a provider-issued secret",
+                            "validation": "Max 1024; encrypted, never returned. Explicit removal clears it."
+                        },
+                        {
+                            "label": "Provider review declaration",
+                            "purpose": "Record review of authorization/encryption",
+                            "required": "Required",
+                            "example": "Checked after provider review",
+                            "validation": "Declaration is not independent domain verification."
+                        },
+                        {
+                            "label": "Occurrence / Decision / Review reason and provider evidence reference",
+                            "purpose": "Review an unknown delivery result",
+                            "required": "Conditional: uncertain/interrupted outcome",
+                            "example": "Provider case SYN-01 confirmed non-delivery",
+                            "validation": "Tenant-scoped occurrence; active sending cannot be reviewed until older than five minutes; reason max 2000."
+                        }
+                    ],
+                    "related": [
+                        {
+                            "section": "association",
+                            "topic": "workspace-protection",
+                            "label": "Protected editing and PIN reset"
+                        },
+                        {
+                            "section": "members",
+                            "topic": "communication",
+                            "label": "Existing correspondence and retries"
+                        },
+                        {
+                            "section": "finance",
+                            "topic": "invoice-reminders",
+                            "label": "Invoice reminder monitoring"
+                        }
+                    ]
+                },
+                {
+                    "id": "logo-assets",
+                    "title": "Replace FILMUNITY navigation logo assets",
+                    "why": "Install approved full/mini artwork without changing association branding or adding another sidebar-state system.",
+                    "before": [
+                        "Who: deployment administrator with filesystem access; association users cannot replace global artwork from Workspace setup.",
+                        "Start: public/brand in the FILMUNITY checkout. Obtain approved static SVG or PNG files; no replacement artwork is generated by the app."
+                    ],
+                    "steps": [
+                        "Place approved files at public/brand/filmunity-logo-full.svg and public/brand/filmunity-logo-mini.svg. Optional PNG alternatives use the same names with .png.",
+                        "The server selects safe static SVG first, then PNG, then the existing filmunity-logo-transparent.png fallback. Unsafe SVG scripts/events/external references are rejected.",
+                        "Verify the expanded sidebar full logo at 180 ? 40 CSS px, collapsed mini at 32 ? 32, and 72 px branding region. Aspect ratio uses contain; the logo still links to the dashboard.",
+                        "Check responsive mobile navigation, accessible FILMUNITY label and fallback after replacement. Association document branding remains configured separately."
+                    ],
+                    "result": "Existing valid assets remain when redesigned files are absent or unsafe. Server-selected paths and fixed dimensions avoid image-error fallback flicker and layout shifts.",
+                    "example": "Install only the approved mini SVG: the collapsed navigation uses it while full navigation continues using its approved full asset or existing fallback.",
+                    "avoid": [
+                        "Do not upload scripts, embedded foreign content or remote SVG references.",
+                        "Do not stretch artwork to fill its box or substitute an association logo for FILMUNITY navigation branding."
+                    ],
+                    "table": [
+                        [
+                            "Path",
+                            "Size in UI",
+                            "Fallback"
+                        ],
+                        [
+                            "filmunity-logo-full.svg / .png",
+                            "180 ? 40",
+                            "Existing full logo"
+                        ],
+                        [
+                            "filmunity-logo-mini.svg / .png",
+                            "32 ? 32",
+                            "Existing valid logo"
+                        ]
+                    ],
+                    "terms": [
+                        "logo",
+                        "sidebar",
+                        "mini",
+                        "SVG",
+                        "mobile"
+                    ],
+                    "fields": [
+                        {
+                            "label": "Full logo file",
+                            "purpose": "Expanded FILMUNITY navigation identity",
+                            "required": "Optional deployment asset",
+                            "example": "public/brand/filmunity-logo-full.svg",
+                            "validation": "Safe static SVG or PNG; server asset safety checks apply."
+                        },
+                        {
+                            "label": "Mini logo file",
+                            "purpose": "Collapsed navigation identity",
+                            "required": "Optional deployment asset",
+                            "example": "public/brand/filmunity-logo-mini.svg",
+                            "validation": "Safe static SVG or PNG; retain aspect ratio."
+                        }
+                    ],
+                    "related": [
+                        {
+                            "section": "association",
+                            "topic": "branding",
+                            "label": "Association branding is separate"
                         }
                     ]
                 }
@@ -1083,6 +1502,11 @@
                             "section": "members",
                             "topic": "legacy-template",
                             "label": "Download FILMUNITY Template and a synthetic example"
+                        },
+                        {
+                            "section": "members",
+                            "topic": "application-printing",
+                            "label": "Print retained application answers"
                         }
                     ]
                 },
@@ -1426,6 +1850,11 @@
                             "section": "members",
                             "topic": "legacy-template",
                             "label": "Download FILMUNITY Template and a synthetic example"
+                        },
+                        {
+                            "section": "association",
+                            "topic": "email-configuration",
+                            "label": "Provider setup and uncertain delivery review"
                         }
                     ]
                 },
@@ -1916,6 +2345,73 @@
                             "label": "Download FILMUNITY Template and a synthetic example"
                         }
                     ]
+                },
+                {
+                    "id": "application-printing",
+                    "title": "Print membership applications for offline review",
+                    "why": "Prepare an offline processing copy using retained application data without changing its decision.",
+                    "before": [
+                        "Who: the verified member applicant, approved association owner or authorized FILMUNITY reviewer. Cross-association access is denied.",
+                        "Start: membership application details; association users use the existing application review list."
+                    ],
+                    "steps": [
+                        "Open the saved membership application details and choose Print application / Save as PDF. The authenticated print URL contains the application reference, not a private access token.",
+                        "Check branding, application reference/submission date, recorded applicant details, saved answers, membership plan/type where present, attachment checklist and recorded decision. Historical answers are not rebuilt from the current form.",
+                        "Use Print / Save as PDF, select A4, review page breaks and save/print privately. The printed output hides controls and app navigation.",
+                        "Use the signature/date and office-use areas offline. Record any later decision through the existing authorized workflow; printing does not approve or verify the application."
+                    ],
+                    "result": "The private/no-store A4 response is read-only. Attachment paths and credentials are omitted. Missing original filenames on older records are identified rather than invented.",
+                    "example": "Print a pending synthetic application, collect an offline signature, then return to the application screen for the authorized review decision.",
+                    "avoid": [
+                        "Treat printed and saved PDF copies as private member/association information. Browser downloads can remain on the device.",
+                        "Review long answers and page breaks in the browser print preview. No live PDF/browser visual validation is implied by server tests."
+                    ],
+                    "table": [
+                        [
+                            "Area",
+                            "Source",
+                            "Limit"
+                        ],
+                        [
+                            "Answers",
+                            "Saved submission/record",
+                            "Current form changes do not reinterpret answers"
+                        ],
+                        [
+                            "Attachments",
+                            "Retained checklist/filename",
+                            "Private storage links are not printed"
+                        ],
+                        [
+                            "Decision",
+                            "Saved status/notes/date",
+                            "Printing does not change it"
+                        ]
+                    ],
+                    "terms": [
+                        "application",
+                        "A4",
+                        "print",
+                        "PDF",
+                        "offline"
+                    ],
+                    "fields": [
+                        {
+                            "label": "Print / Save as PDF",
+                            "purpose": "Open browser printing for the saved application",
+                            "required": "Optional read-only action",
+                            "example": "A4 / Save as PDF",
+                            "validation": "No application fields are edited in this view."
+                        },
+                        {
+                            "label": "Signature / Date / Office use",
+                            "purpose": "Offline review space",
+                            "required": "Optional offline entry",
+                            "example": "Fictional reviewer, 21 November 2026",
+                            "validation": "Does not update online approval status."
+                        }
+                    ],
+                    "related": []
                 }
             ]
         },
@@ -2239,7 +2735,8 @@
                     "why": "Create ledgers and groups before entering transactions. Party ledgers support member receivables and vendor payables; creating a master does not post money.",
                     "before": [
                         "Who: the signed-in applicant of an approved association registration, managing that association. There is no separate delegated finance approver role in this release.",
-                        "Start: Financial Management → Accounts → New account; use Party ledgers from Invoices and settlements for accounting masters (Ledger, Member, Vendor and Groups). Books must be initialized."
+                        "Start: Financial Management → Accounts → New account; use Party ledgers from Invoices and settlements for accounting masters (Ledger, Member, Vendor and Groups). Books must be initialized.",
+                        "Protected master/settings changes require owner PIN unlock and Start protected edit; ordinary document entry/posting is not lease-protected."
                     ],
                     "steps": [
                         "Choose New account in Accounts, enter the fields below, and Create account. Choose the permanent financial type carefully.",
@@ -2327,6 +2824,11 @@
                             "section": "finance",
                             "topic": "exports",
                             "label": "Export safely before migration or audit"
+                        },
+                        {
+                            "section": "association",
+                            "topic": "workspace-protection",
+                            "label": "Protected editing"
                         }
                     ]
                 },
@@ -2336,7 +2838,8 @@
                     "why": "Membership acknowledgement and accounting are linked, but uploaded proof does not automatically identify the book’s bank account.",
                     "before": [
                         "Who: approved association registration applicant, within their association.",
-                        "Finance initialized, receipt policy enabled and actual bank/cash evidence available."
+                        "Finance initialized, receipt policy enabled and actual bank/cash evidence available.",
+                        "Protected master/settings changes require owner PIN unlock and Start protected edit; ordinary document entry/posting is not lease-protected."
                     ],
                     "steps": [
                         "Acknowledge verified membership payment in Application Payments. With finance enabled, its receipt creates one source-linked journal.",
@@ -2428,6 +2931,11 @@
                             "section": "finance",
                             "topic": "exports",
                             "label": "Export safely before migration or audit"
+                        },
+                        {
+                            "section": "association",
+                            "topic": "workspace-protection",
+                            "label": "Protected editing"
                         }
                     ]
                 },
@@ -2636,7 +3144,8 @@
                     "why": "Record the association tax identity and reviewed applicability before creating a frozen tax-aware draft.",
                     "before": [
                         "Who: the signed-in applicant of an approved association registration, managing that association. There is no separate delegated finance approver role in this release.",
-                        "Start: GST / TDS billing → Configure GST / TDS (or Edit GST / TDS settings). Initialize books first. Have accountant-reviewed identity and policy information."
+                        "Start: GST / TDS billing → Configure GST / TDS (or Edit GST / TDS settings). Initialize books first. Have accountant-reviewed identity and policy information.",
+                        "Protected master/settings changes require owner PIN unlock and Start protected edit; ordinary document entry/posting is not lease-protected."
                     ],
                     "steps": [
                         "Complete the fields in the order below. Use your verified identity; synthetic examples here deliberately omit taxpayer identifiers.",
@@ -2749,6 +3258,16 @@
                             "section": "finance",
                             "topic": "exports",
                             "label": "Export safely before migration or audit"
+                        },
+                        {
+                            "section": "association",
+                            "topic": "workspace-protection",
+                            "label": "Protected editing"
+                        },
+                        {
+                            "section": "finance",
+                            "topic": "tax-configuration-versions",
+                            "label": "Effective-dated setup and draft review"
                         }
                     ]
                 },
@@ -3127,7 +3646,8 @@
                     "why": "Record an effective-dated vendor TDS review profile. These are reviewed records, not automatic tax decisions.",
                     "before": [
                         "Who: approved association registration applicant, within that association.",
-                        "Start: GST / TDS billing → Vendor TDS reviews. Create the existing vendor in Vendor master first."
+                        "Start: GST / TDS billing → Vendor TDS reviews. Create the existing vendor in Vendor master first.",
+                        "Protected master/settings changes require owner PIN unlock and Start protected edit; ordinary document entry/posting is not lease-protected."
                     ],
                     "steps": [
                         "Select Vendor and Effective date. Enter Reviewed legal reference, Reviewed rate (%), Review notes and optional Supporting reference.",
@@ -3238,6 +3758,11 @@
                             "section": "finance",
                             "topic": "tds-challans",
                             "label": "Record a posted TDS remittance and reconcile a challan"
+                        },
+                        {
+                            "section": "association",
+                            "topic": "workspace-protection",
+                            "label": "Protected editing"
                         }
                     ]
                 },
@@ -3247,7 +3772,8 @@
                     "why": "Review certificate validity on the bill book date. These are reviewed records, not automatic tax decisions.",
                     "before": [
                         "Who: approved association registration applicant, within that association.",
-                        "Start: GST / TDS billing → Vendor TDS reviews to record; New tax-aware invoice / bill → Vendor bill to use. Have a reviewed certificate and vendor profile."
+                        "Start: GST / TDS billing → Vendor TDS reviews to record; New tax-aware invoice / bill → Vendor bill to use. Have a reviewed certificate and vendor profile.",
+                        "Protected master/settings changes require owner PIN unlock and Start protected edit; ordinary document entry/posting is not lease-protected."
                     ],
                     "steps": [
                         "Record Certificate reference (optional), Certificate valid from, Certificate valid until (inclusive), Reviewed rate (%) and any Supporting reference/private evidence using Record reviewed profile.",
@@ -3323,6 +3849,11 @@
                             "section": "finance",
                             "topic": "tds-challans",
                             "label": "Record a posted TDS remittance and reconcile a challan"
+                        },
+                        {
+                            "section": "association",
+                            "topic": "workspace-protection",
+                            "label": "Protected editing"
                         }
                     ]
                 },
@@ -3403,7 +3934,8 @@
                     "why": "Use the read-only accountant-reviewed threshold comparison. These are reviewed records, not automatic tax decisions.",
                     "before": [
                         "Who: approved association registration applicant, within that association.",
-                        "Start: Vendor TDS reviews → Optional accountant-reviewed threshold comparison settings. Read the resulting panel in a tax-aware vendor bill after choosing vendor and Book date."
+                        "Start: Vendor TDS reviews → Optional accountant-reviewed threshold comparison settings. Read the resulting panel in a tax-aware vendor bill after choosing vendor and Book date.",
+                        "Protected master/settings changes require owner PIN unlock and Start protected edit; ordinary document entry/posting is not lease-protected."
                     ],
                     "steps": [
                         "Enter Configured threshold (INR), Reviewed eligibility basis and Reviewed aggregation period. Confirm both accountant review and historical-completeness review only if actually completed; document rationale in Review notes.",
@@ -3486,6 +4018,11 @@
                             "section": "finance",
                             "topic": "tds-challans",
                             "label": "Record a posted TDS remittance and reconcile a challan"
+                        },
+                        {
+                            "section": "association",
+                            "topic": "workspace-protection",
+                            "label": "Protected editing"
                         }
                     ]
                 },
@@ -3627,7 +4164,11 @@
                         "For GST/TDS use the dedicated tax-aware bill form; generic payment lines do not calculate tax."
                     ],
                     "table": [
-                        ["Office rent", "Rent expense ₹12,000", "Bank ₹12,000"]
+                        [
+                            "Office rent",
+                            "Rent expense ₹12,000",
+                            "Bank ₹12,000"
+                        ]
                     ],
                     "terms": [],
                     "fields": [
@@ -3859,7 +4400,11 @@
                         "Do not record the withdrawal itself as an expense; the later purchase is the expense."
                     ],
                     "table": [
-                        ["Withdraw petty cash", "Cash ₹10,000", "Bank ₹10,000"],
+                        [
+                            "Withdraw petty cash",
+                            "Cash ₹10,000",
+                            "Bank ₹10,000"
+                        ],
                         [
                             "Buy stationery from petty cash (separate Payment)",
                             "Stationery expense ₹1,500",
@@ -4505,7 +5050,8 @@
                     "why": "TallyPrime XML: review mappings and rehearse in a test company. Retain the stored source records and review results before proceeding.",
                     "before": [
                         "Who: approved association registration applicant for this association.",
-                        "Start: Finance → Reports → TallyPrime XML export. Have posted basic accounting vouchers and independently verified ledger mappings in a separate TallyPrime 7.2 test company. Do not import into live books."
+                        "Start: Finance → Reports → TallyPrime XML export. Have posted basic accounting vouchers and independently verified ledger mappings in a separate TallyPrime 7.2 test company. Do not import into live books.",
+                        "Protected master/settings changes require owner PIN unlock and Start protected edit; ordinary document entry/posting is not lease-protected."
                     ],
                     "steps": [
                         "Select From and To, then Review batch. Read Included vouchers, Excluded records, counts, debit/credit totals and Movement by target ledger · INR. Supported types are Receipt, Payment, Contra and Journal, including supported-source reversals as Journal.",
@@ -4593,6 +5139,11 @@
                             "section": "finance",
                             "topic": "exports",
                             "label": "Export safely before migration or audit"
+                        },
+                        {
+                            "section": "association",
+                            "topic": "workspace-protection",
+                            "label": "Protected editing"
                         }
                     ]
                 },
@@ -4659,6 +5210,147 @@
                             "section": "finance",
                             "topic": "exports",
                             "label": "Export safely before migration or audit"
+                        }
+                    ]
+                },
+                {
+                    "id": "tax-configuration-versions",
+                    "title": "Retain tax setup versions and review affected drafts",
+                    "why": "Effective-dated reviewed setup is retained while posted rates, amounts and historical snapshots stay unchanged.",
+                    "before": [
+                        "Who: approved association owner after finance initialization. Start: GST / TDS billing ? Tax configuration and applicability ? Edit GST / TDS settings (or Configure GST / TDS).",
+                        "Enroll/unlock the workspace PIN and Start protected edit. Obtain the accountant-reviewed identity, applicability determination and supporting policy/evidence reference. No statutory default is inferred."
+                    ],
+                    "steps": [
+                        "Enter the reviewed identity fields in screen order, Effective from, Registered address, GST registered / TDS enabled and Accountant / policy reference and applicability notes. Confirm review and Save tax configuration.",
+                        "Open Retained reviewed configuration versions to verify the start date, reviewer and policy notes. Each version remains applicable until the next start; the latest start on/before the book date supplies setup context.",
+                        "A same-date identical configuration is idempotent. A conflicting same-date save is rejected; use a separately reviewed new effective date. No old version is overwritten.",
+                        "At bill entry check Applicable reviewed configuration and make the bill-specific GST/TDS decisions explicitly. The version reference is sent with the draft; stale save selections are rejected.",
+                        "If a saved unposted tax draft shows Configuration review required, reject and reissue it under the applicable reviewed configuration. Saved tax draft amounts are frozen, not silently recalculated. Server and database posting checks reject stale versions.",
+                        "Check the posted document print view for its retained version/reference and original reviewed values. Use existing credit/debit correction workflows for posted changes."
+                    ],
+                    "result": "Posted components, rates, bases, rounding and snapshots remain reproducible. Legacy unposted snapshots without a version require reissue. Recurring member invoices remain ordinary non-tax drafts.",
+                    "example": "A reviewed setup starting 1 December changes setup context for a 1 December draft, not a posted 30 November bill. Reject/reissue an affected unposted draft; keep the posted bill and its frozen values.",
+                    "avoid": [
+                        "Effective dates select reviewed application context; they are not an automatic statutory rate-transition determination. Record legal applicability and evidence explicitly.",
+                        "Do not overwrite a reviewed version, recalculate posted history, infer an RWA exemption or assume invoice date alone resolves legal applicability."
+                    ],
+                    "table": [
+                        [
+                            "Record",
+                            "New setup affects it?",
+                            "Supported action"
+                        ],
+                        [
+                            "New tax draft",
+                            "Applicable reviewed context",
+                            "Explicit bill review"
+                        ],
+                        [
+                            "Stale unposted draft",
+                            "Posting blocked",
+                            "Reject and reissue"
+                        ],
+                        [
+                            "Posted document",
+                            "No snapshot rewrite",
+                            "Supported correction workflow"
+                        ]
+                    ],
+                    "terms": [
+                        "GST",
+                        "TDS",
+                        "effective date",
+                        "version",
+                        "stale draft"
+                    ],
+                    "fields": [
+                        {
+                            "label": "Legal name",
+                            "purpose": "Reviewed supplier identity",
+                            "required": "Required",
+                            "example": "Synthetic Film Association",
+                            "validation": "Max 160 characters."
+                        },
+                        {
+                            "label": "State code (two digits)",
+                            "purpose": "Reviewed supplier state",
+                            "required": "Required",
+                            "example": "33",
+                            "validation": "01?38 or 97; GSTIN prefix must match when registered."
+                        },
+                        {
+                            "label": "GSTIN",
+                            "purpose": "Reviewed GST identity",
+                            "required": "Conditional: GST registered",
+                            "example": "Use a synthetic format-valid identifier in tests only",
+                            "validation": "15-character GSTIN format; no real identifiers in examples."
+                        },
+                        {
+                            "label": "PAN",
+                            "purpose": "Reviewed PAN identity",
+                            "required": "Optional",
+                            "example": "Use a synthetic format-valid identifier in tests only",
+                            "validation": "Five uppercase letters, four digits, one uppercase letter."
+                        },
+                        {
+                            "label": "TAN",
+                            "purpose": "Reviewed deduction identity",
+                            "required": "Conditional: TDS enabled",
+                            "example": "Use a synthetic format-valid identifier in tests only",
+                            "validation": "Four uppercase letters, five digits, one uppercase letter."
+                        },
+                        {
+                            "label": "Effective from",
+                            "purpose": "Start of retained reviewed setup context",
+                            "required": "Required",
+                            "example": "2026-12-01",
+                            "validation": "YYYY-MM-DD; conflicting configuration on same date rejected."
+                        },
+                        {
+                            "label": "Registered address",
+                            "purpose": "Reviewed supplier address",
+                            "required": "Required",
+                            "example": "1 Fictional Studio Road, Chennai",
+                            "validation": "Max 2000 characters."
+                        },
+                        {
+                            "label": "GST registered / TDS enabled",
+                            "purpose": "Reviewed applicability flags",
+                            "required": "Required booleans",
+                            "example": "Reviewed explicitly",
+                            "validation": "These flags do not select statutory rates or thresholds."
+                        },
+                        {
+                            "label": "Accountant / policy reference and applicability notes",
+                            "purpose": "Reviewed determination and evidence reference",
+                            "required": "Required",
+                            "example": "Synthetic review TAX-01, applicability evidence reference",
+                            "validation": "Max 2000 characters; no secrets."
+                        },
+                        {
+                            "label": "I confirm the tax identity and applicability have been reviewed.",
+                            "purpose": "Explicit confirmation",
+                            "required": "Required",
+                            "example": "Checked after review",
+                            "validation": "Must be accepted before saving."
+                        }
+                    ],
+                    "related": [
+                        {
+                            "section": "association",
+                            "topic": "workspace-protection",
+                            "label": "Protected setup edits"
+                        },
+                        {
+                            "section": "finance",
+                            "topic": "tax-billing",
+                            "label": "Tax-aware document entry"
+                        },
+                        {
+                            "section": "finance",
+                            "topic": "correction-notes",
+                            "label": "Correct posted documents"
                         }
                     ]
                 }

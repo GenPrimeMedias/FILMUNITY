@@ -13,7 +13,10 @@
         "Invoice reminder delivery is fake-mail-only; no live sending or reminder schedule.",
         "Recurring generation has a Laravel daily registration, but this work does not enable a production scheduler.",
         "Accounts reported a successful TallyPrime 7.2 import with no errors. Per-ledger reconciliation and repeat-import behavior remain pending unless separately evidenced; this help review did not independently witness the import.",
-        "No database reset, migrations, import write phase, push or deployment in this help pass."
+        "No database reset, migrations, import write phase, push or deployment in this help pass.",
+        "Workspace/master edits require PIN enrollment, a session unlock and a resource lease. Ordinary financial work remains available.",
+        "Three additive workspace/mail/tax migrations applied only to filmunity_test in this feature pass; development/production untouched.",
+        "Live SMTP/provider and browser/PDF/mobile verification remain manual. Recurring invoices remain non-tax drafts; tax setup versioning does not automate legal applicability."
     ],
     "workflows": [
         {
@@ -25,7 +28,9 @@
                     "path": "/api/v1/health"
                 }
             ],
-            "tests": ["tests/Feature/Api/V1/HealthTest.php"],
+            "tests": [
+                "tests/Feature/Api/V1/HealthTest.php"
+            ],
             "screens": []
         },
         {
@@ -111,8 +116,12 @@
                     "action": "evidence"
                 }
             ],
-            "tests": ["tests/Feature/AssociationFinanceTest.php"],
-            "screens": ["resources/js/pages/association-finance.tsx"]
+            "tests": [
+                "tests/Feature/AssociationFinanceTest.php"
+            ],
+            "screens": [
+                "resources/js/pages/association-finance.tsx"
+            ]
         },
         {
             "controller": "app/Http/Controllers/BillSettlementController.php",
@@ -153,12 +162,18 @@
                     "action": "save"
                 }
             ],
-            "tests": ["tests/Feature/BillSettlementTest.php"],
-            "screens": ["resources/js/pages/association-billing.tsx"]
+            "tests": [
+                "tests/Feature/BillSettlementTest.php"
+            ],
+            "screens": [
+                "resources/js/pages/association-billing.tsx"
+            ]
         },
         {
             "controller": "app/Http/Controllers/FinanceDocumentController.php",
-            "articles": ["finance/print-documents"],
+            "articles": [
+                "finance/print-documents"
+            ],
             "routes": [
                 {
                     "method": "GET|HEAD",
@@ -174,7 +189,9 @@
         },
         {
             "controller": "app/Http/Controllers/CorrectionNoteController.php",
-            "articles": ["finance/correction-notes"],
+            "articles": [
+                "finance/correction-notes"
+            ],
             "routes": [
                 {
                     "method": "POST",
@@ -191,11 +208,15 @@
                 "tests/Feature/CorrectionNoteTest.php",
                 "tests/Feature/TaxCorrectionWorkflowTest.php"
             ],
-            "screens": ["resources/js/pages/association-billing.tsx"]
+            "screens": [
+                "resources/js/pages/association-billing.tsx"
+            ]
         },
         {
             "controller": "app/Http/Controllers/BillingInvoiceReminderController.php",
-            "articles": ["finance/invoice-reminders"],
+            "articles": [
+                "finance/invoice-reminders"
+            ],
             "routes": [
                 {
                     "method": "GET|HEAD",
@@ -218,12 +239,18 @@
                     "action": "retry"
                 }
             ],
-            "tests": ["tests/Feature/BillSettlementTest.php"],
-            "screens": ["resources/js/pages/billing-invoice-reminders.tsx"]
+            "tests": [
+                "tests/Feature/BillSettlementTest.php"
+            ],
+            "screens": [
+                "resources/js/pages/billing-invoice-reminders.tsx"
+            ]
         },
         {
             "controller": "app/Http/Controllers/RecurringMemberInvoiceController.php",
-            "articles": ["finance/recurring-drafts"],
+            "articles": [
+                "finance/recurring-drafts"
+            ],
             "routes": [
                 {
                     "method": "GET|HEAD",
@@ -251,12 +278,18 @@
                     "action": "state"
                 }
             ],
-            "tests": ["tests/Feature/RecurringMemberInvoiceTest.php"],
-            "screens": ["resources/js/pages/recurring-member-invoices.tsx"]
+            "tests": [
+                "tests/Feature/RecurringMemberInvoiceTest.php"
+            ],
+            "screens": [
+                "resources/js/pages/recurring-member-invoices.tsx"
+            ]
         },
         {
             "controller": "app/Http/Controllers/AccountingMastersController.php",
-            "articles": ["finance/accounts"],
+            "articles": [
+                "finance/accounts"
+            ],
             "routes": [
                 {
                     "method": "GET|HEAD",
@@ -288,11 +321,15 @@
                 "tests/Feature/AccountingMastersTest.php",
                 "tests/Feature/AccountingMasterSearchTest.php"
             ],
-            "screens": ["resources/js/pages/accounting-masters.tsx"]
+            "screens": [
+                "resources/js/pages/accounting-masters.tsx"
+            ]
         },
         {
             "controller": "app/Http/Controllers/TallyXmlExportController.php",
-            "articles": ["finance/tally-export"],
+            "articles": [
+                "finance/tally-export"
+            ],
             "routes": [
                 {
                     "method": "GET|HEAD",
@@ -310,15 +347,20 @@
                     "action": "mapping"
                 }
             ],
-            "tests": ["tests/Feature/AssociationFinanceTest.php"],
-            "screens": ["resources/js/pages/tally-xml-export.tsx"]
+            "tests": [
+                "tests/Feature/AssociationFinanceTest.php"
+            ],
+            "screens": [
+                "resources/js/pages/tally-xml-export.tsx"
+            ]
         },
         {
             "controller": "app/Http/Controllers/AssociationTaxController.php",
             "articles": [
                 "finance/tax-billing",
                 "finance/multi-line-billing",
-                "finance/print-documents"
+                "finance/print-documents",
+                "finance/tax-configuration-versions"
             ],
             "routes": [
                 {
@@ -345,13 +387,18 @@
             "tests": [
                 "tests/Feature/AssociationTaxTest.php",
                 "tests/Feature/MultiLineTaxTest.php",
-                "tests/Feature/TaxReportingAndDocumentsTest.php"
+                "tests/Feature/TaxReportingAndDocumentsTest.php",
+                "tests/Feature/TaxConfigurationVersionsTest.php"
             ],
-            "screens": ["resources/js/pages/association-tax.tsx"]
+            "screens": [
+                "resources/js/pages/association-tax.tsx"
+            ]
         },
         {
             "controller": "app/Http/Controllers/TdsReconciliationController.php",
-            "articles": ["finance/tds-challans"],
+            "articles": [
+                "finance/tds-challans"
+            ],
             "routes": [
                 {
                     "method": "GET|HEAD",
@@ -374,12 +421,18 @@
                     "action": "release"
                 }
             ],
-            "tests": ["tests/Feature/TdsReconciliationTest.php"],
-            "screens": ["resources/js/pages/tds-reconciliation.tsx"]
+            "tests": [
+                "tests/Feature/TdsReconciliationTest.php"
+            ],
+            "screens": [
+                "resources/js/pages/tds-reconciliation.tsx"
+            ]
         },
         {
             "controller": "app/Http/Controllers/VendorTdsHistoryController.php",
-            "articles": ["finance/vendor-history"],
+            "articles": [
+                "finance/vendor-history"
+            ],
             "routes": [
                 {
                     "method": "GET|HEAD",
@@ -387,7 +440,9 @@
                     "action": "show"
                 }
             ],
-            "tests": ["tests/Feature/VendorTdsControlsTest.php"],
+            "tests": [
+                "tests/Feature/VendorTdsControlsTest.php"
+            ],
             "screens": []
         },
         {
@@ -414,12 +469,18 @@
                     "action": "evidence"
                 }
             ],
-            "tests": ["tests/Feature/VendorTdsControlsTest.php"],
-            "screens": ["resources/js/pages/vendor-tds-reviews.tsx"]
+            "tests": [
+                "tests/Feature/VendorTdsControlsTest.php"
+            ],
+            "screens": [
+                "resources/js/pages/vendor-tds-reviews.tsx"
+            ]
         },
         {
             "controller": "app/Http/Controllers/VendorTdsThresholdController.php",
-            "articles": ["finance/vendor-threshold"],
+            "articles": [
+                "finance/vendor-threshold"
+            ],
             "routes": [
                 {
                     "method": "GET|HEAD",
@@ -427,12 +488,17 @@
                     "action": "show"
                 }
             ],
-            "tests": ["tests/Feature/VendorTdsControlsTest.php"],
+            "tests": [
+                "tests/Feature/VendorTdsControlsTest.php"
+            ],
             "screens": []
         },
         {
             "controller": "app/Http/Controllers/AssociationHelpController.php",
-            "articles": ["profile/start", "finance/start"],
+            "articles": [
+                "profile/start",
+                "finance/start"
+            ],
             "routes": [
                 {
                     "method": "GET|HEAD",
@@ -445,8 +511,12 @@
                     "action": "download"
                 }
             ],
-            "tests": ["tests/Feature/AssociationHelpTest.php"],
-            "screens": ["resources/js/pages/association-help.tsx"]
+            "tests": [
+                "tests/Feature/AssociationHelpTest.php"
+            ],
+            "screens": [
+                "resources/js/pages/association-help.tsx"
+            ]
         },
         {
             "controller": "app/Http/Controllers/AssociationMemberController.php",
@@ -485,11 +555,16 @@
                 "tests/Feature/IndividualMembershipWorkflowTest.php",
                 "tests/Feature/AssociationPaymentWorkflowTest.php"
             ],
-            "screens": ["resources/js/pages/association-members.tsx"]
+            "screens": [
+                "resources/js/pages/association-members.tsx"
+            ]
         },
         {
             "controller": "app/Http/Controllers/LegacyMembershipPreviewController.php",
-            "articles": ["members/legacy-preview", "members/legacy-template"],
+            "articles": [
+                "members/legacy-preview",
+                "members/legacy-template"
+            ],
             "routes": [
                 {
                     "method": "GET|HEAD",
@@ -507,12 +582,18 @@
                     "action": "template"
                 }
             ],
-            "tests": ["tests/Feature/LegacyMembershipPreviewTest.php"],
-            "screens": ["resources/js/pages/legacy-membership-preview.tsx"]
+            "tests": [
+                "tests/Feature/LegacyMembershipPreviewTest.php"
+            ],
+            "screens": [
+                "resources/js/pages/legacy-membership-preview.tsx"
+            ]
         },
         {
             "controller": "app/Http/Controllers/MembershipReminderController.php",
-            "articles": ["members/renewals"],
+            "articles": [
+                "members/renewals"
+            ],
             "routes": [
                 {
                     "method": "POST",
@@ -520,12 +601,17 @@
                     "action": "store"
                 }
             ],
-            "tests": ["tests/Feature/MembershipRenewalTest.php"],
+            "tests": [
+                "tests/Feature/MembershipRenewalTest.php"
+            ],
             "screens": []
         },
         {
             "controller": "app/Http/Controllers/MembershipApplicationController.php",
-            "articles": ["members/applications", "members/member-self-service"],
+            "articles": [
+                "members/applications",
+                "members/member-self-service"
+            ],
             "routes": [
                 {
                     "method": "GET|HEAD",
@@ -558,8 +644,12 @@
                     "action": "document"
                 }
             ],
-            "tests": ["tests/Feature/MembershipApplicationTest.php"],
-            "screens": ["resources/js/pages/membership-applications.tsx"]
+            "tests": [
+                "tests/Feature/MembershipApplicationTest.php"
+            ],
+            "screens": [
+                "resources/js/pages/membership-applications.tsx"
+            ]
         },
         {
             "controller": "app/Http/Controllers/AssociationPaymentController.php",
@@ -625,12 +715,18 @@
                     "action": "receipt"
                 }
             ],
-            "tests": ["tests/Feature/AssociationPaymentWorkflowTest.php"],
-            "screens": ["resources/js/pages/membership-payment.tsx"]
+            "tests": [
+                "tests/Feature/AssociationPaymentWorkflowTest.php"
+            ],
+            "screens": [
+                "resources/js/pages/membership-payment.tsx"
+            ]
         },
         {
             "controller": "app/Http/Controllers/AssociationRegistrationController.php",
-            "articles": ["association/registration"],
+            "articles": [
+                "association/registration"
+            ],
             "routes": [
                 {
                     "method": "GET|HEAD",
@@ -668,12 +764,18 @@
                     "action": "review"
                 }
             ],
-            "tests": ["tests/Feature/AssociationRegistrationTest.php"],
-            "screens": ["resources/js/pages/association-registration.tsx"]
+            "tests": [
+                "tests/Feature/AssociationRegistrationTest.php"
+            ],
+            "screens": [
+                "resources/js/pages/association-registration.tsx"
+            ]
         },
         {
             "controller": "app/Http/Controllers/AssociationWorkspaceController.php",
-            "articles": ["association/first-day"],
+            "articles": [
+                "association/first-day"
+            ],
             "routes": [
                 {
                     "method": "GET|HEAD",
@@ -686,8 +788,12 @@
                     "action": "show"
                 }
             ],
-            "tests": ["tests/Feature/AssociationWorkspaceTest.php"],
-            "screens": ["resources/js/pages/association-workspaces.tsx"]
+            "tests": [
+                "tests/Feature/AssociationWorkspaceTest.php"
+            ],
+            "screens": [
+                "resources/js/pages/association-workspaces.tsx"
+            ]
         },
         {
             "controller": "app/Http/Controllers/AssociationWorkspaceSetupController.php",
@@ -719,11 +825,15 @@
                 "tests/Feature/CustomMembershipPlansTest.php",
                 "tests/Feature/AssociationMembershipNumberingTest.php"
             ],
-            "screens": ["resources/js/pages/association-workspace-setup.tsx"]
+            "screens": [
+                "resources/js/pages/association-workspace-setup.tsx"
+            ]
         },
         {
             "controller": "app/Http/Controllers/Auth/GoogleAuthenticationController.php",
-            "articles": ["profile/account-settings"],
+            "articles": [
+                "profile/account-settings"
+            ],
             "routes": [
                 {
                     "method": "GET|HEAD",
@@ -736,12 +846,16 @@
                     "action": "redirect"
                 }
             ],
-            "tests": ["tests/Feature/Auth/GoogleAuthenticationTest.php"],
+            "tests": [
+                "tests/Feature/Auth/GoogleAuthenticationTest.php"
+            ],
             "screens": []
         },
         {
             "controller": "app/Http/Controllers/PublicProfessionalProfileController.php",
-            "articles": ["profile/profile"],
+            "articles": [
+                "profile/profile"
+            ],
             "routes": [
                 {
                     "method": "GET|HEAD",
@@ -759,12 +873,16 @@
                     "action": "unpublish"
                 }
             ],
-            "tests": ["tests/Feature/PublicProfessionalProfileTest.php"],
+            "tests": [
+                "tests/Feature/PublicProfessionalProfileTest.php"
+            ],
             "screens": []
         },
         {
             "controller": "app/Http/Controllers/ProfessionalProfileController.php",
-            "articles": ["profile/profile"],
+            "articles": [
+                "profile/profile"
+            ],
             "routes": [
                 {
                     "method": "GET|HEAD",
@@ -787,12 +905,18 @@
                     "action": "usernameAvailability"
                 }
             ],
-            "tests": ["tests/Feature/ProfessionalProfileTest.php"],
-            "screens": ["resources/js/pages/dashboard.tsx"]
+            "tests": [
+                "tests/Feature/ProfessionalProfileTest.php"
+            ],
+            "screens": [
+                "resources/js/pages/dashboard.tsx"
+            ]
         },
         {
             "controller": "app/Http/Controllers/FilmunityAdminController.php",
-            "articles": ["association/platform-review"],
+            "articles": [
+                "association/platform-review"
+            ],
             "routes": [
                 {
                     "method": "GET|HEAD",
@@ -815,12 +939,18 @@
                     "action": "membershipDocument"
                 }
             ],
-            "tests": ["tests/Feature/FilmunityAdminTest.php"],
-            "screens": ["resources/js/pages/filmunity-admin.tsx"]
+            "tests": [
+                "tests/Feature/FilmunityAdminTest.php"
+            ],
+            "screens": [
+                "resources/js/pages/filmunity-admin.tsx"
+            ]
         },
         {
             "controller": "app/Http/Controllers/ApplicationCommunicationController.php",
-            "articles": ["members/communication"],
+            "articles": [
+                "members/communication"
+            ],
             "routes": [
                 {
                     "method": "POST",
@@ -828,12 +958,16 @@
                     "action": "retry"
                 }
             ],
-            "tests": ["tests/Feature/MembershipApplicationTest.php"],
+            "tests": [
+                "tests/Feature/MembershipApplicationTest.php"
+            ],
             "screens": []
         },
         {
             "controller": "app/Http/Controllers/MembershipCardController.php",
-            "articles": ["members/print-cards"],
+            "articles": [
+                "members/print-cards"
+            ],
             "routes": [
                 {
                     "method": "GET|HEAD",
@@ -856,12 +990,17 @@
                     "action": "verify"
                 }
             ],
-            "tests": ["tests/Feature/IndividualMembershipWorkflowTest.php"],
+            "tests": [
+                "tests/Feature/IndividualMembershipWorkflowTest.php"
+            ],
             "screens": []
         },
         {
             "controller": "app/Http/Controllers/MembershipRenewalController.php",
-            "articles": ["members/renewals", "members/member-self-service"],
+            "articles": [
+                "members/renewals",
+                "members/member-self-service"
+            ],
             "routes": [
                 {
                     "method": "GET|HEAD",
@@ -874,12 +1013,18 @@
                     "action": "store"
                 }
             ],
-            "tests": ["tests/Feature/MembershipRenewalTest.php"],
-            "screens": ["resources/js/pages/membership-renewal.tsx"]
+            "tests": [
+                "tests/Feature/MembershipRenewalTest.php"
+            ],
+            "screens": [
+                "resources/js/pages/membership-renewal.tsx"
+            ]
         },
         {
             "controller": "app/Http/Controllers/Settings/SecurityController.php",
-            "articles": ["profile/account-settings"],
+            "articles": [
+                "profile/account-settings"
+            ],
             "routes": [
                 {
                     "method": "PUT",
@@ -892,12 +1037,18 @@
                     "action": "edit"
                 }
             ],
-            "tests": ["tests/Feature/Settings/SecurityTest.php"],
-            "screens": ["resources/js/pages/settings/security.tsx"]
+            "tests": [
+                "tests/Feature/Settings/SecurityTest.php"
+            ],
+            "screens": [
+                "resources/js/pages/settings/security.tsx"
+            ]
         },
         {
             "controller": "app/Http/Controllers/Settings/ProfileController.php",
-            "articles": ["profile/account-settings"],
+            "articles": [
+                "profile/account-settings"
+            ],
             "routes": [
                 {
                     "method": "GET|HEAD",
@@ -915,8 +1066,110 @@
                     "action": "destroy"
                 }
             ],
-            "tests": ["tests/Feature/Settings/ProfileUpdateTest.php"],
-            "screens": ["resources/js/pages/settings/profile.tsx"]
+            "tests": [
+                "tests/Feature/Settings/ProfileUpdateTest.php"
+            ],
+            "screens": [
+                "resources/js/pages/settings/profile.tsx"
+            ]
+        },
+        {
+            "controller": "app/Http/Controllers/WorkspaceProtectionController.php",
+            "articles": [
+                "association/workspace-protection"
+            ],
+            "tests": [
+                "tests/Feature/WorkspaceProtectionTest.php"
+            ],
+            "screens": [
+                "resources/js/components/workspace-edit-protection.tsx"
+            ],
+            "routes": [
+                {
+                    "method": "GET|HEAD",
+                    "path": "/association-workspaces/{workspace}/protection",
+                    "action": "status"
+                },
+                {
+                    "method": "POST",
+                    "path": "/association-workspaces/{workspace}/protection/confirm",
+                    "action": "confirm"
+                },
+                {
+                    "method": "POST",
+                    "path": "/association-workspaces/{workspace}/protection/pin",
+                    "action": "pin"
+                },
+                {
+                    "method": "POST",
+                    "path": "/association-workspaces/{workspace}/protection/unlock",
+                    "action": "unlock"
+                },
+                {
+                    "method": "POST",
+                    "path": "/association-workspaces/{workspace}/protection/lease",
+                    "action": "lease"
+                }
+            ]
+        },
+        {
+            "controller": "app/Http/Controllers/AssociationMailController.php",
+            "articles": [
+                "association/email-configuration"
+            ],
+            "tests": [
+                "tests/Feature/AssociationMailConfigurationTest.php"
+            ],
+            "screens": [
+                "resources/js/components/association-email-configuration.tsx"
+            ],
+            "routes": [
+                {
+                    "method": "GET|HEAD",
+                    "path": "/association-workspaces/{workspace}/mail",
+                    "action": "show"
+                },
+                {
+                    "method": "POST",
+                    "path": "/association-workspaces/{workspace}/mail",
+                    "action": "save"
+                },
+                {
+                    "method": "POST",
+                    "path": "/association-workspaces/{workspace}/mail/test",
+                    "action": "test"
+                },
+                {
+                    "method": "POST",
+                    "path": "/association-workspaces/{workspace}/mail/review",
+                    "action": "review"
+                }
+            ]
+        },
+        {
+            "controller": "app/Http/Controllers/ApplicationPrintController.php",
+            "articles": [
+                "profile/application-printing",
+                "members/application-printing"
+            ],
+            "tests": [
+                "tests/Feature/ApplicationPrintTest.php"
+            ],
+            "screens": [
+                "resources/views/print/application.blade.php"
+            ],
+            "routes": [
+                {
+                    "method": "GET|HEAD",
+                    "path": "/association-registration/{application}/print",
+                    "action": "registration"
+                },
+                {
+                    "method": "GET|HEAD",
+                    "path": "/membership-applications/{application}/print",
+                    "action": "membership"
+                }
+            ]
         }
     ],
     "infrastructure": "Fortify/passkey/authentication and settings routes are covered by profile/account-settings. Framework storage, health, devtools and CSRF routes are infrastructure, not separate user data-entry articles. API V1 currently exposes health only.",
@@ -1208,11 +1461,43 @@
             "title": "Solve common form and balance problems",
             "path": "/association-help/finance?topic=troubleshoot",
             "change": "revised"
+        },
+        {
+            "section": "profile",
+            "title": "Print your association registration application",
+            "path": "/association-help/profile?topic=application-printing",
+            "change": "added"
+        },
+        {
+            "section": "association",
+            "title": "Unlock protected settings and avoid conflicting edits",
+            "path": "/association-help/association?topic=workspace-protection",
+            "change": "added"
+        },
+        {
+            "section": "association",
+            "title": "Configure association email and review delivery outcomes",
+            "path": "/association-help/association?topic=email-configuration",
+            "change": "added"
+        },
+        {
+            "section": "association",
+            "title": "Replace FILMUNITY navigation logo assets",
+            "path": "/association-help/association?topic=logo-assets",
+            "change": "added"
+        },
+        {
+            "section": "members",
+            "title": "Print membership applications for offline review",
+            "path": "/association-help/members?topic=application-printing",
+            "change": "added"
+        },
+        {
+            "section": "finance",
+            "title": "Retain tax setup versions and review affected drafts",
+            "path": "/association-help/finance?topic=tax-configuration-versions",
+            "change": "added"
         }
     ],
-    "article_count": {
-        "revised": 26,
-        "added": 19,
-        "total": 45
-    }
+    "article_count": 51
 }

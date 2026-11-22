@@ -21,7 +21,7 @@ export default function AuthSimpleLayout({
                     <img
                         src="/brand/filmunity-logo-transparent.png"
                         alt="FILMUNITY home"
-                        width={160}
+                        width={250}
                     />
                 </Link>
                 <header className="space-y-2">

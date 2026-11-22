@@ -12,6 +12,8 @@ use Tests\TestCase;
 
 class MultiLineTaxTest extends TestCase
 {
+    use \Tests\Support\WorkspaceMutationRequests;
+
     use DatabaseTransactions;
     use FinanceWorkflowFixtures;
 
@@ -52,7 +54,7 @@ class MultiLineTaxTest extends TestCase
         foreach (['counter_account_id', 'taxable_base', 'exempt_base', 'gst_rate', 'tds_base', 'hsn_sac'] as $key) {
             unset($data[$key]);
         }$data['items'] = $this->charges($id);
-        $this->actingAs($owner)->post("/association-finance/$id/tax/documents", $data)->assertSessionHasNoErrors();
+        $this->actingAs($owner)->postWithWorkspaceLease("/association-finance/$id/tax/documents", $data)->assertSessionHasNoErrors();
         $this->assertSame(1, DB::table('association_finance_tax_documents')->where('association_id', $id)->count());
     }
 
@@ -64,9 +66,9 @@ class MultiLineTaxTest extends TestCase
         $data = $this->data($id, $party);
         $item = $this->charges($id)[0];
         $data['items'] = array_fill(0, 21, $item);
-        $this->actingAs($owner)->post("/association-finance/$id/tax/documents", $data)->assertSessionHasErrors('items');
+        $this->actingAs($owner)->postWithWorkspaceLease("/association-finance/$id/tax/documents", $data)->assertSessionHasErrors('items');
         $data['items'] = [array_diff_key($item, ['counter_account_id' => true])];
-        $this->post("/association-finance/$id/tax/documents", $data)->assertSessionHasErrors('items.0.counter_account_id');
+        $this->postWithWorkspaceLease("/association-finance/$id/tax/documents", $data)->assertSessionHasErrors('items.0.counter_account_id');
     }
 
     public function test_legacy_single_charge_and_multi_line_rounding_can_coexist(): void

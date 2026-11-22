@@ -17,6 +17,8 @@ use Tests\TestCase;
 
 class TaxCorrectionWorkflowTest extends TestCase
 {
+    use \Tests\Support\WorkspaceMutationRequests;
+
     use DatabaseTransactions;
     use FinanceWorkflowFixtures;
 
@@ -31,9 +33,9 @@ class TaxCorrectionWorkflowTest extends TestCase
         $data = $this->correction($original, 'credit_note', '60.00');
         $stale = Notes::save($id, $owner, [...$data, 'client_token' => (string) Str::uuid()]);
         $url = "/association-finance/$id/billing/notes";
-        $this->actingAs($owner)->post($url, $data)->assertSessionHasNoErrors();
+        $this->actingAs($owner)->postWithWorkspaceLease($url, $data)->assertSessionHasNoErrors();
         $note = DB::table('association_bill_documents')->where('client_token', $data['client_token'])->value('voucher_id');
-        $this->post("$url/$note", [...$data, 'reason' => 'Updated reconciliation'])->assertSessionHasNoErrors();
+        $this->postWithWorkspaceLease("$url/$note", [...$data, 'reason' => 'Updated reconciliation'])->assertSessionHasNoErrors();
         $this->postTax($owner, $id, $note);
         $this->assertSame('70.80', Bills::remaining($note));
         $this->assertSame('195.50', Bills::remaining($original));
@@ -42,7 +44,7 @@ class TaxCorrectionWorkflowTest extends TestCase
             ->component('association-billing')->where('taxSources.'.$original.'.charges.0.remaining', '40.00'));
 
         Finance::decide($id, $stale, $owner, 'submit', 'Review initiated');
-        $this->post("/association-finance/$id/vouchers/$stale/decision", [
+        $this->postWithWorkspaceLease("/association-finance/$id/vouchers/$stale/decision", [
             'action' => 'post', 'confirmed' => true, 'note' => 'Stale review',
         ])->assertSessionHasErrors('charges');
         $this->assertDatabaseHas('association_finance_vouchers', ['id' => $stale, 'status' => 'submitted']);
@@ -66,9 +68,9 @@ class TaxCorrectionWorkflowTest extends TestCase
 
         $data = $this->correction($original, 'debit_note', '40.00');
         $url = "/association-finance/$id/billing/notes";
-        $this->actingAs($owner)->post($url, $data)->assertSessionHasErrors('charges');
+        $this->actingAs($owner)->postWithWorkspaceLease($url, $data)->assertSessionHasErrors('charges');
         $review = 'Reviewed deduction and supporting reconciliation V-01';
-        $this->post($url, [...$data, 'tds_reversal' => '10.01', 'tds_review' => $review])->assertSessionHasErrors('charges');
+        $this->postWithWorkspaceLease($url, [...$data, 'tds_reversal' => '10.01', 'tds_review' => $review])->assertSessionHasErrors('charges');
         $note = Notes::save($id, $owner, [...$data, 'tds_reversal' => '4.00', 'tds_review' => $review]);
         $this->postTax($owner, $id, $note);
         $this->assertSame('43.20', Bills::remaining($note));
@@ -92,7 +94,7 @@ class TaxCorrectionWorkflowTest extends TestCase
         $this->postTax($owner, $id, $original);
         [$other, $otherId] = $this->association(true);
 
-        $this->actingAs($other)->post("/association-finance/$otherId/billing/notes", $this->correction($original, 'credit_note', '10.00'))
+        $this->actingAs($other)->postWithWorkspaceLease("/association-finance/$otherId/billing/notes", $this->correction($original, 'credit_note', '10.00'))
             ->assertSessionHasErrors('finance');
         $this->assertDatabaseMissing('association_finance_notes', ['association_id' => $otherId, 'original_document_id' => $original]);
     }

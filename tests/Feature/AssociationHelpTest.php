@@ -171,6 +171,20 @@ class AssociationHelpTest extends TestCase
         }
     }
 
+    public function test_workspace_controls_and_application_print_guides_describe_current_limits(): void
+    {
+        $this->actingAs($this->representative('approved'));
+        foreach (['association' => ['workspace-protection', 'email-configuration', 'logo-assets'], 'members' => ['application-printing'], 'profile' => ['application-printing'], 'finance' => ['tax-configuration-versions']] as $section => $topics) {
+            foreach ($topics as $topic) {
+                $this->get('/association-help/'.$section.'?topic='.$topic)->assertOk()->assertInertia(fn (Page $page) => $page->where('topicId', $topic));
+            }
+        }
+        $this->get('/association-help/association/download')->assertOk()->assertSee('Existing associations must enroll')->assertSee('five minutes')->assertSee('Blank password retains')->assertSee('public/brand/filmunity-logo-mini.svg', false);
+        $this->get('/association-help/finance/download')->assertOk()->assertSee('Server and database posting checks reject stale versions')->assertSee('Recurring member invoices remain ordinary non-tax drafts');
+        $this->actingAs($this->representative('pending'))->get('/association-help/profile?topic=application-printing')->assertOk();
+        $this->get('/association-help/association?topic=workspace-protection')->assertNotFound();
+    }
+
     private function representative(string $status): User
     {
         $user = User::factory()->create(['association_signup' => true]);

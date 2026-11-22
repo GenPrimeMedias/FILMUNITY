@@ -15,7 +15,9 @@ use Laravel\Fortify\Contracts\LoginResponse;
 use Laravel\Fortify\Events\TwoFactorAuthenticationChallenged;
 use Laravel\Fortify\Features;
 use Laravel\Fortify\Fortify;
+use Laravel\Socialite\AbstractUser;
 use Laravel\Socialite\Facades\Socialite;
+use Laravel\Socialite\Two\GoogleProvider;
 use Laravel\Socialite\Two\InvalidStateException;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -24,12 +26,6 @@ class GoogleAuthenticationController
     public function redirect(Request $request): Response
     {
         $this->ensureConfigured();
-
-        if ($request->boolean('workspace_reauth')) {
-            abort_unless($request->user()?->google_id, 403);
-            $request->session()->put('workspace.google_reauth', ['user' => $request->user()->id, 'subject' => $request->user()->google_id, 'expires' => now()->addMinutes(5)->timestamp]);
-            return Socialite::driver('google')->with(['prompt' => 'select_account'])->redirect();
-        }
 
         if (! $request->boolean('association')) {
             $request->session()->forget('filmunity.association-registration');
@@ -49,23 +45,30 @@ class GoogleAuthenticationController
         }
 
         try {
-            $profile = Socialite::driver('google')->user();
+            $driver = Socialite::driver('google');
+            if ($request->routeIs('workspace-google.callback')) {
+                abort_unless($driver instanceof GoogleProvider, 503);
+                $driver->redirectUrl(route('workspace-google.callback'));
+            }
+            $profile = $driver->user();
         } catch (InvalidStateException|GuzzleException) {
             return $this->failed();
         }
 
-        $subject = $profile->getId();
+        $subject = $this->validatedSubject($profile->getId());
 
-        if ($reauth = $request->session()->pull('workspace.google_reauth')) {
-            if (! $request->user() || $request->user()->id !== $reauth['user'] || ($reauth['expires'] ?? 0) < now()->timestamp || ! is_string($subject) || ! hash_equals($reauth['subject'], $subject)) {
+        if ($request->routeIs('workspace-google.callback')) {
+            $reauth = $request->session()->pull('workspace.google_reauth');
+            if (! is_array($reauth) || ! $request->user() || $request->user()->id !== $reauth['user'] || ($reauth['expires'] ?? 0) < now()->timestamp || $subject === null || ! hash_equals($reauth['subject'], $subject)) {
                 return redirect('/association-workspaces')->withErrors(['protection' => 'Google reauthentication did not match the signed-in linked account.']);
             }
             $request->session()->regenerate();
-            $request->session()->put('workspace.step_up', now()->timestamp);
+            $request->session()->put('workspace.step_up', ['expires' => now()->addMinutes(5)->timestamp, 'user' => $request->user()->id, 'session' => hash('sha256', $request->session()->getId())]);
+
             return redirect('/association-workspaces')->with('status', 'Google account confirmed. Open Workspace setup to create or reset your PIN within five minutes.');
         }
 
-        if (! is_string($subject) || $subject === '' || strlen($subject) > 255) {
+        if ($subject === null || ! $profile instanceof AbstractUser) {
             return $this->failed();
         }
 
@@ -134,6 +137,23 @@ class GoogleAuthenticationController
                 && filled(config('services.google.redirect')),
             404,
         );
+    }
+
+    public function workspaceReauthentication(Request $request): Response
+    {
+        $this->ensureConfigured();
+        abort_unless(filled($request->user()?->google_id), 403);
+        $request->session()->put('workspace.google_reauth', ['user' => $request->user()->id, 'subject' => $request->user()->google_id, 'expires' => now()->addMinutes(5)->timestamp]);
+
+        $driver = Socialite::driver('google');
+        abort_unless($driver instanceof GoogleProvider, 503);
+
+        return $driver->redirectUrl(route('workspace-google.callback'))->with(['prompt' => 'select_account'])->redirect();
+    }
+
+    private function validatedSubject(mixed $subject): ?string
+    {
+        return is_string($subject) && $subject !== '' && strlen($subject) <= 255 ? $subject : null;
     }
 
     private function failed(): RedirectResponse

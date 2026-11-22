@@ -13,6 +13,8 @@ use Tests\TestCase;
 
 class MembershipApplicationTest extends TestCase
 {
+    use \Tests\Support\WorkspaceMutationRequests;
+
     use DatabaseTransactions;
 
     protected function setUp(): void
@@ -33,14 +35,14 @@ class MembershipApplicationTest extends TestCase
         $queue = '/association-membership-review';
 
         $this->get($url)->assertRedirect(route('login'));
-        $this->actingAs($member)->post($url, ['membership_type' => 'yearly', 'association_id' => $pending, 'statement' => 'My work'])
+        $this->actingAs($member)->postWithWorkspaceLease($url, ['membership_type' => 'yearly', 'association_id' => $pending, 'statement' => 'My work'])
             ->assertSessionHasErrors('association_id');
 
         foreach ([$first, $second] as $association) {
-            $this->post($url, ['membership_type' => 'yearly', 'association_id' => $association, 'statement' => 'I would like to contribute my experience.'])
+            $this->postWithWorkspaceLease($url, ['membership_type' => 'yearly', 'association_id' => $association, 'statement' => 'I would like to contribute my experience.'])
                 ->assertRedirect($url);
         }
-        $this->post($url, ['membership_type' => 'yearly', 'association_id' => $first, 'statement' => 'Duplicate'])->assertSessionHasErrors('association_id');
+        $this->postWithWorkspaceLease($url, ['membership_type' => 'yearly', 'association_id' => $first, 'statement' => 'Duplicate'])->assertSessionHasErrors('association_id');
         $this->get($queue)->assertForbidden();
 
         $id = DB::table('association_membership_applications')->where('association_id', $first)->where('member_id', $member->id)->value('id');
@@ -65,7 +67,7 @@ class MembershipApplicationTest extends TestCase
             'id' => $id, 'status' => 'accepted_for_payment', 'decision_note' => 'Await the fee request.',
         ]);
         $this->get("/association-workspaces/$first")->assertNotFound();
-        $this->post($url, ['membership_type' => 'yearly', 'association_id' => $second, 'statement' => 'A new application with updated details.'])->assertRedirect($url);
+        $this->postWithWorkspaceLease($url, ['membership_type' => 'yearly', 'association_id' => $second, 'statement' => 'A new application with updated details.'])->assertRedirect($url);
         $this->assertDatabaseHas('association_membership_applications', ['id' => $otherId, 'status' => 'declined']);
 
         $this->get($url.'?status=approved&sort=submitted&direction=desc')->assertInertia(
@@ -108,15 +110,15 @@ class MembershipApplicationTest extends TestCase
             ]],
         ];
 
-        $this->actingAs($otherOwner)->post($setup, $settings)->assertNotFound();
+        $this->actingAs($otherOwner)->postWithWorkspaceLease($setup, $settings)->assertNotFound();
         $this->actingAs($owner)->get($setup)->assertOk();
         $missingFees = $settings;
         unset($missingFees['yearly_fee'], $missingFees['lifetime_fee']);
-        $this->post($setup, $missingFees)->assertSessionHasErrors(['yearly_fee', 'lifetime_fee']);
-        $this->post($setup, [...$settings, 'yearly_fee' => '-1', 'lifetime_fee' => '1.001'])
+        $this->postWithWorkspaceLease($setup, $missingFees)->assertSessionHasErrors(['yearly_fee', 'lifetime_fee']);
+        $this->postWithWorkspaceLease($setup, [...$settings, 'yearly_fee' => '-1', 'lifetime_fee' => '1.001'])
             ->assertSessionHasErrors(['yearly_fee', 'lifetime_fee']);
-        $this->post($setup, $settings)->assertRedirect($setup);
-        $this->post($setup, $settings)->assertSessionHasErrors('version');
+        $this->postWithWorkspaceLease($setup, $settings)->assertRedirect($setup);
+        $this->postWithWorkspaceLease($setup, $settings)->assertSessionHasErrors('version');
 
         $this->actingAs($member)->get($setup)->assertNotFound();
         $this->get('/dashboard?panel=applications')->assertRedirect($url);
@@ -127,18 +129,18 @@ class MembershipApplicationTest extends TestCase
             ->where('associations.1.id', $other)
             ->has('associations.1.fields', 0));
 
-        $this->post($url, ['membership_type' => 'yearly', 'association_id' => $association, 'version' => 0, 'answers' => [$field => 'Tamil']])
+        $this->postWithWorkspaceLease($url, ['membership_type' => 'yearly', 'association_id' => $association, 'version' => 0, 'answers' => [$field => 'Tamil']])
             ->assertSessionHasErrors('association_id');
-        $this->post($url, ['membership_type' => 'yearly', 'association_id' => $association, 'version' => 1])
+        $this->postWithWorkspaceLease($url, ['membership_type' => 'yearly', 'association_id' => $association, 'version' => 1])
             ->assertSessionHasErrors("answers.$field");
-        $this->post($url, ['membership_type' => 'yearly', 'association_id' => $association, 'version' => 1, 'answers' => [$field => 'Unknown']])
+        $this->postWithWorkspaceLease($url, ['membership_type' => 'yearly', 'association_id' => $association, 'version' => 1, 'answers' => [$field => 'Unknown']])
             ->assertSessionHasErrors("answers.$field");
-        $this->post($url, ['membership_type' => 'yearly', 'association_id' => $association, 'version' => 1, 'answers' => [$field => 'Tamil']])
+        $this->postWithWorkspaceLease($url, ['membership_type' => 'yearly', 'association_id' => $association, 'version' => 1, 'answers' => [$field => 'Tamil']])
             ->assertRedirect($url);
 
         $settings['version'] = 1;
         $settings['fields'][0]['label'] = 'Preferred language';
-        $this->actingAs($owner)->post($setup, $settings)->assertRedirect($setup);
+        $this->actingAs($owner)->postWithWorkspaceLease($setup, $settings)->assertRedirect($setup);
         $this->get("/association-membership-review?association=$association")
             ->assertInertia(fn (AssertableInertia $page) => $page
                 ->where('applications.data.0.form_snapshot.answers.0.label', 'Primary language')
@@ -169,15 +171,15 @@ class MembershipApplicationTest extends TestCase
             ];
         }
         $setup = "/association-workspaces/$association/setup";
-        $this->actingAs($owner)->post($setup, [
+        $this->actingAs($owner)->postWithWorkspaceLease($setup, [
             ...$settings, 'fields' => [...$settings['fields'], [
                 'id' => (string) Str::uuid(), 'label' => 'Extra field', 'type' => 'text', 'required' => false,
             ]],
         ])->assertSessionHasErrors('fields');
-        $this->post($setup, $settings)->assertRedirect($setup);
+        $this->postWithWorkspaceLease($setup, $settings)->assertRedirect($setup);
 
         $url = '/membership-applications';
-        $this->actingAs($applicant)->post($url, [
+        $this->actingAs($applicant)->postWithWorkspaceLease($url, [
             'membership_type' => 'yearly', 'association_id' => $association, 'version' => 1,
             'answers' => [
                 $file => UploadedFile::fake()->create('proof.pdf', 80, 'application/pdf'),
@@ -197,11 +199,11 @@ class MembershipApplicationTest extends TestCase
         $owner = User::factory()->create();
         $member = User::factory()->create();
         $association = $this->association($owner, 'approved');
-        $this->actingAs($member)->post('/membership-applications', ['association_id' => $association, 'statement' => 'My work'])->assertSessionHasNoErrors();
+        $this->actingAs($member)->postWithWorkspaceLease('/membership-applications', ['association_id' => $association, 'statement' => 'My work'])->assertSessionHasNoErrors();
         $id = DB::table('association_membership_applications')->where('member_id', $member->id)->value('id');
         $this->assertDatabaseHas('association_membership_applications', ['id' => $id, 'membership_type' => null, 'fee_minor' => null]);
         $this->actingAs($owner)->patch("/association-membership-review/$id", ['status' => 'accepted_for_payment'])->assertSessionHasNoErrors();
-        $this->actingAs($member)->post("/membership-applications/$id/confirm-plan", ['membership_type' => 'lifetime', 'version' => 0])->assertSessionHasNoErrors();
+        $this->actingAs($member)->postWithWorkspaceLease("/membership-applications/$id/confirm-plan", ['membership_type' => 'lifetime', 'version' => 0])->assertSessionHasNoErrors();
         DB::table('association_workspace_settings')->where('association_id', $association)->update(['lifetime_fee_minor' => 90000]);
         $this->get('/membership-applications')->assertInertia(fn (AssertableInertia $page) => $page
             ->where('applications.data.0.fee', '500.50')->where('applications.data.0.membership_type', 'lifetime'));

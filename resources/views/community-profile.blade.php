@@ -46,7 +46,7 @@
     <a class="skip-link" href="#main-content">Skip to profile</a>
     <aside class="sidebar" aria-label="Profile sidebar">
         <a class="brand" href="{{ route('home') }}" aria-label="FILMUNITY home">
-            <img src="{{ asset('brand/filmunity-logo-transparent.png') }}" alt="FILMUNITY" width="144">
+            <img src="{{ asset('brand/filmunity-logo-full.png') }}" alt="FILMUNITY" width="144">
         </a>
         <a class="sidebar-identity" href="#home">
             <img class="sidebar-avatar" src="{{ $profile['photo'] }}" alt="" width="108" height="108">

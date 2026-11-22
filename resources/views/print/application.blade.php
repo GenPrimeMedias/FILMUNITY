@@ -15,7 +15,7 @@ h1 { font-size:22px; margin:8px 0; } h2 { font-size:16px; }
 .actions { max-width:182mm; margin:16px auto; } button { padding:10px 16px; cursor:pointer; }
 @media print { body { background:white; } main { margin:0; padding:0; border:0; max-width:none; } thead { display:table-header-group; } .document>tbody>tr { break-inside:auto; } .office { break-inside:avoid; } }
 </style></head><body>
-<div class="actions">@include('print.controls')</div>
+<div class="actions">@include('print.button')</div>
 <main><table class="document"><thead><tr><th class="heading">
 @if($branding['logo'] ?? null)<img src="{{ $branding['logo'] }}" alt="{{ $branding['association_name'] }}">@endif
 <div>{{ $branding['association_name'] }}</div><h1>{{ $title }}</h1>

@@ -16,6 +16,8 @@ use Tests\TestCase;
 
 class AssociationPaymentWorkflowTest extends TestCase
 {
+    use \Tests\Support\WorkspaceMutationRequests;
+
     use DatabaseTransactions;
 
     protected function setUp(): void
@@ -34,23 +36,23 @@ class AssociationPaymentWorkflowTest extends TestCase
         $application = $this->application($association, $member);
 
         $requestUrl = "/membership-payments/request/$application";
-        $this->actingAs($owner)->post($requestUrl, ['instructions' => 'Pay Test Association via bank transfer.'])
+        $this->actingAs($owner)->postWithWorkspaceLease($requestUrl, ['instructions' => 'Pay Test Association via bank transfer.'])
             ->assertSessionHasNoErrors();
         $payment = DB::table('association_payment_requests')->where('application_id', $application)->value('id');
         $detail = "/membership-payments/$payment";
-        $this->post($requestUrl, ['instructions' => 'Second click'])->assertRedirect($detail);
+        $this->postWithWorkspaceLease($requestUrl, ['instructions' => 'Second click'])->assertRedirect($detail);
         $this->assertDatabaseCount('association_payment_requests', 1);
         $this->assertDatabaseHas('association_payment_requests', ['id' => $payment, 'amount_minor' => 10025, 'status' => 'requested']);
 
-        $this->actingAs($member)->post("$detail/submissions", $this->proof('BANK-001'))->assertRedirect($detail);
+        $this->actingAs($member)->postWithWorkspaceLease("$detail/submissions", $this->proof('BANK-001'))->assertRedirect($detail);
         $first = DB::table('association_payment_submissions')->where('payment_id', $payment)->value('id');
-        $this->post("$detail/submissions", $this->proof('BANK-001'))->assertSessionHasErrors('payment');
+        $this->postWithWorkspaceLease("$detail/submissions", $this->proof('BANK-001'))->assertSessionHasErrors('payment');
         $this->actingAs($owner)->patch("/association-payments/$payment/submissions/$first", ['decision' => 'return'])
             ->assertSessionHasErrors('note');
         $this->patch("/association-payments/$payment/submissions/$first", ['decision' => 'return', 'note' => 'Please attach the full bank confirmation.'])
             ->assertRedirect($detail);
         $this->assertDatabaseHas('association_payment_submissions', ['id' => $first, 'status' => 'returned']);
-        $this->actingAs($member)->post("$detail/submissions", $this->proof('BANK-002'))->assertRedirect($detail);
+        $this->actingAs($member)->postWithWorkspaceLease("$detail/submissions", $this->proof('BANK-002'))->assertRedirect($detail);
         $second = DB::table('association_payment_submissions')->where('payment_id', $payment)->where('status', 'submitted')->value('id');
         $this->actingAs($owner)->patch("/association-payments/$payment/submissions/$second", ['decision' => 'accept', 'note' => 'Bank receipt verified.'])
             ->assertRedirect($detail);
@@ -93,11 +95,11 @@ class AssociationPaymentWorkflowTest extends TestCase
         $association = $this->association($owner);
         $this->association($otherOwner);
         $application = $this->application($association, $member);
-        $this->actingAs($member)->post("/membership-payments/request/$application", ['instructions' => 'Bank'])->assertForbidden();
-        $this->actingAs($owner)->post("/membership-payments/request/$application", ['instructions' => 'Bank'])->assertSessionHasNoErrors();
+        $this->actingAs($member)->postWithWorkspaceLease("/membership-payments/request/$application", ['instructions' => 'Bank'])->assertForbidden();
+        $this->actingAs($owner)->postWithWorkspaceLease("/membership-payments/request/$application", ['instructions' => 'Bank'])->assertSessionHasNoErrors();
         $payment = DB::table('association_payment_requests')->where('application_id', $application)->value('id');
         $detail = "/membership-payments/$payment";
-        $this->actingAs($member)->post("$detail/submissions", $this->proof('BANK-SCOPE'))->assertRedirect($detail);
+        $this->actingAs($member)->postWithWorkspaceLease("$detail/submissions", $this->proof('BANK-SCOPE'))->assertRedirect($detail);
         $submission = DB::table('association_payment_submissions')->where('payment_id', $payment)->value('id');
 
         $this->patch("/association-payments/$payment/submissions/$submission", ['decision' => 'accept'])->assertForbidden();
@@ -108,9 +110,9 @@ class AssociationPaymentWorkflowTest extends TestCase
             fn (AssertableInertia $page) => $page->has('payments.data', 0));
         $this->actingAs($stranger)->get($detail)->assertNotFound();
         $otherApplication = $this->application($association, $stranger);
-        $this->actingAs($owner)->post("/membership-payments/request/$otherApplication", ['instructions' => 'Bank']);
+        $this->actingAs($owner)->postWithWorkspaceLease("/membership-payments/request/$otherApplication", ['instructions' => 'Bank']);
         $otherPayment = DB::table('association_payment_requests')->where('application_id', $otherApplication)->value('id');
-        $this->actingAs($stranger)->post("/membership-payments/$otherPayment/submissions", $this->proof('bank-scope'))
+        $this->actingAs($stranger)->postWithWorkspaceLease("/membership-payments/$otherPayment/submissions", $this->proof('bank-scope'))
             ->assertSessionHasErrors('reference');
         $this->get('/filmunity-admin/payments')->assertForbidden();
 
@@ -133,11 +135,11 @@ class AssociationPaymentWorkflowTest extends TestCase
         $member = User::factory()->create();
         $association = $this->association($owner);
         $application = $this->application($association, $member, 'lifetime', 0);
-        $this->actingAs($owner)->post("/membership-payments/request/$application", [])->assertSessionHasNoErrors();
+        $this->actingAs($owner)->postWithWorkspaceLease("/membership-payments/request/$application", [])->assertSessionHasNoErrors();
         $payment = DB::table('association_payment_requests')->where('application_id', $application)->value('id');
-        $this->actingAs($member)->post("/association-payments/$payment/zero-fee")->assertForbidden();
-        $this->actingAs($owner)->post("/association-payments/$payment/zero-fee")->assertRedirect("/membership-payments/$payment");
-        $this->post("/association-payments/$payment/zero-fee")->assertRedirect("/membership-payments/$payment");
+        $this->actingAs($member)->postWithWorkspaceLease("/association-payments/$payment/zero-fee")->assertForbidden();
+        $this->actingAs($owner)->postWithWorkspaceLease("/association-payments/$payment/zero-fee")->assertRedirect("/membership-payments/$payment");
+        $this->postWithWorkspaceLease("/association-payments/$payment/zero-fee")->assertRedirect("/membership-payments/$payment");
         $membership = DB::table('association_memberships')->where('payment_id', $payment)->first();
         $this->assertNull($membership->ends_at);
         $this->assertDatabaseCount('association_payment_submissions', 0);
@@ -163,23 +165,23 @@ class AssociationPaymentWorkflowTest extends TestCase
         $association = $this->association($owner);
         $application = $this->application($association, $member, null, null);
         DB::table('association_membership_applications')->where('id', $application)->update(['currency' => null]);
-        $this->actingAs($owner)->post("/membership-payments/request/$application", ['instructions' => 'Bank'])
+        $this->actingAs($owner)->postWithWorkspaceLease("/membership-payments/request/$application", ['instructions' => 'Bank'])
             ->assertSessionHasErrors('payment');
-        $this->actingAs($member)->post("/membership-applications/$application/confirm-plan", ['membership_type' => 'yearly', 'version' => 99])
+        $this->actingAs($member)->postWithWorkspaceLease("/membership-applications/$application/confirm-plan", ['membership_type' => 'yearly', 'version' => 99])
             ->assertSessionHasErrors('payment');
-        $this->post("/membership-applications/$application/confirm-plan", ['membership_type' => 'yearly', 'version' => 0])
+        $this->postWithWorkspaceLease("/membership-applications/$application/confirm-plan", ['membership_type' => 'yearly', 'version' => 0])
             ->assertRedirect('/membership-applications');
-        $this->post("/membership-applications/$application/confirm-plan", ['membership_type' => 'lifetime', 'version' => 0])
+        $this->postWithWorkspaceLease("/membership-applications/$application/confirm-plan", ['membership_type' => 'lifetime', 'version' => 0])
             ->assertSessionHasErrors('payment');
         $this->assertDatabaseHas('association_membership_applications', ['id' => $application, 'membership_type' => 'yearly', 'fee_minor' => 10025]);
-        $this->actingAs($owner)->post("/membership-payments/request/$application", ['instructions' => 'Bank']);
+        $this->actingAs($owner)->postWithWorkspaceLease("/membership-payments/request/$application", ['instructions' => 'Bank']);
         $payment = DB::table('association_payment_requests')->where('application_id', $application)->value('id');
         DB::select("select set_config('TimeZone', 'Asia/Kolkata', true)");
         CarbonImmutable::setTestNow(CarbonImmutable::parse('2028-02-29 10:00:00', 'UTC'));
         try {
             $proof = $this->proof('BANK-LEAP');
             $proof['paid_on'] = '2028-02-29';
-            $this->actingAs($member)->post("/membership-payments/$payment/submissions", $proof)->assertSessionHasNoErrors();
+            $this->actingAs($member)->postWithWorkspaceLease("/membership-payments/$payment/submissions", $proof)->assertSessionHasNoErrors();
             $submission = DB::table('association_payment_submissions')->where('payment_id', $payment)->value('id');
             $this->actingAs($owner)->patch("/association-payments/$payment/submissions/$submission", ['decision' => 'accept'])
                 ->assertSessionHasNoErrors();
@@ -197,13 +199,13 @@ class AssociationPaymentWorkflowTest extends TestCase
         $member = User::factory()->create();
         $association = $this->association($owner);
         $application = $this->application($association, $member, 'lifetime', 0);
-        $this->actingAs($owner)->post("/membership-payments/request/$application", [])->assertSessionHasNoErrors();
+        $this->actingAs($owner)->postWithWorkspaceLease("/membership-payments/request/$application", [])->assertSessionHasNoErrors();
         $payment = DB::table('association_payment_requests')->where('application_id', $application)->value('id');
         $failingMailer = \Mockery::mock(\Illuminate\Mail\MailManager::class);
         $failingMailer->shouldReceive('getDefaultDriver')->andReturn('log');
         $failingMailer->shouldReceive('to')->andThrow(new \RuntimeException('Simulated transport failure'));
         Mail::swap($failingMailer);
-        $this->post("/association-payments/$payment/zero-fee")->assertSessionHasNoErrors();
+        $this->postWithWorkspaceLease("/association-payments/$payment/zero-fee")->assertSessionHasNoErrors();
         $notification = DB::table('association_payment_notifications')->where('payment_id', $payment)->where('event_key', 'activated')->first();
         PaymentNotification::deliver($notification->id);
         $this->assertDatabaseHas('association_payment_notifications', [

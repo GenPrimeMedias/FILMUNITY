@@ -39,6 +39,7 @@ final class AssociationTaxService {
   Finance::lock($association);$settings=Finance::settings($association);Finance::check($settings!==null,'Initialize finance first.');Finance::editableDate($settings,$data['entry_date']);
   if($old=DB::table('association_bill_documents')->where('association_id',$association)->where('client_token',$data['client_token'])->value('voucher_id')){Finance::check(DB::table('association_finance_tax_documents')->where('voucher_id',$old)->exists(),'Request token belongs to another entry.');return $old;}
   $profile=TaxConfigurationVersions::effective($association,$data['entry_date']);Finance::check($profile!==null&&$data['entry_date']>=$profile->effective_from,'Save tax configuration with a suitable effective date first.');
+  Finance::check(!isset($data['tax_configuration_id'])||$data['tax_configuration_id']===$profile->configuration_version_id,'The applicable reviewed tax configuration changed. Reload its context and explicitly review this draft again.');
   $invoice=$data['flow']==='invoice';$party=Finance::account($association,$data['party_account_id']);Finance::check($invoice?$party->membership_id!==null:$party->vendor_id!==null,'Choose the correct member/vendor ledger.');
   $multi=array_key_exists('items',$data);$prepared=$multi?self::calculateItems($data):null;$items=$prepared['items']??[];$counterRows=[];
   unset($data['vendor_tds_review']);

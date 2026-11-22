@@ -13,11 +13,13 @@ use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia as Page;
 use Tests\TestCase;
 class BillSettlementTest extends TestCase {
+    use \Tests\Support\WorkspaceMutationRequests;
+
  use DatabaseTransactions;
  protected function setUp():void{parent::setUp();$this->withoutVite();Mail::fake();Storage::fake('local');config(['association-registration.reviewer_ids'=>[]]);\Carbon\Carbon::setTestNow('2026-11-20 12:00:00');\Carbon\CarbonImmutable::setTestNow('2026-11-20 12:00:00');}
  protected function tearDown():void{\Carbon\Carbon::setTestNow();\Carbon\CarbonImmutable::setTestNow();parent::tearDown();}
  public function test_billing_reads_and_mutations_are_owner_scoped():void{
-  [$owner,$id]=$this->association(true);$this->actingAs(User::factory()->create())->get("/association-finance/$id/billing")->assertNotFound();$this->post("/association-finance/$id/billing/allocations",[])->assertNotFound();$this->actingAs($owner)->get("/association-finance/$id/billing")->assertOk()->assertInertia(fn(Page $p)=>$p->component('association-billing'));
+  [$owner,$id]=$this->association(true);$this->actingAs(User::factory()->create())->get("/association-finance/$id/billing")->assertNotFound();$this->postWithWorkspaceLease("/association-finance/$id/billing/allocations",[])->assertNotFound();$this->actingAs($owner)->get("/association-finance/$id/billing")->assertOk()->assertInertia(fn(Page $p)=>$p->component('association-billing'));
  }
  public function test_partial_settlement_advance_and_idempotent_allocation():void{
   [$owner,$id]=$this->association(true);[$party]=$this->member($owner,$id);$invoice=$this->entry($owner,$id,$party,'invoice','10000.00');$receipt=$this->entry($owner,$id,$party,'receipt','6000.00');$data=$this->allocation($receipt,$invoice,'6000.00');Bills::allocate($id,$owner,$data);Bills::allocate($id,$owner,$data);$this->assertSame('4000.00',Bills::remaining($invoice));$this->assertSame('0.00',Bills::remaining($receipt));
@@ -28,12 +30,12 @@ class BillSettlementTest extends TestCase {
  }
  public function test_over_allocation_cross_party_and_drafts_are_rejected():void{
   [$owner,$id]=$this->association(true);[$party]=$this->member($owner,$id);[$other]=$this->member($owner,$id);$inv=$this->entry($owner,$id,$party,'invoice','100.00');$receipt=$this->entry($owner,$id,$party,'receipt','101.00');$foreign=$this->entry($owner,$id,$other,'invoice','100.00');$draft=$this->entry($owner,$id,$party,'receipt','100.00',false);$this->actingAs($owner);
-  foreach([$this->allocation($receipt,$inv,'100.01'),$this->allocation($receipt,$foreign,'1.00'),$this->allocation($draft,$inv,'1.00')] as $data)$this->post("/association-finance/$id/billing/allocations",$data)->assertSessionHasErrors('finance');
+  foreach([$this->allocation($receipt,$inv,'100.01'),$this->allocation($receipt,$foreign,'1.00'),$this->allocation($draft,$inv,'1.00')] as $data)$this->postWithWorkspaceLease("/association-finance/$id/billing/allocations",$data)->assertSessionHasErrors('finance');
  }
  public function test_bill_draft_edits_retain_party_and_number_and_evidence_is_private():void{
-  [$owner,$id]=$this->association(true);[$party]=$this->member($owner,$id);$data=$this->data($id,$party,'invoice','100.00');$data['evidence']=UploadedFile::fake()->create('bill.pdf',20,'application/pdf');$this->actingAs($owner)->post("/association-finance/$id/billing/documents",$data)->assertSessionHasNoErrors();$v=DB::table('association_bill_documents')->where('client_token',$data['client_token'])->value('voucher_id');$number=DB::table('association_finance_vouchers')->where('id',$v)->value('number');$this->assertStringStartsWith('INV-2026-27-',$number);$this->get("/association-finance/$id/vouchers/$v/evidence")->assertDownload();
-  unset($data['evidence']);$data['amount']='125.00';$this->post("/association-finance/$id/billing/documents/$v",$data)->assertSessionHasNoErrors();$this->assertSame($number,DB::table('association_finance_vouchers')->where('id',$v)->value('number'));$this->assertSame('125.00',Bills::remaining($v));
-  $old=['entry_date'=>'2026-11-10','kind'=>'journal','description'=>'Bypass','lines'=>[['account_id'=>$party,'debit'=>'1','credit'=>'0'],['account_id'=>$this->account($id,'yearly'),'debit'=>'0','credit'=>'1']]];$this->post("/association-finance/$id/vouchers/$v",$old)->assertSessionHasErrors('finance');
+  [$owner,$id]=$this->association(true);[$party]=$this->member($owner,$id);$data=$this->data($id,$party,'invoice','100.00');$data['evidence']=UploadedFile::fake()->create('bill.pdf',20,'application/pdf');$this->actingAs($owner)->postWithWorkspaceLease("/association-finance/$id/billing/documents",$data)->assertSessionHasNoErrors();$v=DB::table('association_bill_documents')->where('client_token',$data['client_token'])->value('voucher_id');$number=DB::table('association_finance_vouchers')->where('id',$v)->value('number');$this->assertStringStartsWith('INV-2026-27-',$number);$this->get("/association-finance/$id/vouchers/$v/evidence")->assertDownload();
+  unset($data['evidence']);$data['amount']='125.00';$this->postWithWorkspaceLease("/association-finance/$id/billing/documents/$v",$data)->assertSessionHasNoErrors();$this->assertSame($number,DB::table('association_finance_vouchers')->where('id',$v)->value('number'));$this->assertSame('125.00',Bills::remaining($v));
+  $old=['entry_date'=>'2026-11-10','kind'=>'journal','description'=>'Bypass','lines'=>[['account_id'=>$party,'debit'=>'1','credit'=>'0'],['account_id'=>$this->account($id,'yearly'),'debit'=>'0','credit'=>'1']]];$this->postWithWorkspaceLease("/association-finance/$id/vouchers/$v",$old)->assertSessionHasErrors('finance');
   $this->actingAs(User::factory()->create())->get("/association-finance/$id/vouchers/$v/evidence")->assertNotFound();
  }
  public function test_posted_billing_query_returns_exact_aging_and_available_advances():void{
@@ -72,7 +74,7 @@ class BillSettlementTest extends TestCase {
   $rows=collect(\App\Services\Accounting\BillingInvoiceReminders::preview($id));
   $this->assertSame('70.00',$rows->firstWhere('id',$partial)->outstanding);
   $this->assertStringContainsString('partially paid',$rows->firstWhere('id',$partial)->reason);
-  foreach([$draft,$paid,$reversed] as $excluded)$this->post($base,['voucher_id'=>$excluded,'confirmed'=>true])->assertSessionHasErrors('finance');
+  foreach([$draft,$paid,$reversed] as $excluded)$this->postWithWorkspaceLease($base,['voucher_id'=>$excluded,'confirmed'=>true])->assertSessionHasErrors('finance');
   \App\Services\Accounting\BillingInvoiceReminders::dispatch($id,$owner,\App\Services\Accounting\BillingInvoiceReminders::request($id,$owner,$open));
   $this->assertDatabaseHas('association_invoice_reminders',['voucher_id'=>$open,'status'=>'disabled','attempts'=>1]);Mail::assertNothingSent();
   config(['billing-reminders.testing_delivery'=>true]);
@@ -81,7 +83,7 @@ class BillSettlementTest extends TestCase {
   Bills::allocate($id,$owner,$this->allocation($receipt,$partial,'10.00'));
   \App\Services\Accounting\BillingInvoiceReminders::dispatch($id,$owner,$notice);
   \App\Services\Accounting\BillingInvoiceReminders::dispatch($id,$owner,$notice);
-  $this->post($base,['voucher_id'=>$partial,'confirmed'=>true])->assertSessionHasNoErrors();
+  $this->postWithWorkspaceLease($base,['voucher_id'=>$partial,'confirmed'=>true])->assertSessionHasNoErrors();
   Mail::assertSent(\App\Mail\BillingInvoiceReminder::class,fn($mail)=>$mail->invoice['outstanding']==='60.00');Mail::assertSentCount(1);
   $this->assertSame(1,DB::table('association_invoice_reminders')->where('voucher_id',$partial)->count());
   $this->assertDatabaseHas('association_invoice_reminders',['id'=>$notice,'status'=>'simulated','attempts'=>1]);
@@ -95,9 +97,9 @@ class BillSettlementTest extends TestCase {
   Finance::decide($id,$pending,$owner,'reverse','No longer due','2026-11-20');\App\Services\Accounting\BillingInvoiceReminders::dispatch($id,$owner,$pendingNotice);
   $this->assertDatabaseHas('association_invoice_reminders',['id'=>$pendingNotice,'status'=>'cancelled']);Mail::assertSentCount(1);
   [$other,$otherId]=$this->association(true);
-  $this->actingAs($other)->get($base)->assertNotFound();$this->post($base,['voucher_id'=>$partial,'confirmed'=>true])->assertNotFound();
-  $this->post("/association-finance/$otherId/billing/reminders",['voucher_id'=>$partial,'confirmed'=>true])->assertSessionHasErrors('finance');
-  $this->post("/association-finance/$otherId/billing/reminders/$notice/retry",['confirmed'=>true])->assertNotFound();
+  $this->actingAs($other)->get($base)->assertNotFound();$this->postWithWorkspaceLease($base,['voucher_id'=>$partial,'confirmed'=>true])->assertNotFound();
+  $this->postWithWorkspaceLease("/association-finance/$otherId/billing/reminders",['voucher_id'=>$partial,'confirmed'=>true])->assertSessionHasErrors('finance');
+  $this->postWithWorkspaceLease("/association-finance/$otherId/billing/reminders/$notice/retry",['confirmed'=>true])->assertNotFound();
   $this->get("/association-finance/$otherId/billing/reminders")->assertInertia(fn(Page $p)=>$p->has('preview',0)->has('reminders',0));
  }
  public function test_invoice_reminder_failed_fake_retry_recipient_change_and_no_live_transport():void{
@@ -136,30 +138,30 @@ class BillSettlementTest extends TestCase {
   config(['billing-reminders.testing_delivery'=>true,'queue.connections.database.connection'=>'pgsql']);
   $base="/association-finance/$id/billing/reminders";
   $invoice=$this->entry($owner,$id,$party,'invoice','10.01');
-  $this->actingAs($owner)->post($base,['voucher_id'=>$invoice,'confirmed'=>true])->assertSessionHasNoErrors();
+  $this->actingAs($owner)->postWithWorkspaceLease($base,['voucher_id'=>$invoice,'confirmed'=>true])->assertSessionHasNoErrors();
   $notice=DB::table('association_invoice_reminders')->where('voucher_id',$invoice)->first();
   $this->assertSame('queued',$notice->status);Mail::assertNothingSent();
-  $this->post($base,['voucher_id'=>$invoice,'confirmed'=>true])->assertSessionHasNoErrors();
+  $this->postWithWorkspaceLease($base,['voucher_id'=>$invoice,'confirmed'=>true])->assertSessionHasNoErrors();
   $this->assertSame(1,DB::table('jobs')->where('queue','billing-reminders')->count());
   $work=fn()=> $this->artisan('queue:work',['connection'=>'database','--queue'=>'billing-reminders','--once'=>true,'--tries'=>1,'--sleep'=>0])->assertExitCode(0);
   $work();
   $this->assertDatabaseHas('association_invoice_reminders',['id'=>$notice->id,'status'=>'sent','attempts'=>1]);Mail::assertSentCount(1);
   (new \App\Jobs\DeliverBillingInvoiceReminder($id,$notice->id,$notice->queue_token))->handle();
-  $this->post("$base/$notice->id/retry",['confirmed'=>true])->assertSessionHasNoErrors();Mail::assertSentCount(1);
+  $this->postWithWorkspaceLease("$base/$notice->id/retry",['confirmed'=>true])->assertSessionHasNoErrors();Mail::assertSentCount(1);
   $this->assertSame(0,DB::table('jobs')->where('queue','billing-reminders')->count());
   $fake=new class(Mail::getFacadeRoot()->manager) extends \Illuminate\Support\Testing\Fakes\MailFake{
    public bool $failNext=true;
    public function send($view,array $data=[],$callback=null){if($this->failNext){$this->failNext=false;throw new \App\Exceptions\BillingReminderNotSent('Synthetic no delivery');}parent::send($view,$data,$callback);}
   };Mail::swap($fake);
   $retryInvoice=$this->entry($owner,$id,$party,'invoice','20.02');
-  $this->post($base,['voucher_id'=>$retryInvoice,'confirmed'=>true])->assertSessionHasNoErrors();
+  $this->postWithWorkspaceLease($base,['voucher_id'=>$retryInvoice,'confirmed'=>true])->assertSessionHasNoErrors();
   $retry=DB::table('association_invoice_reminders')->where('voucher_id',$retryInvoice)->first();
   $work();$this->assertDatabaseHas('association_invoice_reminders',['id'=>$retry->id,'status'=>'failed','attempts'=>1]);Mail::assertNothingSent();
-  $this->post("$base/$retry->id/retry",['confirmed'=>true])->assertSessionHasNoErrors();$work();
+  $this->postWithWorkspaceLease("$base/$retry->id/retry",['confirmed'=>true])->assertSessionHasNoErrors();$work();
   $this->assertDatabaseHas('association_invoice_reminders',['id'=>$retry->id,'status'=>'sent','attempts'=>2]);Mail::assertSentCount(1);
   (new \App\Jobs\DeliverBillingInvoiceReminder($id,$retry->id,$retry->queue_token))->handle();Mail::assertSentCount(1);
   $paid=$this->entry($owner,$id,$party,'invoice','30.03');
-  $this->post($base,['voucher_id'=>$paid,'confirmed'=>true])->assertSessionHasNoErrors();
+  $this->postWithWorkspaceLease($base,['voucher_id'=>$paid,'confirmed'=>true])->assertSessionHasNoErrors();
   $receipt=$this->entry($owner,$id,$party,'receipt','30.03');Bills::allocate($id,$owner,$this->allocation($receipt,$paid,'30.03'));
   $work();$this->assertDatabaseHas('association_invoice_reminders',['voucher_id'=>$paid,'status'=>'skipped']);Mail::assertSentCount(1);
   $this->get($base)->assertInertia(fn(Page $p)=>$p->has('activity')->has('reminders',3));
@@ -172,34 +174,34 @@ class BillSettlementTest extends TestCase {
    public function send($view,array $data=[],$callback=null){parent::send($view,$data,$callback);throw new \RuntimeException('Synthetic acknowledgement lost');}
   };Mail::swap($fake);
   $invoice=$this->entry($owner,$id,$party,'invoice','10.01');
-  $this->actingAs($owner)->post($base,['voucher_id'=>$invoice,'confirmed'=>true])->assertSessionHasNoErrors();
+  $this->actingAs($owner)->postWithWorkspaceLease($base,['voucher_id'=>$invoice,'confirmed'=>true])->assertSessionHasNoErrors();
   $row=DB::table('association_invoice_reminders')->where('voucher_id',$invoice)->first();
   $this->artisan('queue:work',['connection'=>'database','--queue'=>'billing-reminders','--once'=>true,'--tries'=>1,'--sleep'=>0])->assertExitCode(0);
   Mail::assertSentCount(1);$this->assertDatabaseHas('association_invoice_reminders',['id'=>$row->id,'status'=>'uncertain']);
-  $this->post("$base/$row->id/retry",['confirmed'=>true])->assertSessionHasErrors('finance');
+  $this->postWithWorkspaceLease("$base/$row->id/retry",['confirmed'=>true])->assertSessionHasErrors('finance');
   (new \App\Jobs\DeliverBillingInvoiceReminder($id,$row->id,$row->queue_token))->handle();Mail::assertSentCount(1);
   $this->get($base)->assertInertia(fn(Page $p)=>$p->where('reminders.0.needs_review',true));
   [$other,$otherId]=$this->association(true);
-  $this->actingAs($other)->post("/association-finance/$otherId/billing/reminders/$row->id/resolve",['allow_retry'=>true,'reason'=>'Foreign review'])->assertNotFound();
-  $this->actingAs($owner)->post("$base/$row->id/resolve",['allow_retry'=>false,'reason'=>'Confirmed fake accepted; do not resend'])->assertSessionHasNoErrors();
+  $this->actingAs($other)->postWithWorkspaceLease("/association-finance/$otherId/billing/reminders/$row->id/resolve",['allow_retry'=>true,'reason'=>'Foreign review'])->assertNotFound();
+  $this->actingAs($owner)->postWithWorkspaceLease("$base/$row->id/resolve",['allow_retry'=>false,'reason'=>'Confirmed fake accepted; do not resend'])->assertSessionHasNoErrors();
   $this->assertDatabaseHas('association_invoice_reminders',['id'=>$row->id,'status'=>'skipped']);
   $pending=$this->entry($owner,$id,$party,'invoice','5.00');
   $pendingId=\App\Services\Accounting\BillingInvoiceReminders::request($id,$owner,$pending);
   DB::table('association_invoice_reminders')->where('id',$pendingId)->update(['status'=>'sending','queue_token'=>(string)Str::uuid(),'attempted_at'=>now()->subMinutes(6)]);
-  $this->post("$base/$pendingId/retry",['confirmed'=>true])->assertSessionHasErrors('finance');
-  $this->post("$base/$pendingId/resolve",['allow_retry'=>true,'reason'=>'Verified worker stopped before fake acceptance'])->assertSessionHasNoErrors();
+  $this->postWithWorkspaceLease("$base/$pendingId/retry",['confirmed'=>true])->assertSessionHasErrors('finance');
+  $this->postWithWorkspaceLease("$base/$pendingId/resolve",['allow_retry'=>true,'reason'=>'Verified worker stopped before fake acceptance'])->assertSessionHasNoErrors();
   $this->assertDatabaseHas('association_invoice_reminders',['id'=>$pendingId,'status'=>'failed','queue_token'=>null]);
   Mail::fake();
-  $this->post("$base/$pendingId/retry",['confirmed'=>true])->assertSessionHasNoErrors();
+  $this->postWithWorkspaceLease("$base/$pendingId/retry",['confirmed'=>true])->assertSessionHasNoErrors();
   $this->artisan('queue:work',['connection'=>'database','--queue'=>'billing-reminders','--once'=>true,'--tries'=>1,'--sleep'=>0])->assertExitCode(0);
   $this->assertDatabaseHas('association_invoice_reminders',['id'=>$pendingId,'status'=>'sent']);Mail::assertSentCount(1);
  }
  public function test_release_reopens_bill_and_reversal_requires_allocations_removed():void{
   [$owner,$id]=$this->association(true);[$party]=$this->member($owner,$id);$inv=$this->entry($owner,$id,$party,'invoice','100.00');$receipt=$this->entry($owner,$id,$party,'receipt','100.00');Bills::allocate($id,$owner,$this->allocation($receipt,$inv,'100.00'));$x=DB::table('association_bill_allocations')->where('settlement_id',$receipt)->value('id');
-  $this->actingAs($owner)->post("/association-finance/$id/vouchers/$inv/decision",['action'=>'reverse','entry_date'=>'2026-11-20','note'=>'Correction','confirmed'=>true])->assertSessionHasErrors('finance');Bills::release($id,$owner,$x,'Wrong allocation');$this->assertSame('100.00',Bills::remaining($inv));$this->assertSame('100.00',Bills::remaining($receipt));Finance::decide($id,$inv,$owner,'reverse','Cancel invoice','2026-11-20');$this->assertDatabaseHas('association_finance_vouchers',['id'=>$inv,'status'=>'reversed']);
+  $this->actingAs($owner)->postWithWorkspaceLease("/association-finance/$id/vouchers/$inv/decision",['action'=>'reverse','entry_date'=>'2026-11-20','note'=>'Correction','confirmed'=>true])->assertSessionHasErrors('finance');Bills::release($id,$owner,$x,'Wrong allocation');$this->assertSame('100.00',Bills::remaining($inv));$this->assertSame('100.00',Bills::remaining($receipt));Finance::decide($id,$inv,$owner,'reverse','Cancel invoice','2026-11-20');$this->assertDatabaseHas('association_finance_vouchers',['id'=>$inv,'status'=>'reversed']);
  }
  public function test_closed_period_allocation_cannot_be_released():void{
-  [$owner,$id]=$this->association(true);[$party]=$this->member($owner,$id);$inv=$this->entry($owner,$id,$party,'invoice','100.00');$receipt=$this->entry($owner,$id,$party,'receipt','100.00');Bills::allocate($id,$owner,$this->allocation($receipt,$inv,'100.00'));$x=DB::table('association_bill_allocations')->where('settlement_id',$receipt)->value('id');DB::table('association_finance_settings')->where('association_id',$id)->update(['locked_through'=>'2026-11-15']);$this->actingAs($owner)->post("/association-finance/$id/billing/allocations/$x/release",['note'=>'Too late','confirmed'=>true])->assertSessionHasErrors('finance');
+  [$owner,$id]=$this->association(true);[$party]=$this->member($owner,$id);$inv=$this->entry($owner,$id,$party,'invoice','100.00');$receipt=$this->entry($owner,$id,$party,'receipt','100.00');Bills::allocate($id,$owner,$this->allocation($receipt,$inv,'100.00'));$x=DB::table('association_bill_allocations')->where('settlement_id',$receipt)->value('id');DB::table('association_finance_settings')->where('association_id',$id)->update(['locked_through'=>'2026-11-15']);$this->actingAs($owner)->postWithWorkspaceLease("/association-finance/$id/billing/allocations/$x/release",['note'=>'Too late','confirmed'=>true])->assertSessionHasErrors('finance');
  }
  public function test_membership_receipt_reclassification_does_not_duplicate_income_or_cash():void{
   [$owner,$id]=$this->association(true);[$party,$receipt]=$this->member($owner,$id);DB::table('association_finance_settings')->where('association_id',$id)->update(['enabled'=>true,'yearly_account_id'=>$this->account($id,'yearly'),'lifetime_account_id'=>$this->account($id,'lifetime')]);$source=DB::transaction(fn()=>Finance::collect($receipt,$owner));$invoice=$this->entry($owner,$id,$party,'invoice','100.00');$bridge=Bills::bridge($id,$owner,['source_id'=>$source,'entry_date'=>'2026-11-15','note'=>'Match already recorded membership receipt']);Finance::decide($id,$bridge,$owner,'submit','Reviewed');Finance::decide($id,$bridge,$owner,'post','Reviewed');Bills::allocate($id,$owner,$this->allocation($bridge,$invoice,'100.00'));
