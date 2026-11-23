@@ -54,3 +54,14 @@ yarn-error.log
 
 /.claude/
 /uni360-foundation.env.reference
+
+# Local backup folders & temporary archives
+*-backups/
+*.zip
+*.patch
+/Patch/
+/Tally SAmples/
+/Install-WorkflowUi.ps1
+/CLAUDE.md
+/AGENTS.md
+/boost.json

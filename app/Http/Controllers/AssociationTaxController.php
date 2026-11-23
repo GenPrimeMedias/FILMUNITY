@@ -1,0 +1,99 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Services\Accounting\AssociationTaxService as Tax;
+use App\Services\Accounting\TaxConfigurationVersions;
+use App\Services\Accounting\TaxMovementReport;
+use App\Services\Accounting\VendorTdsReview;
+use App\Support\AssociationFinance as Finance;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
+use Inertia\Inertia;
+
+final class AssociationTaxController extends Controller
+{
+    private function owner(Request $r, string $a): void
+    {
+        Finance::owner($r->user(), $a);
+        Finance::check(Finance::settings($a) !== null, 'Initialize finance first.');
+    }
+
+    public function index(Request $request, string $association)
+    {
+        $this->owner($request, $association);
+        $branding = DB::table('association_workspace_settings')->where('association_id', $association)->first(['display_name', 'logo']);
+        $f = $request->validate(['q' => ['nullable', 'string', 'max:120'], 'from' => ['nullable', 'date_format:Y-m-d'], 'to' => ['nullable', 'date_format:Y-m-d', ...($request->filled('from') ? ['after_or_equal:from'] : [])], 'page' => ['nullable', 'integer', 'min:1'], 'sort' => ['nullable', Rule::in(['entry_date', 'serial', 'name', 'net'])], 'direction' => ['nullable', Rule::in(['asc', 'desc'])]]);
+        $q = DB::table('association_finance_tax_documents as t')->join('association_finance_vouchers as v', 'v.id', '=', 't.voucher_id')->join('association_bill_documents as d', 'd.voucher_id', '=', 'v.id')->join('association_finance_accounts as p', 'p.id', '=', 'd.party_account_id')->where('t.association_id', $association);
+        if (! empty($f['q'])) {
+            $q->where(fn ($w) => $w->whereRaw('strpos(lower(t.serial),lower(?))>0', [$f['q']])->orWhereRaw('strpos(lower(p.name),lower(?))>0', [$f['q']])->orWhereRaw('strpos(lower(v.number),lower(?))>0', [$f['q']]));
+        }
+        if (! empty($f['from'])) {
+            $q->where('v.entry_date', '>=', $f['from']);
+        }if (! empty($f['to'])) {
+            $q->where('v.entry_date', '<=', $f['to']);
+        }
+        $records = $q->select('t.*', 'v.number', 'v.kind', 'v.status', 'v.entry_date', 'p.name', 'v.description', 'v.decision_note')->orderBy(match ($f['sort'] ?? 'entry_date') {
+            'serial' => 't.serial','name' => 'p.name','net' => 't.net',default => 'v.entry_date'
+        }, $f['direction'] ?? 'desc')->orderBy('v.id')->paginate(15)->withQueryString()->through(function ($row) use ($association) {
+            $row->configuration_review_required = in_array($row->status, ['draft', 'submitted'], true) && TaxConfigurationVersions::reviewRequired($association, $row->voucher_id, $row->entry_date);
+            $row->snapshot = json_decode($row->snapshot, true, 512, JSON_THROW_ON_ERROR);
+
+            return $row;
+        });
+        $from = $f['from'] ?? date('Y-m-01');
+        $to = $f['to'] ?? today()->toDateString();
+        $summary = TaxMovementReport::monthly($association, $from, $to);
+
+        return Inertia::render('association-tax', ['association' => ['id' => $association, 'name' => DB::table('association_registration_applications')->where('id', $association)->value('name')], 'associationBranding' => ['display_name' => $branding?->display_name, 'logo_url' => $branding?->logo ? route('membership-applications.logo', ['association' => $association], false) : null], 'configurationVersions' => DB::table('association_tax_configuration_versions')->where('association_id', $association)->orderByDesc('effective_from')->get()->map(function ($version) {
+            $version->reviewed_configuration = json_decode($version->reviewed_configuration, true, flags: JSON_THROW_ON_ERROR);
+
+            return $version;
+        }), 'profile' => DB::table('association_finance_tax_settings')->where('association_id', $association)->first(), 'accounts' => DB::table('association_finance_accounts')->where('association_id', $association)->where('active', true)->orderBy('name')->get(['id', 'code', 'name', 'type', 'is_money', 'membership_id', 'vendor_id']), 'records' => $records, 'filters' => $f, 'summary' => $summary, 'summaryRange' => [$from, $to], 'vendorReviews' => VendorTdsReview::visible($association)]);
+    }
+
+    public function settings(Request $request, string $association)
+    {
+        $this->owner($request, $association);
+        $data = $request->validate(['legal_name' => ['required', 'string', 'max:160'], 'address' => ['required', 'string', 'max:2000'], 'state_code' => ['required', 'regex:/^(0[1-9]|[12][0-9]|3[0-8]|97)$/D'], 'gst_registered' => ['required', 'boolean'], 'gstin' => ['nullable', 'regex:/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/D'], 'pan' => ['nullable', 'regex:/^[A-Z]{5}[0-9]{4}[A-Z]$/D'], 'tan' => ['nullable', 'regex:/^[A-Z]{4}[0-9]{5}[A-Z]$/D'], 'tds_enabled' => ['required', 'boolean'], 'effective_from' => ['required', 'date_format:Y-m-d'], 'policy_note' => ['required', 'string', 'max:2000'], 'confirmed' => ['accepted']]);
+        Tax::settings($association, $request->user(), $data);
+
+        return back()->with('status', 'GST/TDS configuration saved. Existing document snapshots are unchanged.');
+    }
+
+    public function save(Request $request, string $association)
+    {
+        $this->owner($request, $association);
+        $money = ['required', 'regex:/^\d{1,7}(?:\.\d{1,2})?$/D'];
+        $data = $request->validate(['tax_configuration_id' => ['required', 'uuid'],
+            'items' => ['sometimes', 'array', 'min:1', 'max:20'], 'items.*.counter_account_id' => ['required', 'uuid'], 'items.*.description' => ['required', 'string', 'max:500'], 'items.*.amount' => $money, 'items.*.gst_rate' => ['required', 'numeric', 'decimal:0,2', 'between:0,40'], 'items.*.tds_base' => $money, 'items.*.treatment' => ['required', Rule::in(['taxable', 'exempt', 'non_gst'])], 'items.*.hsn_sac' => ['nullable', 'regex:/^[0-9]{4,8}$/D'], 'items.*.exemption_reason' => ['nullable', 'string', 'max:1000'],
+            'vendor_tds_certificate_id' => ['nullable', 'uuid'], 'vendor_tds_review_id' => ['nullable', 'uuid'], 'evidence' => ['nullable', 'file', 'mimes:pdf,png,jpg,jpeg', 'extensions:pdf,png,jpg,jpeg', 'max:5120'], 'client_token' => ['required', 'uuid'], 'flow' => ['required', Rule::in(['invoice', 'bill'])], 'entry_date' => ['required', 'date_format:Y-m-d', 'before_or_equal:today'], 'due_date' => ['required', 'date_format:Y-m-d'], 'party_account_id' => ['required', 'uuid'], 'counter_account_id' => ['nullable', 'required_without:items', 'uuid'], 'description' => ['required', 'string', 'max:2000'], 'reference' => ['nullable', 'string', 'max:160'],
+            'taxable_base' => ['required_without:items', ...array_slice($money, 1)], 'exempt_base' => ['required_without:items', ...array_slice($money, 1)], 'gst_rate' => ['required_without:items', 'numeric', 'decimal:0,2', 'between:0,40'], 'tds_base' => ['required_without:items', ...array_slice($money, 1)], 'tds_rate' => ['required', 'numeric', 'decimal:0,2', 'between:0,40'], 'mode' => ['required', Rule::in(['none', 'cgst', 'utgst', 'igst'])], 'hsn_sac' => ['nullable', 'regex:/^[0-9]{4,8}$/D'], 'place_state' => ['required', 'regex:/^(0[1-9]|[12][0-9]|3[0-8]|97)$/D'], 'supplier_state' => ['required', 'regex:/^(0[1-9]|[12][0-9]|3[0-8]|97)$/D'],
+            'party_name' => ['required', 'string', 'max:160'], 'party_address' => ['required', 'string', 'max:2000'], 'party_gstin' => ['nullable', 'regex:/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/D'], 'party_pan' => ['nullable', 'regex:/^[A-Z]{5}[0-9]{4}[A-Z]$/D'], 'tds_reference' => ['nullable', 'string', 'max:100'], 'tds_event_date' => ['required', 'date_format:Y-m-d'], 'claim_itc' => ['required', 'boolean'], 'review_note' => ['required', 'string', 'max:2000'], 'confirmed' => ['accepted']]);
+        $path = $request->file('evidence')?->store('association-finance-evidence', 'local');
+        Finance::check($path !== false, 'Evidence could not be stored.');
+        unset($data['evidence']);
+        try {
+            $id = Tax::save($association, $request->user(), [...$data, 'evidence_path' => $path]);
+        } catch (\Throwable $e) {
+            if ($path) {
+                Storage::disk('local')->delete($path);
+            }throw $e;
+        }if ($path && DB::table('association_finance_vouchers')->where('id', $id)->value('evidence_path') !== $path) {
+            Storage::disk('local')->delete($path);
+        }
+
+return back()->with('status', 'Tax-aware draft saved. Review and post through Invoices and settlements.');
+    }
+
+    public function show(Request $request, string $association, string $voucher)
+    {
+        $this->owner($request, $association);
+        $row = DB::table('association_finance_tax_documents as t')->join('association_finance_vouchers as v', 'v.id', '=', 't.voucher_id')->where('t.association_id', $association)->where('t.voucher_id', $voucher)->select('t.*','v.number','v.entry_date','v.status','v.kind')->first();
+        abort_if(! $row,404);
+
+        return response()->view('accounting.tax-document',['record' => $row, 'snapshot' => json_decode($row->snapshot,true,512,JSON_THROW_ON_ERROR)])->header('Cache-Control','private, no-store');
+    }
+}

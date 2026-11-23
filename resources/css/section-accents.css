@@ -1,0 +1,16 @@
+/* Section surfaces share the existing FILMUNITY accent in both themes.
+   An association can retain its own inline borderTopColor. */
+:where(
+    section.rounded-xl.bg-card,
+    article.rounded-xl.bg-card,
+    div.rounded-xl.bg-card,
+    aside.rounded-xl.bg-card,
+    section.grid.border.rounded-xl,
+    article.grid.border.rounded-xl,
+    [data-slot="card"],
+    .profile-section
+) {
+    border-top-width: 4px;
+    border-top-style: solid;
+    border-top-color: var(--section-accent, #b9d66b);
+}

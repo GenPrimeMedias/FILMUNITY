@@ -1,0 +1,19 @@
+/* Shared browser-print rules; document-specific dimensions remain in each view. */
+@media print {
+  .actions, .close, .share, .help-controls, .no-print,
+  nav, button, [data-sidebar="sidebar"], [data-slot="sidebar"],
+  [data-slot="sidebar-container"], [data-slot="sidebar-trigger"] { display:none!important; }
+  html, body { height:auto!important; overflow:visible!important; }
+  thead { display:table-header-group; }
+  tfoot { display:table-footer-group; }
+  tr, img, svg { break-inside:avoid; }
+  h1, h2, h3 { break-after:avoid; }
+  table { max-width:100%; }
+  section:has(table) { break-inside:auto; }
+  .qr { object-fit:contain; background:white!important; print-color-adjust:exact; -webkit-print-color-adjust:exact; }
+  .help-article { display:block!important; }
+  .help-article section { break-inside:auto!important; }
+  .help-article table { min-width:0!important; width:100%!important; }
+  .help-article [class*="overflow-x"] { overflow:visible!important; }
+  .help-article, .help-article * { color:black!important; background:white!important; }
+}

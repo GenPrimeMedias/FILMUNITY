@@ -1,51 +1,82 @@
-# FILMUNITY
+# FILMUNITY Google sign-up and sign-in
 
-**A unified, open-source digital infrastructure for film industry associations, federations, councils and workers' unions across South India.**
+Apply the app, database, routes, scripts and tests folders at the root of
+the Laravel project. Review the two new routes in routes/web.php before
+merging if you have edited that file since exporting the source.
 
-FILMUNITY is designed as a multi-tenant association and union management platform. Each participating organisation operates independently while sharing a common, maintainable software foundation.
+## Guarded backend tests on Windows
 
-## Project principles
+In the PowerShell session with the three approved test database environment
+variables already set, run these commands from the Laravel project root.
+Composer updates composer.json and composer.lock locally.
 
-- Open-source application code under Apache License 2.0.
-- Organisation-level data isolation and independent administration.
-- Support for centrally hosted and self-hosted deployments.
-- Modular monolith first; services are separated only when justified by operational evidence.
-- Privacy, security, accessibility, auditability and localisation by design.
-- No dependency on, code reuse from, or modification of the separate proprietary OTT platform.
+```powershell
+composer require "laravel/socialite:5.32.*"
 
-## Planned technology baseline
+.\vendor\bin\phpunit.bat --filter=TestDatabaseConfigurationTest
+```
 
-- Laravel 13 / PHP 8.3+
-- PostgreSQL
-- React + TypeScript + Inertia.js
-- Tailwind CSS
-- Redis for queues/cache where operationally justified
-- Pest or PHPUnit for backend tests; Playwright for browser-level tests
-- Docker for reproducible local and self-hosted deployment
-- GitHub Actions for continuous integration
+Check that the smoke test passes and prints database=filmunity_test. Then
+apply the Google column migration using the included runner. It checks the
+effective PostgreSQL settings and live database and role before running
+only the new additive migration.
 
-Confirm framework, PHP, Node and package versions against official release documentation at implementation time. Pin versions in `composer.lock`, the JavaScript lockfile and container images.
+```powershell
+php .\scripts\migrate-google-auth-test.php --env=testing
+```
 
-## Status
+After the migration succeeds, run the suites individually. Each Laravel
+test verifies the live PostgreSQL target. The Google tests simulate the
+provider and use transaction rollback.
 
-Pre-implementation foundation. The first milestone is repository creation, CI, Laravel bootstrap and documented architecture. Do not represent the project as production-ready until security, tenancy, backup/restore and operational acceptance tests pass.
+```powershell
+.\vendor\bin\phpunit.bat --filter=GoogleAuthenticationTest
+.\vendor\bin\phpunit.bat --filter=RegistrationTest
+.\vendor\bin\phpunit.bat --filter=AuthenticationTest
+```
 
-## Documentation
+## Connect the Google button for a browser check
 
-- [Master project blueprint](docs/MASTER_PROJECT_BLUEPRINT.md)
-- [Database architecture](docs/database/DATABASE_ARCHITECTURE.md)
-- [Development standards](docs/DEVELOPMENT_STANDARDS.md)
-- [Laravel project structure](docs/architecture/LARAVEL_PROJECT_STRUCTURE.md)
-- [Implementation runbook](docs/IMPLEMENTATION_RUNBOOK.md)
-- [Architecture decisions](docs/architecture/ADR-0001-modular-monolith-and-tenancy.md)
-- [Security policy](SECURITY.md)
-- [Contribution guide](CONTRIBUTING.md)
-- [Governance](GOVERNANCE.md)
+1. Add this entry inside the return array in config/services.php.
 
-## Licence
+   ```php
+   'google' => [
+       'client_id' => env('GOOGLE_CLIENT_ID'),
+       'client_secret' => env('GOOGLE_CLIENT_SECRET'),
+       'redirect' => env('GOOGLE_REDIRECT_URI'),
+   ],
+   ```
 
-Apache License 2.0. See [LICENSE](LICENSE).
+2. In Google Cloud, use a Web application OAuth client. Add the exact
+   Laravel callback URL to Authorized redirect URIs. Example for a Laravel
+   server running at http://localhost:8000:
 
-## Important separation boundary
+   ```dotenv
+   GOOGLE_CLIENT_ID=
+   GOOGLE_CLIENT_SECRET=
+   GOOGLE_REDIRECT_URI=http://localhost:8000/auth/google/callback
+   ```
 
-FILMUNITY is a separate codebase, repository, deployment, database, credentials set and infrastructure boundary from the founder's proprietary OTT product. Do not copy OTT source code, secrets, production data, customer records, media assets, database dumps or proprietary business logic into this repository.
+   Fill in the ID and secret in the Laravel .env. Keep those credentials
+   server-side. If the Google consent screen is in testing mode, use an
+   account listed as a test user. If Laravel caches config locally, run
+   php artisan config:clear after adding the settings.
+
+3. After the guarded tests pass, apply the same additive migration to the
+   intended local browser-testing database through your normal Laravel
+   migration workflow. The test runner above targets filmunity_test only.
+4. Point the login and registration buttons to the Laravel
+   /auth/google/redirect route using ordinary top-level navigation. For an
+   Inertia page on the Laravel origin, use an anchor to that route. For a
+   separate frontend, target Laravel's full URL and keep the redirect and
+   callback on the same Laravel origin. The existing Fortify login response
+   determines the post-login destination, currently the Laravel dashboard
+   in the supplied source. Connecting a separate member dashboard requires
+   whatever Laravel session integration that frontend uses.
+
+Try a fresh Gmail account, then sign out and sign in with Google again.
+An existing email/password account still signs in with its original
+credentials. The callback does not automatically link accounts by email.
+A Google account using a third-party email address must complete
+FILMUNITY email verification. Accounts with Fortify two-factor protection
+continue through the Fortify challenge.

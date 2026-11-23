@@ -1,0 +1,960 @@
+.shell {
+  --ink: #14291e;
+  --muted: #486455;
+  --green: #17633f;
+  --dark: #10291e;
+  --line: #d4e3d9;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  min-height: 100svh;
+  background: var(--background, #eef6f0);
+  color: var(--ink);
+  line-height: 1.5;
+}
+
+.header,
+.footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem clamp(1rem, 5vw, 4rem);
+  background: var(--dark);
+  color: #f4faf5;
+  font-size: 0.875rem;
+}
+
+.header a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.header .brand {
+  color: #f2cf86;
+  font-size: 1rem;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  text-decoration: none;
+}
+
+.main {
+  display: grid;
+  align-content: start;
+  gap: 1.25rem;
+  width: min(100%, 72rem);
+  margin-inline: auto;
+  padding: clamp(1rem, 4vw, 2.5rem);
+}
+
+.main h1,
+.main h2 {
+  margin: 0;
+  font-weight: 700;
+  line-height: 1.16;
+}
+
+.main h1 {
+  font-size: clamp(1.75rem, 5vw, 3rem);
+}
+
+.main h2 {
+  font-size: 1.2rem;
+}
+
+.main p {
+  margin: 0;
+}
+
+.hero {
+  display: grid;
+  align-content: end;
+  gap: 0.75rem;
+  min-height: 16rem;
+  padding: clamp(1.25rem, 5vw, 3rem);
+  border-radius: 1rem;
+  background:
+    linear-gradient(90deg, rgb(8 29 20 / 95%), rgb(8 29 20 / 60%)),
+    var(--dark) url("/brand/filmunity-cover.png") center 48% / cover no-repeat;
+  color: #f4faf5;
+}
+
+.hero p {
+  max-width: 32rem;
+}
+
+.paths,
+.editor {
+  display: grid;
+  gap: 1rem;
+}
+
+.card {
+  min-width: 0;
+  margin: 0;
+  padding: clamp(1rem, 3vw, 1.5rem);
+  border: 1px solid var(--line);
+  border-radius: 0.875rem;
+  background: #fff;
+  overflow-wrap: anywhere;
+}
+
+.paths .card {
+  display: grid;
+  justify-items: start;
+  align-content: start;
+  gap: 0.75rem;
+}
+
+.card legend {
+  padding-inline: 0.375rem;
+  font-weight: 700;
+}
+
+.field,
+.group {
+  display: grid;
+  gap: 0.375rem;
+  margin-block: 0.5rem 1rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+.field :is(input, select, textarea) {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  padding: 0.625rem 0.75rem;
+  border: 1px solid #708b7b;
+  border-radius: 0.625rem;
+  background: #f7fbf8;
+  color: var(--ink);
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 400;
+}
+
+.field input[type="file"] {
+  padding-inline: 0.5rem;
+}
+
+.field small {
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.field .error {
+  color: #a1261d;
+}
+
+.choices,
+.actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.choices label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  min-height: 44px;
+  padding-inline: 0.5rem;
+}
+
+.choices input,
+.editor progress {
+  accent-color: var(--green);
+}
+
+.form {
+  display: grid;
+  gap: 0.875rem;
+  min-width: 0;
+}
+
+.status,
+.editorHeading p {
+  color: var(--muted);
+}
+
+.editorHeading p {
+  margin-top: 0.375rem;
+}
+
+.back,
+.main section a:not(.primary) {
+  color: var(--green);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.samples summary {
+  cursor: pointer;
+  padding-block: 0.5rem;
+}
+
+.primary,
+.secondary,
+.samples button {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0.5rem 0.875rem;
+  border: 1px solid var(--green);
+  border-radius: 0.625rem;
+  cursor: pointer;
+  font-weight: 650;
+}
+
+.primary {
+  background: var(--green);
+  color: #fff;
+}
+
+.primary:hover {
+  background: #104d30;
+}
+
+.secondary,
+.samples button {
+  background: #fff;
+  color: var(--green);
+}
+
+.shell button:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.shell :is(a, input, select, textarea, button, summary):focus-visible {
+  outline: 3px solid #22784f;
+  outline-offset: 3px;
+}
+
+.header a:focus-visible {
+  outline-color: #f2cf86;
+}
+
+.card .percent {
+  margin-block: 0.5rem 0.25rem;
+  color: var(--green);
+  font-size: 1.75rem;
+  font-weight: 700;
+}
+
+.card progress {
+  width: 100%;
+}
+
+.checklist {
+  display: grid;
+  gap: 0.375rem;
+  padding: 0;
+  list-style: none;
+}
+
+.avatar {
+  display: grid;
+  width: 88px;
+  height: 88px;
+  place-items: center;
+  border-radius: 50%;
+  background: #e7f3eb;
+  color: var(--green);
+  object-fit: cover;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.card .bio {
+  margin-block: 0.75rem;
+  white-space: pre-wrap;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+@media (min-width: 48rem) {
+  .paths {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .editor {
+    grid-template-columns: minmax(13rem, 1fr) minmax(0, 2fr);
+    align-items: start;
+  }
+
+  .editor aside {
+    position: sticky;
+    top: 1rem;
+  }
+}
+
+/* Professional profile setup */
+.shell:has(.wizard) {
+  background: radial-gradient(ellipse at top right, #f4edc1, transparent 58%), #e8edce;
+}
+
+.wizard {
+  --green: #345624;
+  --ink: #202b18;
+  --muted: #505d3a;
+  --line: #cbd4a7;
+  display: grid;
+  gap: 1.25rem;
+  color: var(--ink);
+}
+
+.wizard .card {
+  background: #fffdf3;
+}
+
+.stepCount {
+  color: var(--muted);
+  font-size: 0.875rem;
+  font-weight: 650;
+}
+
+.wizard .wizardProgress {
+  display: block;
+  width: 100%;
+  height: 0.625rem;
+  overflow: hidden;
+  appearance: none;
+  border: 0;
+  border-radius: 2rem;
+  background: #e3e8c8;
+}
+
+.wizardProgress::-webkit-progress-bar {
+  background: #e3e8c8;
+}
+
+.wizardProgress::-webkit-progress-value {
+  background: #526b2d;
+}
+
+.wizardProgress::-moz-progress-bar {
+  background: #526b2d;
+}
+
+.stepList {
+  display: grid;
+  gap: 0.375rem;
+  margin: 1rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.stepButton {
+  display: flex;
+  width: 100%;
+  min-height: 2rem;
+  text-align: start;
+  cursor: pointer;
+  gap: 0.625rem;
+  align-items: center;
+  padding: 0.375rem;
+  border-radius: 0.5rem;
+  color: var(--muted);
+}
+
+.stepButton:hover:enabled {
+  background: var(--accent, #293721);
+}
+
+.stepButton:disabled {
+  cursor: default;
+  opacity: 0.65;
+}
+
+.stepList .stepNumber {
+  display: grid;
+  width: 1.625rem;
+  height: 1.625rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 50%;
+  background: #edf0da;
+  font-size: 0.875rem;
+}
+
+.stepButton[aria-current="step"] {
+  background: #eef0d2;
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.stepButton[aria-current="step"] .stepNumber {
+  background: var(--green);
+  color: #fff;
+}
+
+.stepFields {
+  min-width: 0;
+  margin: 1rem 0 0;
+  padding: 0;
+  border: 0;
+}
+
+.wizard .field :is(input, select, textarea) {
+  background: #fafbf0;
+  border-color: #798660;
+}
+
+.wizardActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.625rem;
+  margin-top: 1rem;
+}
+
+.wizardActions + .status:not(:empty) {
+  margin-top: 0.75rem;
+}
+
+.wizard .wizardError {
+  margin-top: 0.75rem;
+  color: #9b271c;
+}
+
+.showcase {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.showcase h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+@media (max-width: 47.99rem) {
+  .stepList {
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 0.25rem;
+  }
+
+  .stepButton {
+    justify-content: center;
+    min-height: 2.5rem;
+    padding: 0.375rem 0.125rem;
+    text-align: center;
+    font-size: 0.6875rem;
+    overflow-wrap: normal;
+  }
+
+  .stepLabel {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .wizardActions .primary {
+    flex: 1 0 100%;
+    justify-content: center;
+  }
+}
+
+/* Theme switch and olive-gold settings panels */
+.wizardToolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+}
+
+.wizardToolbar .back {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+
+.themeSwitch {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.625rem;
+  min-height: 44px;
+  padding: 0.375rem 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--wizard-control, #fffdf3);
+  color: var(--ink);
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 650;
+}
+
+.switchTrack {
+  position: relative;
+  flex: none;
+  width: 2.25rem;
+  height: 1.25rem;
+  border: 1px solid #7e856f;
+  border-radius: 999px;
+  background: #424939;
+}
+
+.switchTrack > span {
+  position: absolute;
+  inset-block-start: 2px;
+  inset-inline-start: 2px;
+  width: calc(1.25rem - 6px);
+  height: calc(1.25rem - 6px);
+  border-radius: 50%;
+  background: #f9faee;
+}
+
+.themeSwitch[aria-checked="true"] .switchTrack {
+  border-color: #cfde87;
+  background: linear-gradient(105deg, #e8dc76, #adca64);
+}
+
+.themeSwitch[aria-checked="true"] .switchTrack > span {
+  inset-inline-start: calc(100% - 1.25rem + 4px);
+  background: #182215;
+}
+
+.shell:has(.wizard[data-theme="dark"]) {
+  background:
+    radial-gradient(ellipse at 92% 8%, rgb(168 152 48 / 23%), transparent 42%),
+    radial-gradient(ellipse at 8% 72%, rgb(101 128 52 / 20%), transparent 48%),
+    #0d130f;
+}
+
+.wizard[data-theme="dark"] {
+  color-scheme: dark;
+  --ink: #f5f7eb;
+  --muted: #bec9ad;
+  --green: #dce786;
+  --line: #4a5739;
+  --wizard-control: #111a13;
+}
+
+.wizard[data-theme="dark"] .card {
+  border-color: var(--line);
+  background: linear-gradient(156deg, #242f20 0%, #171f18 62%, #141c16 100%);
+  box-shadow: 0 18px 42px rgb(0 0 0 / 25%);
+}
+
+.wizard[data-theme="dark"] .field :is(input, select, textarea) {
+  border-color: #687755;
+  background: var(--wizard-control);
+  color: var(--ink);
+}
+
+.wizard[data-theme="dark"] .field input::file-selector-button {
+  margin-inline-end: 0.625rem;
+  padding: 0.375rem 0.625rem;
+  border: 1px solid #687755;
+  border-radius: 0.375rem;
+  background: #263425;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.wizard[data-theme="dark"] .stepNumber,
+.wizard[data-theme="dark"] .avatar {
+  background: #30412c;
+  color: #e2ecb4;
+}
+
+.wizard[data-theme="dark"] .stepButton[aria-current="step"] {
+  background: #384527;
+  box-shadow: inset 3px 0 #c4d36c;
+}
+
+.wizard[data-theme="dark"] .stepButton[aria-current="step"] .stepNumber {
+  background: #d4e47b;
+  color: #182215;
+}
+
+.wizard[data-theme="dark"] .wizardProgress {
+  background: #3b4932;
+}
+
+.wizard[data-theme="dark"] .wizardProgress::-webkit-progress-bar {
+  background: #3b4932;
+}
+
+.wizard[data-theme="dark"] .wizardProgress::-webkit-progress-value {
+  background: linear-gradient(90deg, #e6d76f, #a8c85d);
+}
+
+.wizard[data-theme="dark"] .wizardProgress::-moz-progress-bar {
+  background: linear-gradient(90deg, #e6d76f, #a8c85d);
+}
+
+.wizard[data-theme="dark"] .primary {
+  border-color: #cbd778;
+  background: linear-gradient(105deg, #ead775, #b5d46b);
+  color: #172110;
+  box-shadow: 0 5px 15px rgb(164 189 82 / 16%);
+}
+
+.wizard[data-theme="dark"] .primary:hover:enabled {
+  background: linear-gradient(105deg, #f5e49a, #c9e286);
+}
+
+.wizard[data-theme="dark"] :is(.secondary, .samples button) {
+  border-color: #687755;
+  background: #172019;
+  color: var(--ink);
+}
+
+.wizard[data-theme="dark"] :is(.secondary, .samples button, .themeSwitch):hover:enabled {
+  border-color: #a6ba68;
+  background: #293721;
+}
+
+.wizard[data-theme="dark"] :is(.wizardError, .field .error) {
+  color: #ffb3a7;
+}
+
+.wizard[data-theme="dark"] :is(a, button, input, select, textarea, summary, h2):focus-visible {
+  outline: 3px solid #e5df86;
+  outline-offset: 3px;
+}
+
+.portfolio {
+  display: grid;
+  justify-items: start;
+  gap: 0.875rem;
+  margin-top: 1rem;
+}
+
+.projectCard {
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  padding: 1rem;
+  border: 1px solid var(--line);
+  border-radius: 0.75rem;
+  background: var(--wizard-control, #f6f7e9);
+}
+
+.projectCard h4 {
+  margin: 0 0 0.375rem;
+  font-weight: 700;
+}
+
+.projectFields {
+  display: grid;
+  gap: 0 0.75rem;
+}
+
+@media (min-width: 48rem) {
+  .projectFields {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.profileExtras,
+.projectEntry {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 0.75rem;
+  background: var(--wizard-control, #f6f7e9);
+}
+
+.profileExtras {
+  margin-top: 1rem;
+  padding-inline: 1rem;
+  padding-bottom: 0.125rem;
+}
+
+.profileExtras summary {
+  min-height: 44px;
+  padding-block: 0.625rem;
+  cursor: pointer;
+  font-weight: 650;
+}
+
+.profileExtras[open] {
+  padding-bottom: 1rem;
+}
+
+.portfolio > .field {
+  width: 100%;
+  margin: 0;
+}
+
+.projectHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  width: 100%;
+  min-height: 54px;
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  text-align: start;
+  cursor: pointer;
+}
+
+.projectHeader:hover,
+.projectHeader[aria-expanded="true"] {
+  background: rgb(127 145 75 / 16%);
+}
+
+.projectHeader small {
+  display: block;
+  margin-top: 0.125rem;
+  color: var(--muted);
+}
+
+.projectHeader > span:last-child {
+  flex: none;
+  color: var(--green);
+  font-size: 0.875rem;
+  font-weight: 650;
+}
+
+.projectEntry .projectCard {
+  border-color: transparent;
+  background: transparent;
+}
+
+
+.wizard {
+  color: var(--ink);
+  line-height: 1.5;
+  min-width: 0;
+}
+
+/* Match the Settings form scale within the profile editor. */
+.wizard {
+  width: 100%;
+  gap: 1rem;
+  font-family: inherit;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
+.wizard .card {
+  padding: 1rem;
+  border-radius: var(--radius, 0.625rem);
+}
+
+.wizard[data-theme="dark"] .card {
+  border-color: var(--border, #41513b);
+  background: var(--background, #121813);
+  box-shadow: none;
+}
+
+.wizard form > h2,
+.wizard .showcase h3 {
+  font-size: 1rem;
+  line-height: 1.5rem;
+  font-weight: 500;
+}
+
+.wizard .stepCount,
+.wizard .stepNumber {
+  font-size: 0.75rem;
+}
+
+.wizard .stepNumber {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.wizard .percent {
+  margin-block: 0.25rem;
+  font-size: 1rem;
+  line-height: 1.5rem;
+  font-weight: 600;
+}
+
+.wizard .wizardProgress {
+  height: 0.375rem;
+}
+
+.wizard .stepList {
+  gap: 0.25rem;
+  margin-block-start: 0.75rem;
+}
+
+.wizard :is(.field, .group) {
+  gap: 0.5rem;
+  margin-block: 0 1rem;
+  font-size: inherit;
+  font-weight: 500;
+}
+
+.wizard .field :is(input, select, textarea) {
+  min-height: 2.25rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--radius-md, 0.5rem);
+  font-size: inherit;
+}
+
+.wizard[data-theme="dark"] .field :is(input, select, textarea) {
+  border-color: var(--input, #55664d);
+  background: var(--background, #121813);
+}
+
+.wizard .field input[type="file"] {
+  padding: 0.25rem;
+}
+
+.wizard[data-theme="dark"] .field input::file-selector-button {
+  padding: 0.125rem 0.5rem;
+}
+
+.wizard .field small {
+  font-size: 0.75rem;
+  line-height: 1rem;
+}
+
+.wizard :is(.choices label, .primary, .secondary, .samples button, .profileExtras summary, .projectHeader) {
+  min-height: 2.25rem;
+  font-size: inherit;
+  font-weight: 500;
+}
+
+.wizard :is(.primary, .secondary, .samples button) {
+  padding: 0.375rem 0.875rem;
+  border-radius: var(--radius-md, 0.5rem);
+}
+
+.wizard[data-theme="dark"] .primary {
+  border-color: transparent;
+  background: var(--primary, #dce782);
+  color: var(--primary-foreground, #172115);
+  box-shadow: none;
+}
+
+.wizard[data-theme="dark"] .primary:hover:enabled {
+  background: color-mix(in srgb, var(--primary, #dce782) 90%, transparent);
+}
+
+@media (min-width: 48rem) {
+  .wizard .editor {
+    grid-template-columns: 12rem minmax(0, 1fr);
+    gap: 1.5rem;
+  }
+}
+
+.stepFields,
+.detailFields,
+.slideGrid {
+  display: grid;
+  gap: 0.75rem;
+  align-items: start;
+}
+
+.wizard :is(.stepFields, .detailFields, .mediaField) > :is(.field, .group),
+.wizard .stepFields > .profileExtras {
+  margin: 0;
+}
+
+.wizard :is(.stepFields, .detailFields) > * {
+  min-width: 0;
+}
+
+.mediaField,
+.socialFields {
+  min-width: 0;
+  padding: 0.75rem;
+  border: 1px solid var(--border, var(--line));
+  border-radius: var(--radius-md, 0.5rem);
+}
+
+.mediaField {
+  display: grid;
+  gap: 0.5rem;
+  align-content: start;
+  justify-items: start;
+}
+
+.mediaField .field {
+  width: 100%;
+}
+
+.profileExtras .detailFields {
+  padding-block-start: 0.25rem;
+}
+
+@media (min-width: 64rem) {
+  .stepFields,
+  .detailFields,
+  .showcase {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .stepFields > :is(.profileExtras, .socialFields, .slideGrid),
+  .detailFields > :is(.choices, .status),
+  .showcase > :is(.status, .reviewWide) {
+    grid-column: 1 / -1;
+  }
+
+  .showcase {
+    align-items: start;
+  }
+}
+
+.wizard :is(.stepFields, .detailFields, .projectFields) > :is(.field, .group),
+.wizard form > .portfolio > .field {
+  margin: 0;
+  padding: 0.75rem;
+  border: 1px solid var(--border, var(--line));
+  border-radius: var(--radius-md, 0.5rem);
+  align-content: start;
+}
+
+.wizard .projectFields {
+  gap: 0.75rem;
+}
+
+.wizard :is(.stepFields, .detailFields, .projectFields) {
+  align-items: stretch;
+  align-content: start;
+}
+
+.slideGrid {
+  grid-column: 1 / -1;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.slideThumbnail {
+  display: block;
+  width: 100%;
+  height: clamp(4rem, 12vw, 7rem);
+  border-radius: var(--radius-sm, 0.375rem);
+  background: var(--background, #121813);
+  object-fit: contain;
+}
+
+@media (min-width: 64rem) {
+  .slideGrid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+/* FILMUNITY shared section accent: profile editor and wizard surfaces. */
+.card,
+.wizard .card,
+.wizard[data-theme="dark"] .card,
+.showcase,
+.portfolio {
+    border-top-width: 4px;
+    border-top-style: solid;
+    border-top-color: var(--section-accent, #b9d66b);
+}

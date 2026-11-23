@@ -1,11 +1,82 @@
+@import "../../public/brand/section-accents.css";
 @import 'tailwindcss';
 
 @import 'tw-animate-css';
+
 
 @source '../views';
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 
 @custom-variant dark (&:is(.dark *));
+
+@media print {
+  @page {
+    margin: 14mm;
+  }
+
+    body * {
+        visibility: hidden !important;
+    }
+
+    [data-board-directory],
+    [data-board-directory] * {
+        visibility: visible !important;
+    }
+
+    [data-board-directory] {
+        position: absolute !important;
+        inset: 0 !important;
+        display: block !important;
+        width: 100% !important;
+        max-width: none !important;
+        border: 0 !important;
+        background: #fff !important;
+        color: #111 !important;
+        box-shadow: none !important;
+    }
+
+    [data-directory-controls],
+    [data-directory-actions],
+    [data-directory-header] {
+        display: none !important;
+    }
+
+  [data-directory-cards] {
+    display: none !important;
+  }
+
+  [data-directory-print-table],
+  [data-directory-print-table] * {
+    visibility: visible !important;
+  }
+
+  [data-directory-print-table] {
+    display: block !important;
+    color: #111 !important;
+    background: #fff !important;
+  }
+
+  [data-directory-print-table] table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  [data-directory-print-table] thead {
+    display: table-header-group;
+  }
+
+  [data-directory-print-table] tr {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  [data-directory-print-table] th,
+  [data-directory-print-table] td {
+    border-bottom: 1px solid #bbb;
+    padding: 6px;
+    vertical-align: top;
+  }
+}
 
 @theme {
     --font-sans:
@@ -62,74 +133,118 @@
 }
 
 :root {
-    --background: oklch(1 0 0);
-    --foreground: oklch(0.145 0 0);
-    --card: oklch(1 0 0);
-    --card-foreground: oklch(0.145 0 0);
-    --popover: oklch(1 0 0);
-    --popover-foreground: oklch(0.145 0 0);
-    --primary: oklch(0.205 0 0);
-    --primary-foreground: oklch(0.985 0 0);
-    --secondary: oklch(0.97 0 0);
-    --secondary-foreground: oklch(0.205 0 0);
-    --muted: oklch(0.97 0 0);
-    --muted-foreground: oklch(0.556 0 0);
-    --accent: oklch(0.97 0 0);
-    --accent-foreground: oklch(0.205 0 0);
+    --background: #f4f7ed;
+    --foreground: #17251a;
+    --card: #fcfdf8;
+    --card-foreground: #17251a;
+    --popover: #fcfdf8;
+    --popover-foreground: #17251a;
+    --primary: #235b3c;
+    --primary-foreground: #ffffff;
+    --secondary: #e5ecd8;
+    --secondary-foreground: #213521;
+    --muted: #e9eedf;
+    --muted-foreground: #4d624d;
+    --accent: #e6edcf;
+    --accent-foreground: #243c24;
     --destructive: oklch(0.577 0.245 27.325);
     --destructive-foreground: oklch(0.577 0.245 27.325);
-    --border: oklch(0.922 0 0);
-    --input: oklch(0.922 0 0);
-    --ring: oklch(0.87 0 0);
+    --border: #c6d2ba;
+    --input: #a6b99f;
+    --ring: #567a42;
     --chart-1: oklch(0.646 0.222 41.116);
     --chart-2: oklch(0.6 0.118 184.704);
     --chart-3: oklch(0.398 0.07 227.392);
     --chart-4: oklch(0.828 0.189 84.429);
     --chart-5: oklch(0.769 0.188 70.08);
     --radius: 0.625rem;
-    --sidebar: oklch(0.985 0 0);
-    --sidebar-foreground: oklch(0.145 0 0);
-    --sidebar-primary: oklch(0.205 0 0);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.97 0 0);
-    --sidebar-accent-foreground: oklch(0.205 0 0);
-    --sidebar-border: oklch(0.922 0 0);
-    --sidebar-ring: oklch(0.87 0 0);
+    --sidebar: #e8eddf;
+    --sidebar-foreground: #203423;
+    --sidebar-primary: #235b3c;
+    --sidebar-primary-foreground: #ffffff;
+    --sidebar-accent: #dce7c9;
+    --sidebar-accent-foreground: #203423;
+    --sidebar-border: #c6d2ba;
+    --sidebar-ring: #567a42;
 }
 
 .dark {
-    --background: oklch(0.145 0 0);
-    --foreground: oklch(0.985 0 0);
-    --card: oklch(0.145 0 0);
-    --card-foreground: oklch(0.985 0 0);
-    --popover: oklch(0.145 0 0);
-    --popover-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.985 0 0);
-    --primary-foreground: oklch(0.205 0 0);
-    --secondary: oklch(0.269 0 0);
-    --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.269 0 0);
-    --muted-foreground: oklch(0.708 0 0);
-    --accent: oklch(0.269 0 0);
-    --accent-foreground: oklch(0.985 0 0);
+    --background: #121813;
+    --foreground: #f4f7ea;
+    --card: #1b251b;
+    --card-foreground: #f4f7ea;
+    --popover: #1b251b;
+    --popover-foreground: #f4f7ea;
+    --primary: #dce782;
+    --primary-foreground: #172115;
+    --secondary: #263523;
+    --secondary-foreground: #f4f7ea;
+    --muted: #232e22;
+    --muted-foreground: #bdcaae;
+    --accent: #293621;
+    --accent-foreground: #e7edab;
     --destructive: oklch(0.396 0.141 25.723);
     --destructive-foreground: oklch(0.637 0.237 25.331);
-    --border: oklch(0.269 0 0);
-    --input: oklch(0.269 0 0);
-    --ring: oklch(0.439 0 0);
+    --border: #41513b;
+    --input: #55664d;
+    --ring: #d0dd76;
     --chart-1: oklch(0.488 0.243 264.376);
     --chart-2: oklch(0.696 0.17 162.48);
     --chart-3: oklch(0.769 0.188 70.08);
     --chart-4: oklch(0.627 0.265 303.9);
     --chart-5: oklch(0.645 0.246 16.439);
-    --sidebar: oklch(0.205 0 0);
-    --sidebar-foreground: oklch(0.985 0 0);
-    --sidebar-primary: oklch(0.985 0 0);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.269 0 0);
-    --sidebar-accent-foreground: oklch(0.985 0 0);
-    --sidebar-border: oklch(0.269 0 0);
-    --sidebar-ring: oklch(0.439 0 0);
+    --sidebar: #101711;
+    --sidebar-foreground: #eaf0dc;
+    --sidebar-primary: #dce782;
+    --sidebar-primary-foreground: #172115;
+    --sidebar-accent: #293621;
+    --sidebar-accent-foreground: #e7edab;
+    --sidebar-border: #344632;
+    --sidebar-ring: #d0dd76;
+}
+
+.finance-scroll-scope {
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.finance-scroll-scope > header {
+  order: -100;
+}
+
+.finance-scroll-scope > a[href$="/billing"] {
+  order: -90;
+}
+
+.finance-scroll-scope > [aria-label="Financial sections"] {
+  order: -80;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: hsl(var(--background));
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+
+.finance-scroll-scope > div:has(> [aria-label="Workspace edit protection"]) {
+  order: -70;
+}
+
+.finance-scroll-scope [data-records-table] {
+  max-height: 32rem;
+  overflow-y: auto;
+}
+
+.finance-scroll-scope .overflow-x-auto {
+  max-height: 32rem;
+  overflow-y: auto;
+}
+
+.finance-scroll-scope [data-records-table] thead {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: hsl(var(--card));
 }
 
 @layer base {

@@ -1,0 +1,16 @@
+/* Section cards share the FILMUNITY accent. Workspace accents can override it inline. */
+:where(
+    section.grid:is(.bg-card, .border.rounded-xl),
+    article.grid:is(.bg-card, .border.rounded-xl),
+    div.grid.bg-card.rounded-xl,
+    [data-slot="card"]
+) {
+    border-top-width: 4px;
+    border-top-style: solid;
+    border-top-color: var(--section-accent, #b9d66b);
+}
+
+/* The public profile has a standalone stylesheet. */
+body .profile-section {
+    border-top: 4px solid var(--section-accent, #b9d66b);
+}

@@ -2,6 +2,10 @@
 
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Schedule;
+
+Schedule::command('filmunity:generate-recurring-invoices')
+    ->dailyAt('01:00')->timezone(config('app.timezone'))->withoutOverlapping(120);
 
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());

@@ -1,20 +1,26 @@
 import { usePage } from '@inertiajs/react';
 
-import AppLogoIcon from '@/components/app-logo-icon';
-
-export default function AppLogo() {
-    const { name } = usePage().props;
+export default function AppLogo({ compact = false }: { compact?: boolean }) {
+    const { filmunityBrandAssets } = usePage<{
+        filmunityBrandAssets?: { full: string; mini: string };
+    }>().props;
 
     return (
         <>
-            <div className="flex aspect-square size-8 items-center justify-center rounded-md bg-sidebar-primary text-sidebar-primary-foreground">
-                <AppLogoIcon className="size-5 fill-current text-white dark:text-black" />
-            </div>
-            <div className="ml-1 grid flex-1 text-left text-sm">
-                <span className="mb-0.5 truncate leading-tight font-semibold">
-                    {name}
-                </span>
-            </div>
+            <img
+                className={
+                    compact
+                        ? 'h-8 w-8 shrink-0 object-contain'
+                        : 'h-10 w-[180px] shrink-0 object-contain'
+                }
+                src={
+                    filmunityBrandAssets?.[compact ? 'mini' : 'full'] ??
+                    '/brand/filmunity-logo-transparent.png'
+                }
+                alt="FILMUNITY"
+                width={compact ? 32 : 180}
+                height={compact ? 32 : 40}
+            />
         </>
     );
 }
