@@ -13,6 +13,7 @@ final class AssociationMembershipNumber
     public static function settings(string $association): array
     {
         $row = DB::table('association_membership_numbering')->where('association_id', $association)->first();
+
         return ['prefix' => $row?->prefix ?? 'MEM-', 'next_number' => (string) ($row?->next_number ?? 1), 'padding' => (int) ($row?->padding ?? 6)];
     }
 
@@ -24,7 +25,9 @@ final class AssociationMembershipNumber
     // Caller holds the association row lock inside its database transaction.
     public static function configure(string $association, Authenticatable $actor, array $data): void
     {
-        if (! array_key_exists('numbering_next', $data)) return;
+        if (! array_key_exists('numbering_next', $data)) {
+            return;
+        }
         $before = self::locked($association);
         $prefix = strtoupper(trim($data['numbering_prefix'] ?? ''));
         $next = (int) $data['numbering_next'];
@@ -38,7 +41,9 @@ final class AssociationMembershipNumber
         }
         $after = ['prefix' => $prefix, 'next_number' => $next, 'padding' => $padding];
         $prior = ['prefix' => $before->prefix, 'next_number' => (int) $before->next_number, 'padding' => (int) $before->padding];
-        if ($prior === $after) return;
+        if ($prior === $after) {
+            return;
+        }
         DB::table('association_membership_numbering')->where('association_id', $association)->update([
             ...$after, 'updated_at' => now()->toIso8601String(),
         ]);
@@ -57,12 +62,14 @@ final class AssociationMembershipNumber
             'next_number' => $next + 1, 'updated_at' => now()->toIso8601String(),
         ]);
         self::audit($association, $actor, 'allocated', null, ['number' => $number, 'next_number' => $next + 1]);
+
         return $number;
     }
 
     private static function locked(string $association): object
     {
         DB::table('association_membership_numbering')->insertOrIgnore(['association_id' => $association]);
+
         return DB::table('association_membership_numbering')->where('association_id', $association)->lockForUpdate()->first();
     }
 

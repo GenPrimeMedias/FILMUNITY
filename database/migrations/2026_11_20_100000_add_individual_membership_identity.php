@@ -1,10 +1,14 @@
 <?php
+
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
-return new class extends Migration {
-    public function up(): void {
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
         Schema::table('association_membership_applications', fn (Blueprint $table) => $table->json('preapproval_plan_snapshot')->nullable());
         // Preserve earlier pre-review choices for audit, then require post-approval confirmation.
         DB::statement("UPDATE association_membership_applications AS application
@@ -41,5 +45,9 @@ return new class extends Migration {
             $table->unique(['application_id', 'event', 'recipient'], 'membership_correspondence_event_unique');
         });
     }
-    public function down(): void { throw new RuntimeException('Membership identities and correspondence history are retained. Restore a verified backup to revert.'); }
+
+    public function down(): void
+    {
+        throw new RuntimeException('Membership identities and correspondence history are retained. Restore a verified backup to revert.');
+    }
 };

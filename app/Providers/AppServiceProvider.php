@@ -3,9 +3,12 @@
 namespace App\Providers;
 
 use Carbon\CarbonImmutable;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 use Inertia\Inertia;
@@ -30,7 +33,7 @@ class AppServiceProvider extends ServiceProvider
         }
         $this->configureDefaults();
         foreach (['workspace-confirm' => 5, 'workspace-pin' => 5, 'workspace-unlock' => 6, 'workspace-lease' => 120, 'workspace-google' => 5, 'workspace-mail-save' => 10, 'workspace-mail-test' => 3, 'workspace-mail-review' => 10] as $name => $limit) {
-            \Illuminate\Support\Facades\RateLimiter::for($name, fn (\Illuminate\Http\Request $request) => \Illuminate\Cache\RateLimiting\Limit::perMinute($limit)->by(($request->user()?->getAuthIdentifier() ?? $request->ip()).'|'.($request->route('workspace') ?? 'account')));
+            RateLimiter::for($name, fn (Request $request) => Limit::perMinute($limit)->by(($request->user()?->getAuthIdentifier() ?? $request->ip()).'|'.($request->route('workspace') ?? 'account')));
         }
 
         Inertia::share('professionalProfileAvatar', function (): ?string {
@@ -38,7 +41,6 @@ class AppServiceProvider extends ServiceProvider
             if (! $user) {
                 return null;
             }
-
 
             $photoVersion = DB::table('professional_profile_drafts')
                 ->where('user_id', $user->id)

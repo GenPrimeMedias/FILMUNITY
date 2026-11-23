@@ -2,10 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\ApplicationCommunication;
 use App\Support\AssociationMembershipAccess;
 use App\Support\AssociationMembershipForm;
 use App\Support\AssociationPayment;
+use App\Support\AssociationPlans;
 use App\Support\AssociationWorkspace;
+use App\Support\MembershipEligibility;
+use App\Support\MembershipLifecycle;
+use App\Support\MembershipReminder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -17,7 +22,7 @@ final class AssociationMemberController extends Controller
 {
     public function confirmPlan(Request $request, string $application): RedirectResponse
     {
-        \App\Support\MembershipEligibility::requireIndividual($request->user());
+        MembershipEligibility::requireIndividual($request->user());
         $fields = $request->validate([
             'membership_type' => ['nullable', Rule::in(['yearly', 'lifetime'])],
             'plan_id' => ['nullable', 'uuid'],
@@ -37,14 +42,14 @@ final class AssociationMemberController extends Controller
             AssociationPayment::requireState($settings !== null && (int) $settings->version === (int) $fields['version']
                 && $settings->yearly_fee_minor !== null && $settings->lifetime_fee_minor !== null,
                 'The membership fees changed or are not configured. Reload the page.');
-            $plan = \App\Support\AssociationPlans::selected($record->association_id, $fields);
+            $plan = AssociationPlans::selected($record->association_id, $fields);
             DB::table('association_membership_applications')->where('id', $application)->update([
                 'membership_type' => $plan['term'],
                 'plan_id' => $plan['id'], 'plan_snapshot' => json_encode($plan, JSON_THROW_ON_ERROR),
                 'fee_minor' => $plan['amount_minor'],
                 'currency' => 'INR', 'plan_confirmed_at' => now()->toIso8601String(), 'updated_at' => now(),
             ]);
-            \App\Support\ApplicationCommunication::record($application, 'plan_confirmed');
+            ApplicationCommunication::record($application, 'plan_confirmed');
         });
 
         return to_route('membership-applications.index');
@@ -61,7 +66,7 @@ final class AssociationMemberController extends Controller
             abort_unless((clone $owned)->exists(), 403);
             $query->whereIn('membership.association_id', $owned->select('id'));
         } else {
-            \App\Support\MembershipEligibility::requireIndividual($user);
+            MembershipEligibility::requireIndividual($user);
             $query->where('membership.member_id', $user->getAuthIdentifier());
         }
         $renewalQueue = $scope === 'admin' && $request->query('view') === 'renewals';
@@ -82,7 +87,7 @@ final class AssociationMemberController extends Controller
             });
         }
         $now = now()->toIso8601String();
-        $soon = now()->addDays(\App\Support\MembershipLifecycle::RENEWAL_DAYS)->toIso8601String();
+        $soon = now()->addDays(MembershipLifecycle::RENEWAL_DAYS)->toIso8601String();
         if ($renewalQueue) {
             $filters['status'] = 'expiring_soon';
             $query->where('association.status', 'approved')->where('membership.status', 'active')
@@ -92,12 +97,17 @@ final class AssociationMemberController extends Controller
             $query->where('membership.status', 'suspended');
         } elseif ($filters['status'] !== '') {
             $query->where('membership.status', 'active')->where('membership.starts_at', '<=', $now);
-            if ($filters['status'] === 'lifetime') $query->where('membership.membership_type', 'lifetime');
-            else {
+            if ($filters['status'] === 'lifetime') {
+                $query->where('membership.membership_type', 'lifetime');
+            } else {
                 $query->where('membership.membership_type', 'yearly')->whereNotNull('membership.ends_at');
-                if ($filters['status'] === 'expired') $query->where('membership.ends_at', '<=', $now);
-                elseif ($filters['status'] === 'expiring_soon') $query->where('membership.ends_at', '>', $now)->where('membership.ends_at', '<=', $soon);
-                else $query->where('membership.ends_at', '>', $soon);
+                if ($filters['status'] === 'expired') {
+                    $query->where('membership.ends_at', '<=', $now);
+                } elseif ($filters['status'] === 'expiring_soon') {
+                    $query->where('membership.ends_at', '>', $now)->where('membership.ends_at', '<=', $soon);
+                } else {
+                    $query->where('membership.ends_at', '>', $soon);
+                }
             }
         }
         $column = match ($filters['sort']) {
@@ -120,8 +130,9 @@ final class AssociationMemberController extends Controller
                 unset($membership->plan_snapshot);
                 $settings = AssociationMembershipForm::settings($membership->association_id);
                 $membership->logo_url = $settings?->has_logo ? route('membership-applications.logo', ['association' => $membership->association_id, 'v' => $settings->version], false) : null;
-                \App\Support\MembershipLifecycle::present($membership, $membership->association_status);
-                $membership->reminder = $renewalQueue ? \App\Support\MembershipReminder::latest($membership->id, $membership->ends_at) : null;
+                MembershipLifecycle::present($membership, $membership->association_status);
+                $membership->reminder = $renewalQueue ? MembershipReminder::latest($membership->id, $membership->ends_at) : null;
+
                 return $membership;
             });
 
@@ -130,7 +141,7 @@ final class AssociationMemberController extends Controller
 
     public function workspace(Request $request, string $membership): Response
     {
-        \App\Support\MembershipEligibility::requireIndividual($request->user());
+        MembershipEligibility::requireIndividual($request->user());
         $record = AssociationMembershipAccess::forMember($request->user())->where('membership.id', $membership)
             ->select('membership.id', 'membership.number', 'membership.membership_type', 'membership.starts_at',
                 'membership.ends_at', 'membership.payment_id', 'association.id as association_id', 'association.name')->first();

@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Support\AssociationBranding;
 use App\Support\AssociationMembershipForm;
 use App\Support\AssociationPayment;
+use App\Support\AssociationPlans;
 use App\Support\AssociationWorkspace;
+use App\Support\MembershipEligibility;
 use App\Support\MembershipLifecycle;
 use App\Support\PaymentNotification;
 use Carbon\CarbonImmutable;
@@ -22,7 +24,7 @@ final class MembershipRenewalController extends Controller
     {
         $record = DB::table('association_memberships')->where('id', $membership)
             ->where(function ($scope) use ($request): void {
-                $scope->when(!\App\Support\MembershipEligibility::representative($request->user()), fn ($own) => $own->where('member_id', $request->user()->getAuthIdentifier()), fn ($own) => $own->whereRaw('1 = 0'))
+                $scope->when(! MembershipEligibility::representative($request->user()), fn ($own) => $own->where('member_id', $request->user()->getAuthIdentifier()), fn ($own) => $own->whereRaw('1 = 0'))
                     ->orWhereIn('association_id', AssociationWorkspace::forAdmin($request->user())->select('id'));
             })->first();
         abort_if($record === null, 404);
@@ -32,7 +34,7 @@ final class MembershipRenewalController extends Controller
         $record->association_name = $association->name;
         $record->member_name = DB::table('users')->where('id', $record->member_id)->value('name');
         $record->end_token = $record->ends_at ? CarbonImmutable::parse($record->ends_at)->utc()->toIso8601String() : '';
-        $record->canRenew = !\App\Support\MembershipEligibility::representative($request->user()) && $record->canRenew && (string) $record->member_id === (string) $request->user()->getAuthIdentifier();
+        $record->canRenew = ! MembershipEligibility::representative($request->user()) && $record->canRenew && (string) $record->member_id === (string) $request->user()->getAuthIdentifier();
         $sort = in_array($request->query('sort'), ['created_at', 'starts_at', 'ends_at', 'amount_minor'], true) ? $request->query('sort') : 'created_at';
         $direction = $request->query('direction') === 'asc' ? 'asc' : 'desc';
         $q = is_string($request->query('q')) ? mb_substr(trim(str_replace("\0", '', $request->query('q'))), 0, 120) : '';
@@ -40,20 +42,26 @@ final class MembershipRenewalController extends Controller
             ->join('association_payment_requests as payment', 'payment.id', '=', 'term.payment_id')
             ->leftJoin('association_payment_receipts as receipt', 'receipt.payment_id', '=', 'payment.id')
             ->where('term.membership_id', $membership);
-        if ($q !== '') $terms->where(function ($scope) use ($q): void {
-            $scope->whereRaw("strpos(lower(coalesce(receipt.number, '')), lower(?)) > 0", [$q])
-                ->orWhereRaw('strpos(lower(cast(payment.id as text)), lower(?)) > 0', [$q]);
-        });
+        if ($q !== '') {
+            $terms->where(function ($scope) use ($q): void {
+                $scope->whereRaw("strpos(lower(coalesce(receipt.number, '')), lower(?)) > 0", [$q])
+                    ->orWhereRaw('strpos(lower(cast(payment.id as text)), lower(?)) > 0', [$q]);
+            });
+        }
         $column = $sort === 'amount_minor' ? 'payment.amount_minor' : 'term.'.$sort;
         $history = $terms->select('term.*', 'payment.amount_minor', 'payment.currency', 'payment.renewal_membership_id', 'receipt.id as receipt_id', 'receipt.number as receipt_number')
             ->orderBy($column, $direction)->orderBy('term.id')->paginate(15)->appends(compact('q', 'sort', 'direction'))
             ->through(function (object $term): object {
                 $term->amount = AssociationMembershipForm::formatFee($term->amount_minor);
                 unset($term->amount_minor);
+
                 return $term;
             });
-        $renewalPlan = \App\Support\AssociationPlans::renewal($record);
-        if ($renewalPlan === null) $record->canRenew = false;
+        $renewalPlan = AssociationPlans::renewal($record);
+        if ($renewalPlan === null) {
+            $record->canRenew = false;
+        }
+
         return Inertia::render('membership-renewal', [
             'membership' => $record, 'renewalPlan' => $renewalPlan === null ? null : ['name' => $renewalPlan['name'], 'fee' => AssociationMembershipForm::formatFee($renewalPlan['amount_minor'])],
             'branding' => AssociationMembershipForm::present((object) ['id' => $association->id, 'name' => $association->name], $settings),
@@ -64,7 +72,7 @@ final class MembershipRenewalController extends Controller
 
     public function store(Request $request, string $membership): RedirectResponse
     {
-        \App\Support\MembershipEligibility::requireIndividual($request->user());
+        MembershipEligibility::requireIndividual($request->user());
         $data = $request->validate([
             'version' => ['required', 'integer', 'min:0'],
             'end_token' => ['required', 'date'],
@@ -85,9 +93,11 @@ final class MembershipRenewalController extends Controller
             AssociationPayment::requireState(MembershipLifecycle::eligible($record, $association->status),
                 'Renewals are available only for eligible yearly memberships within 30 days of expiry or after expiry.');
             $open = MembershipLifecycle::openPayment($membership);
-            if ($open !== null) return $open->id;
+            if ($open !== null) {
+                return $open->id;
+            }
             $settings = DB::table('association_workspace_settings')->where('association_id', $record->association_id)->sharedLock()->first();
-            $plan = \App\Support\AssociationPlans::renewal($record);
+            $plan = AssociationPlans::renewal($record);
             AssociationPayment::requireState($settings !== null && $plan !== null && (int) $settings->version === (int) $data['version']
                 && $plan['amount_minor'] === AssociationMembershipForm::feeMinor($data['fee']),
                 'The plan or renewal fee changed or is inactive. Reload to review the current plan.');
@@ -117,8 +127,10 @@ final class MembershipRenewalController extends Controller
             AssociationPayment::event($id, $request->user(), 'renewal_requested');
             PaymentNotification::record((object) $values, 'requested', 'Yearly membership renewal payment',
                 'Your renewal payment request is ready. Submit payment evidence in My payments. Validity extends only after association acknowledgement.', notifyOffice: true);
+
             return $id;
         });
+
         return to_route('membership-payments.show', $id);
     }
 }

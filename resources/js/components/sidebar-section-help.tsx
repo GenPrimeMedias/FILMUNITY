@@ -2,7 +2,7 @@ import { Link, usePage } from '@inertiajs/react';
 import { CircleHelp } from 'lucide-react';
 const sections: Record<string, string> = {
  'representative profile': 'profile', 'association management': 'association',
- 'members management': 'members', 'financial management': 'finance',
+ 'members management': 'members', 'financial management': 'finance', 'board management': 'board',
 };
 export function SidebarSectionHelp({ label }: { label: string }) {
  const { filmunityNavigation } = usePage<{ filmunityNavigation?: { associationAdmin?: boolean; associationRepresentative?: boolean } }>().props;

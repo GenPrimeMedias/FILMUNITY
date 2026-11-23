@@ -1,9 +1,13 @@
 <?php
+
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
-return new class extends Migration {
- public function up(): void {
-  DB::unprepared(<<<'SQL'
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        DB::unprepared(<<<'SQL'
 ALTER TABLE association_finance_vouchers DROP CONSTRAINT finance_voucher_kind,
  ADD CONSTRAINT finance_voucher_kind CHECK(kind IN ('receipt','payment','transfer','journal','opening','membership','reversal','invoice','bill','credit_note','debit_note'));
 ALTER TABLE association_voucher_counters DROP CONSTRAINT association_voucher_counters_kind_check,
@@ -106,6 +110,10 @@ BEGIN
  RETURN NEW;
 END $$;
 SQL);
- }
- public function down(): void { throw new RuntimeException('Correction note history must be retained. Use a coordinated backup or reviewed forward correction.'); }
+    }
+
+    public function down(): void
+    {
+        throw new RuntimeException('Correction note history must be retained. Use a coordinated backup or reviewed forward correction.');
+    }
 };

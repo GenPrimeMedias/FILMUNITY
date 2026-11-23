@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 final class DeliverAssociationPaymentMail extends Command
 {
     protected $signature = 'filmunity:deliver-payment-mail';
+
     protected $description = 'Retry up to 100 pending association payment emails';
 
     public function handle(): int

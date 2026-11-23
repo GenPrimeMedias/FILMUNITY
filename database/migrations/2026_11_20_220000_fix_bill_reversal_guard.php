@@ -1,9 +1,13 @@
 <?php
+
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
-return new class extends Migration {
- public function up(): void {
-  DB::unprepared(<<<'SQL'
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        DB::unprepared(<<<'SQL'
 CREATE OR REPLACE FUNCTION filmunity_bill_post_guard() RETURNS trigger LANGUAGE plpgsql AS $$
 DECLARE d association_bill_documents; s association_finance_settings; n integer; wrong integer; source association_finance_vouchers; src_account uuid; src_amount numeric; party_member uuid;
 BEGIN
@@ -37,6 +41,10 @@ BEGIN
  RETURN NEW;
 END $$;
 SQL);
- }
- public function down(): void { throw new RuntimeException('Do not restore the broken reversal guard. Use a reviewed forward correction.'); }
+    }
+
+    public function down(): void
+    {
+        throw new RuntimeException('Do not restore the broken reversal guard. Use a reviewed forward correction.');
+    }
 };

@@ -2,12 +2,14 @@
 
 namespace Tests\Feature;
 
+use App\Mail\AssociationRegistrationApproved;
 use App\Models\User;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia;
 use Tests\TestCase;
 
@@ -67,7 +69,7 @@ class AssociationRegistrationTest extends TestCase
         $this->actingAs($reviewer)->get($certificate)->assertDownload();
         $this->patch($decision, ['status' => 'declined'])->assertSessionHasErrors('review_note');
         $this->patch($decision, ['status' => 'approved', 'review_note' => 'Verified'])->assertRedirect("$url/review");
-        Mail::assertSent(\App\Mail\AssociationRegistrationApproved::class,
+        Mail::assertSent(AssociationRegistrationApproved::class,
             fn ($mail) => $mail->hasTo('office@example.org') && ! $mail->hasTo($applicant->email),
         );
         $this->patch($decision, ['status' => 'declined', 'review_note' => 'Second decision'])->assertSessionHasErrors('status');
@@ -100,12 +102,13 @@ class AssociationRegistrationTest extends TestCase
                 ->where('applications.data.0.status', 'declined'));
 
     }
+
     public function test_applicant_history_filters_and_paginates_only_its_own_records(): void
     {
         $applicant = User::factory()->create(['association_signup' => true]);
         $other = User::factory()->create(['association_signup' => true]);
         foreach (range(1, 17) as $index) {
-            $id = (string) \Illuminate\Support\Str::uuid();
+            $id = (string) Str::uuid();
             DB::table('association_registration_applications')->insert([
                 'id' => $id, 'applicant_id' => $index === 17 ? $other->id : $applicant->id,
                 'name' => sprintf('History Union %02d', $index), 'name_key' => $id,
@@ -130,5 +133,4 @@ class AssociationRegistrationTest extends TestCase
             fn (AssertableInertia $page) => $page->has('applications.data', 0),
         );
     }
-
 }

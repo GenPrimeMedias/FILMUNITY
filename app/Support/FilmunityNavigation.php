@@ -15,18 +15,20 @@ final class FilmunityNavigation
         $workspace = $user === null ? null : AssociationWorkspace::forAdmin($user)->orderBy('id')->value('id');
 
         $representative = $user !== null && MembershipEligibility::representative($user);
+
         return [
             'associationRepresentative' => $representative,
-            'canUsePersonalMemberships' => $user !== null && !$representative,
-            'canApplyForMembership' => $user !== null && !MembershipEligibility::representative($user),
+            'canUsePersonalMemberships' => $user !== null && ! $representative,
+            'canApplyForMembership' => $user !== null && ! MembershipEligibility::representative($user),
             'associationSignup' => (bool) $user?->association_signup,
             'canApplyForAssociation' => $user !== null && self::canApplyForAssociation($user),
             'platformAdmin' => $user !== null && FilmunityReviewer::allows($user),
             'associationAdmin' => $workspace !== null,
             'associationWorkspaceId' => $workspace,
-            'associationMember' => $user !== null && !$representative && AssociationMembershipAccess::forMember($user)->exists(),
+            'associationMember' => $user !== null && ! $representative && AssociationMembershipAccess::forMember($user)->exists(),
         ];
     }
+
     public static function canApplyForAssociation(Authenticatable $user): bool
     {
         return (bool) $user->association_signup && ! DB::table('association_registration_applications')

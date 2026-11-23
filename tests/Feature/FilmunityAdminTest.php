@@ -56,6 +56,7 @@ class FilmunityAdminTest extends TestCase
         $this->get('/dashboard?view=member')->assertOk();
         $this->get('/dashboard?panel=profile')->assertOk();
     }
+
     public function test_account_search_expansion_and_documents_require_a_platform_reviewer(): void
     {
         Storage::fake('local');
@@ -115,5 +116,4 @@ class FilmunityAdminTest extends TestCase
             ->assertInertia(fn (AssertableInertia $page) => $page->has('members.data', 1)
                 ->where('members.data.0.name', 'Directory Test 01'));
     }
-
 }

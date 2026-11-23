@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use App\Services\Accounting\AccountingMasters;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Query\Builder;
@@ -16,7 +17,7 @@ final class AssociationPayment
         $query = DB::table('association_payment_requests');
         if (! FilmunityReviewer::allows($user)) {
             $query->where(function (Builder $scope) use ($user): void {
-                $scope->when(!MembershipEligibility::representative($user), fn ($own) => $own->where('member_id', $user->getAuthIdentifier()), fn ($own) => $own->whereRaw('1 = 0'))
+                $scope->when(! MembershipEligibility::representative($user), fn ($own) => $own->where('member_id', $user->getAuthIdentifier()), fn ($own) => $own->whereRaw('1 = 0'))
                     ->orWhereIn('association_id', AssociationWorkspace::forAdmin($user)->select('id'));
             });
         }
@@ -130,7 +131,7 @@ final class AssociationPayment
         ]);
         $financeReceipt = DB::table('association_payment_receipts')->where('payment_id', $payment->id)->value('id');
         if (AssociationFinance::settings($payment->association_id)) {
-            \App\Services\Accounting\AccountingMasters::syncMembers($payment->association_id,$membershipId);
+            AccountingMasters::syncMembers($payment->association_id, $membershipId);
         }
         AssociationFinance::collect($financeReceipt, $actor);
         self::event($payment->id, $actor, $renewing ? 'membership_renewed' : 'membership_activated', $note);

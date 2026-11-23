@@ -1,9 +1,13 @@
 <?php
+
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
-return new class extends Migration {
- public function up(): void {
-  DB::unprepared(<<<'SQL'
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        DB::unprepared(<<<'SQL'
 CREATE TABLE association_account_groups (
  id uuid PRIMARY KEY, association_id uuid NOT NULL REFERENCES association_registration_applications(id) ON DELETE RESTRICT,
  parent_id uuid, name varchar(120) NOT NULL, nature varchar(12) NOT NULL CHECK (nature IN ('ASSET','LIABILITY','INCOME','EXPENSE')),
@@ -116,6 +120,10 @@ INSERT INTO association_finance_accounts(id,association_id,code,name,type,is_mon
 SELECT md5('member-ledger:'||m.id::text)::uuid,m.association_id,'M-'||replace(m.id::text,'-',''),left(u.name||' / '||m.number,120),'asset',false,true,g.id,m.id,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP
 FROM association_memberships m JOIN users u ON u.id=m.member_id JOIN association_account_groups g ON g.association_id=m.association_id AND g.system_key='debtors';
 SQL);
- }
- public function down(): void { throw new RuntimeException('Accounting masters must be retained. Restore a coordinated backup instead of dropping financial data.'); }
+    }
+
+    public function down(): void
+    {
+        throw new RuntimeException('Accounting masters must be retained. Restore a coordinated backup instead of dropping financial data.');
+    }
 };

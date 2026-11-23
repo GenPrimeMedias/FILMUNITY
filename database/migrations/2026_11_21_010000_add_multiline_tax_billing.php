@@ -1,8 +1,13 @@
 <?php
+
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
-return new class extends Migration {
- public function up():void {DB::unprepared(<<<'SQL'
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        DB::unprepared(<<<'SQL'
 ALTER TABLE association_finance_tax_documents ADD COLUMN calculation_version smallint NOT NULL DEFAULT 1 CHECK(calculation_version IN (1,2));
 ALTER TABLE association_finance_tax_documents ADD CONSTRAINT tax_documents_scoped_unique UNIQUE(association_id,voucher_id);
 DO $$
@@ -56,6 +61,11 @@ BEGIN
  RETURN NEW;
 END $$;
 CREATE TRIGGER finance_tax_items_post BEFORE UPDATE ON association_finance_vouchers FOR EACH ROW EXECUTE FUNCTION filmunity_tax_items_post_guard();
-SQL);}
- public function down():void {throw new RuntimeException('Retain multi-line accounting history; use a reviewed forward change or coordinated backup.');}
+SQL);
+    }
+
+    public function down(): void
+    {
+        throw new RuntimeException('Retain multi-line accounting history; use a reviewed forward change or coordinated backup.');
+    }
 };

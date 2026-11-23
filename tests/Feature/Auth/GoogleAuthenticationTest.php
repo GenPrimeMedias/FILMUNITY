@@ -5,7 +5,9 @@ namespace Tests\Feature\Auth;
 use App\Models\User;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Testing\TestResponse;
 use Laravel\Fortify\Features;
+use Laravel\Socialite\Contracts\Provider;
 use Laravel\Socialite\Facades\Socialite;
 use Laravel\Socialite\Two\InvalidStateException;
 use Laravel\Socialite\Two\User as GoogleUser;
@@ -106,7 +108,7 @@ class GoogleAuthenticationTest extends TestCase
 
     public function test_google_rejects_invalid_oauth_state(): void
     {
-        $provider = mock(\Laravel\Socialite\Contracts\Provider::class);
+        $provider = mock(Provider::class);
         $provider->shouldReceive('user')->once()->andThrow(InvalidStateException::class);
         Socialite::shouldReceive('driver')->once()->with('google')->andReturn($provider);
 
@@ -115,7 +117,7 @@ class GoogleAuthenticationTest extends TestCase
         $this->assertGuest();
     }
 
-    private function requestGoogleCallback(): \Illuminate\Testing\TestResponse
+    private function requestGoogleCallback(): TestResponse
     {
         return $this->get(route('auth.google.callback', ['code' => 'test-code']));
     }
@@ -125,7 +127,7 @@ class GoogleAuthenticationTest extends TestCase
         $profile = (new GoogleUser)->map(['id' => $subject, 'name' => 'Google Test User', 'email' => $email])
             ->setRaw(['email_verified' => $verified]);
 
-        $provider = mock(\Laravel\Socialite\Contracts\Provider::class);
+        $provider = mock(Provider::class);
         $provider->shouldReceive('user')->once()->andReturn($profile);
         Socialite::shouldReceive('driver')->once()->with('google')->andReturn($provider);
     }

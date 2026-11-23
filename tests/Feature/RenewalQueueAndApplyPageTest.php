@@ -1,11 +1,14 @@
 <?php
+
 namespace Tests\Feature;
 
 use App\Mail\MembershipRenewalReminder;
 use App\Models\User;
 use App\Support\MembershipReminder;
+use Carbon\Carbon;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Mail\MailManager;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
@@ -22,12 +25,13 @@ class RenewalQueueAndApplyPageTest extends TestCase
         Mail::fake();
         config(['association-registration.reviewer_ids' => []]);
         CarbonImmutable::setTestNow(CarbonImmutable::parse('2028-06-01T10:00:00Z'));
-        \Carbon\Carbon::setTestNow(\Carbon\Carbon::parse('2028-06-01T10:00:00Z'));
+        Carbon::setTestNow(Carbon::parse('2028-06-01T10:00:00Z'));
     }
+
     protected function tearDown(): void
     {
         CarbonImmutable::setTestNow();
-        \Carbon\Carbon::setTestNow();
+        Carbon::setTestNow();
         parent::tearDown();
     }
 
@@ -85,7 +89,7 @@ class RenewalQueueAndApplyPageTest extends TestCase
     {
         [$owner, $association] = $this->association();
         $membership = $this->membership($owner, $association, 10);
-        $mailer = \Mockery::mock(\Illuminate\Mail\MailManager::class);
+        $mailer = \Mockery::mock(MailManager::class);
         $mailer->shouldReceive('getDefaultDriver')->andReturn('log');
         $mailer->shouldReceive('to')->andThrow(new \RuntimeException('Simulated SMTP failure'));
         Mail::swap($mailer);
@@ -134,6 +138,7 @@ class RenewalQueueAndApplyPageTest extends TestCase
             'created_at' => now(), 'updated_at' => now()]);
         DB::table('association_workspace_settings')->insert(['association_id' => $id, 'display_name' => 'Reminder Test Association',
             'fields' => '[]', 'accent' => '#b9d66b', 'version' => 0, 'yearly_fee_minor' => 0, 'lifetime_fee_minor' => 0]);
+
         return [$owner, $id];
     }
 
@@ -151,6 +156,7 @@ class RenewalQueueAndApplyPageTest extends TestCase
         DB::table('association_memberships')->where('id', $membership->id)->update(['status' => $status,
             'starts_at' => now()->subYear()->toIso8601String(), 'ends_at' => $type === 'lifetime' ? null : now()->addDays($days)->toIso8601String()]);
         $membership->email = $member->email;
+
         return $membership;
     }
 }

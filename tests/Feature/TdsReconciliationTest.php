@@ -13,14 +13,14 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia as Page;
 use Tests\Support\FinanceWorkflowFixtures;
+use Tests\Support\WorkspaceMutationRequests;
 use Tests\TestCase;
 
 class TdsReconciliationTest extends TestCase
 {
-    use \Tests\Support\WorkspaceMutationRequests;
-
     use DatabaseTransactions;
     use FinanceWorkflowFixtures;
+    use WorkspaceMutationRequests;
 
     public function test_help_vendor_example_tax_correction_and_challan_reconcile_exactly(): void
     {

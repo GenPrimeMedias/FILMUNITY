@@ -9,6 +9,8 @@ Route::prefix('/association-workspaces/{workspace}/protection')->whereUuid('work
     Route::get('/', [WorkspaceProtectionController::class, 'status']);
     Route::post('/confirm', [WorkspaceProtectionController::class, 'confirm'])->middleware('throttle:workspace-confirm');
     Route::post('/pin', [WorkspaceProtectionController::class, 'pin'])->middleware('throttle:workspace-pin');
+    Route::post('/disable', [WorkspaceProtectionController::class, 'disable'])->middleware('throttle:workspace-pin');
+    Route::post('/enable', [WorkspaceProtectionController::class, 'enable'])->middleware('throttle:workspace-pin');
     Route::post('/unlock', [WorkspaceProtectionController::class, 'unlock'])->middleware('throttle:workspace-unlock');
     Route::post('/lease', [WorkspaceProtectionController::class, 'lease'])->middleware('throttle:workspace-lease');
 });

@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\DB;
 final class AssociationMembershipForm
 {
     public const TYPES = ['text', 'textarea', 'number', 'email', 'tel', 'url', 'date', 'time', 'select', 'radio', 'multiple', 'checkbox', 'file'];
+
     public const MAX_FIELDS = 25;
 
     public static function settings(string $association): ?object
@@ -32,6 +33,7 @@ final class AssociationMembershipForm
             'version' => (int) ($settings?->version ?? 0),
         ];
     }
+
     public static function feeMinor(string $amount): int
     {
         [$whole, $fraction] = array_pad(explode('.', $amount, 2), 2, '');
@@ -47,5 +49,4 @@ final class AssociationMembershipForm
 
         return intdiv((int) $minor, 100).'.'.str_pad((string) ((int) $minor % 100), 2, '0', STR_PAD_LEFT);
     }
-
 }

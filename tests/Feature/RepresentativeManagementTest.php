@@ -1,34 +1,51 @@
 <?php
+
 namespace Tests\Feature;
+
 use App\Models\User;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Illuminate\Http\UploadedFile;
 use Inertia\Testing\AssertableInertia as Page;
+use Tests\Support\WorkspaceMutationRequests;
 use Tests\TestCase;
-class RepresentativeManagementTest extends TestCase {
-    use \Tests\Support\WorkspaceMutationRequests;
 
+class RepresentativeManagementTest extends TestCase
+{
     use DatabaseTransactions;
-    protected function setUp(): void { parent::setUp(); Mail::fake(); config(['association-registration.reviewer_ids' => []]); }
+    use WorkspaceMutationRequests;
 
-    public function test_representative_personal_routes_are_blocked_and_management_remains_available(): void {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        Mail::fake();
+        config(['association-registration.reviewer_ids' => []]);
+    }
+
+    public function test_representative_personal_routes_are_blocked_and_management_remains_available(): void
+    {
         [$owner, $association] = $this->association();
         $this->actingAs($owner)->get('/dashboard?view=member')->assertOk();
-        foreach (['/membership-applications', '/membership-applications/apply', '/membership-renewals', '/membership-payments', '/my-association-workspaces'] as $url) $this->get($url)->assertForbidden();
+        foreach (['/membership-applications', '/membership-applications/apply', '/membership-renewals', '/membership-payments', '/my-association-workspaces'] as $url) {
+            $this->get($url)->assertForbidden();
+        }
         $this->postWithWorkspaceLease('/membership-applications', [])->assertForbidden();
         $this->postWithWorkspaceLease('/membership-renewals/'.Str::uuid(), [])->assertForbidden();
         $this->postWithWorkspaceLease('/membership-payments/'.Str::uuid().'/submissions', [])->assertForbidden();
         $this->get('/association-workspaces')->assertInertia(fn (Page $page) => $page->where('filmunityNavigation.associationRepresentative', true)->where('filmunityNavigation.canUsePersonalMemberships', false));
-        foreach (['/association-members', '/association-members?view=renewals', '/association-payments', '/association-membership-review', "/association-workspaces/$association/setup"] as $url) $this->get($url)->assertOk();
+        foreach (['/association-members', '/association-members?view=renewals', '/association-payments', '/association-membership-review', "/association-workspaces/$association/setup"] as $url) {
+            $this->get($url)->assertOk();
+        }
         $this->get('/membership-cards/filmunity')->assertOk();
     }
 
-    public function test_becoming_representative_removes_personal_access_without_deleting_payment_history(): void {
-        [$owner, $association] = $this->association(); $member = User::factory()->create();
+    public function test_becoming_representative_removes_personal_access_without_deleting_payment_history(): void
+    {
+        [$owner, $association] = $this->association();
+        $member = User::factory()->create();
         $application = $this->application($member, $association);
         $this->actingAs($member)->postWithWorkspaceLease("/membership-applications/$application/confirm-plan", ['membership_type' => 'yearly', 'version' => 0])->assertSessionHasNoErrors();
         $this->actingAs($owner)->postWithWorkspaceLease("/membership-payments/request/$application", [])->assertSessionHasNoErrors();
@@ -42,13 +59,17 @@ class RepresentativeManagementTest extends TestCase {
         $this->actingAs($owner)->get("/membership-payments/$payment")->assertOk();
     }
 
-    public function test_ordinary_member_keeps_personal_navigation_and_routes(): void {
+    public function test_ordinary_member_keeps_personal_navigation_and_routes(): void
+    {
         $member = User::factory()->create();
         $this->actingAs($member)->get('/membership-applications')->assertInertia(fn (Page $page) => $page->where('filmunityNavigation.associationRepresentative', false)->where('filmunityNavigation.canUsePersonalMemberships', true));
-        foreach (['/membership-applications/apply', '/membership-renewals', '/membership-payments'] as $url) $this->get($url)->assertOk();
+        foreach (['/membership-applications/apply', '/membership-renewals', '/membership-payments'] as $url) {
+            $this->get($url)->assertOk();
+        }
     }
 
-    public function test_registration_and_setup_accept_representatives_login_email_as_official_email(): void {
+    public function test_registration_and_setup_accept_representatives_login_email_as_official_email(): void
+    {
         Storage::fake('local');
         $owner = User::factory()->create(['association_signup' => true]);
         $this->actingAs($owner)->postWithWorkspaceLease('/association-registration', [
@@ -64,21 +85,37 @@ class RepresentativeManagementTest extends TestCase {
         $this->assertDatabaseHas('association_registration_applications', ['id' => $id, 'official_contact_email' => $owner->email]);
     }
 
-    private function plan(string $name, string $term, string $fee): array { return ['id' => (string) Str::uuid(), 'name' => $name, 'term' => $term, 'fee' => $fee, 'active' => true]; }
-    private function settings(array $plans): array { return ['display_name' => 'Plan Association', 'accent' => '#b9d66b', 'version' => 0, 'remove_logo' => false,
-        'yearly_fee' => '100.00', 'lifetime_fee' => '1000.00', 'payment_instructions' => 'Pay by bank transfer.', 'fields' => [], 'custom_plans' => $plans]; }
-    private function association(): array {
-        $owner = User::factory()->create(['association_signup' => true]); $id = (string) Str::uuid();
+    private function plan(string $name, string $term, string $fee): array
+    {
+        return ['id' => (string) Str::uuid(), 'name' => $name, 'term' => $term, 'fee' => $fee, 'active' => true];
+    }
+
+    private function settings(array $plans): array
+    {
+        return ['display_name' => 'Plan Association', 'accent' => '#b9d66b', 'version' => 0, 'remove_logo' => false,
+            'yearly_fee' => '100.00', 'lifetime_fee' => '1000.00', 'payment_instructions' => 'Pay by bank transfer.', 'fields' => [], 'custom_plans' => $plans];
+    }
+
+    private function association(): array
+    {
+        $owner = User::factory()->create(['association_signup' => true]);
+        $id = (string) Str::uuid();
         DB::table('association_registration_applications')->insert(['id' => $id, 'applicant_id' => $owner->id, 'name' => 'Plan Association', 'name_key' => $id,
             'organisation_type' => 'Association', 'industry' => 'Tamil', 'city' => 'Chennai', 'representative_role' => 'Secretary', 'status' => 'approved',
             'official_contact_email' => 'office@example.org', 'created_at' => now(), 'updated_at' => now()]);
         DB::table('association_workspace_settings')->insert(['association_id' => $id, 'display_name' => 'Plan Association', 'accent' => '#b9d66b', 'fields' => '[]', 'version' => 0,
             'yearly_fee_minor' => 10000, 'lifetime_fee_minor' => 100000, 'payment_instructions' => 'Bank transfer.']);
+
         return [$owner, $id];
     }
-    private function application(User $member, string $association): string {
-        $id = (string) Str::uuid(); DB::table('association_membership_applications')->insert(['id' => $id, 'association_id' => $association, 'member_id' => $member->id,
+
+    private function application(User $member, string $association): string
+    {
+        $id = (string) Str::uuid();
+        DB::table('association_membership_applications')->insert(['id' => $id, 'association_id' => $association, 'member_id' => $member->id,
             'statement' => 'Experience', 'status' => 'accepted_for_payment', 'form_snapshot' => json_encode(['name' => $member->name, 'email' => $member->email, 'answers' => []]),
-            'created_at' => now(), 'updated_at' => now()]); return $id;
+            'created_at' => now(), 'updated_at' => now()]);
+
+        return $id;
     }
 }

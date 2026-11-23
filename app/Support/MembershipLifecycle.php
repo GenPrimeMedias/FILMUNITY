@@ -11,13 +11,24 @@ final class MembershipLifecycle
 
     public static function status(object $membership): string
     {
-        if ($membership->status !== 'active') return $membership->status;
+        if ($membership->status !== 'active') {
+            return $membership->status;
+        }
         $now = CarbonImmutable::now('UTC');
-        if ($now->lt(CarbonImmutable::parse($membership->starts_at))) return 'not_started';
-        if ($membership->membership_type === 'lifetime') return 'lifetime';
-        if ($membership->ends_at === null) return 'invalid_term';
+        if ($now->lt(CarbonImmutable::parse($membership->starts_at))) {
+            return 'not_started';
+        }
+        if ($membership->membership_type === 'lifetime') {
+            return 'lifetime';
+        }
+        if ($membership->ends_at === null) {
+            return 'invalid_term';
+        }
         $end = CarbonImmutable::parse($membership->ends_at);
-        if ($now->gte($end)) return 'expired';
+        if ($now->gte($end)) {
+            return 'expired';
+        }
+
         return $end->lte($now->addDays(self::RENEWAL_DAYS)) ? 'expiring_soon' : 'active';
     }
 
@@ -40,6 +51,7 @@ final class MembershipLifecycle
             && in_array($membership->display_status, ['active', 'expiring_soon', 'lifetime'], true);
         $membership->canRenew = self::eligible($membership, $associationStatus);
         $membership->renewal_payment = self::openPayment($membership->id);
+
         return $membership;
     }
 }

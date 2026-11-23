@@ -3,7 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Support\AssociationMembershipForm;
+use App\Support\AssociationMembershipNumber;
+use App\Support\AssociationPlans;
 use App\Support\AssociationWorkspace;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -24,8 +27,8 @@ final class AssociationWorkspaceSetupController extends Controller
             'settings' => [
                 ...AssociationMembershipForm::present($association, AssociationMembershipForm::settings($workspace)),
                 'official_contact_email' => $association->official_contact_email,
-                'custom_plans' => \App\Support\AssociationPlans::custom($workspace),
-                'numbering' => \App\Support\AssociationMembershipNumber::settings($workspace),
+                'custom_plans' => AssociationPlans::custom($workspace),
+                'numbering' => AssociationMembershipNumber::settings($workspace),
                 'payment_instructions' => DB::table('association_workspace_settings')->where('association_id', $workspace)->value('payment_instructions'),
             ],
         ]);
@@ -92,9 +95,11 @@ final class AssociationWorkspaceSetupController extends Controller
                 throw ValidationException::withMessages(['version' => 'The workspace settings changed. Reload this page before saving.']);
             }
 
-            \App\Support\AssociationMembershipNumber::configure($workspace, $request->user(), $data);
+            AssociationMembershipNumber::configure($workspace, $request->user(), $data);
 
-            if (isset($data['official_contact_email'])) DB::table('association_registration_applications')->where('id', $workspace)->update(['official_contact_email' => $data['official_contact_email'], 'updated_at' => now()->toIso8601String()]);
+            if (isset($data['official_contact_email'])) {
+                DB::table('association_registration_applications')->where('id', $workspace)->update(['official_contact_email' => $data['official_contact_email'], 'updated_at' => now()->toIso8601String()]);
+            }
 
             $values = [
                 'yearly_fee_minor' => AssociationMembershipForm::feeMinor((string) $data['yearly_fee']),
@@ -111,8 +116,11 @@ final class AssociationWorkspaceSetupController extends Controller
             }
 
             DB::table('association_workspace_settings')->updateOrInsert(['association_id' => $workspace], $values);
-            try { \App\Support\AssociationPlans::save($workspace, $data); }
-            catch (\Illuminate\Database\UniqueConstraintViolationException) { throw ValidationException::withMessages(['custom_plans' => 'Plan names must be unique, including archived plans.']); }
+            try {
+                AssociationPlans::save($workspace, $data);
+            } catch (UniqueConstraintViolationException) {
+                throw ValidationException::withMessages(['custom_plans' => 'Plan names must be unique, including archived plans.']);
+            }
         });
 
         return to_route('association-workspace-setup.edit', $workspace)->with('status', 'Workspace settings saved.');

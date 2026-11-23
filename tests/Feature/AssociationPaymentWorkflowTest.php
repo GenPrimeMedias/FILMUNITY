@@ -2,23 +2,25 @@
 
 namespace Tests\Feature;
 
+use App\Mail\AssociationPaymentUpdate;
 use App\Models\User;
 use App\Support\PaymentNotification;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Mail\MailManager;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia;
+use Tests\Support\WorkspaceMutationRequests;
 use Tests\TestCase;
 
 class AssociationPaymentWorkflowTest extends TestCase
 {
-    use \Tests\Support\WorkspaceMutationRequests;
-
     use DatabaseTransactions;
+    use WorkspaceMutationRequests;
 
     protected function setUp(): void
     {
@@ -146,11 +148,11 @@ class AssociationPaymentWorkflowTest extends TestCase
         $this->assertDatabaseCount('association_payment_receipts', 1);
         $this->actingAs($member)->get("/association-member-workspaces/$membership->id")->assertOk();
         $pending = DB::table('association_payment_notifications')->where('payment_id', $payment)->where('event_key', 'requested')->first();
-        $sentBefore = Mail::sent(\App\Mail\AssociationPaymentUpdate::class)->count();
+        $sentBefore = Mail::sent(AssociationPaymentUpdate::class)->count();
         PaymentNotification::deliver($pending->id);
-        $sentAfterFirst = Mail::sent(\App\Mail\AssociationPaymentUpdate::class)->count();
+        $sentAfterFirst = Mail::sent(AssociationPaymentUpdate::class)->count();
         PaymentNotification::deliver($pending->id);
-        $sentAfterSecond = Mail::sent(\App\Mail\AssociationPaymentUpdate::class)->count();
+        $sentAfterSecond = Mail::sent(AssociationPaymentUpdate::class)->count();
         $this->assertContains($sentAfterFirst - $sentBefore, [0, 1]);
         $this->assertSame($sentAfterFirst, $sentAfterSecond);
         $this->assertDatabaseHas('association_payment_notifications', ['id' => $pending->id, 'last_error' => null]);
@@ -201,7 +203,7 @@ class AssociationPaymentWorkflowTest extends TestCase
         $application = $this->application($association, $member, 'lifetime', 0);
         $this->actingAs($owner)->postWithWorkspaceLease("/membership-payments/request/$application", [])->assertSessionHasNoErrors();
         $payment = DB::table('association_payment_requests')->where('application_id', $application)->value('id');
-        $failingMailer = \Mockery::mock(\Illuminate\Mail\MailManager::class);
+        $failingMailer = \Mockery::mock(MailManager::class);
         $failingMailer->shouldReceive('getDefaultDriver')->andReturn('log');
         $failingMailer->shouldReceive('to')->andThrow(new \RuntimeException('Simulated transport failure'));
         Mail::swap($failingMailer);

@@ -1,8 +1,8 @@
 <?php
 
 use App\Http\Controllers\AssociationRegistrationController;
-use App\Http\Controllers\FilmunityAdminController;
 use App\Http\Controllers\AssociationWorkspaceController;
+use App\Http\Controllers\FilmunityAdminController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/association-registration/start', [AssociationRegistrationController::class, 'start'])
@@ -29,7 +29,6 @@ Route::prefix('filmunity-admin')->name('filmunity-admin.')->group(function (): v
         Route::get('/members', [FilmunityAdminController::class, 'members'])->name('members');
     });
 });
-
 
 Route::middleware(['auth', 'verified'])->prefix('association-workspaces')
     ->name('association-workspaces.')->controller(AssociationWorkspaceController::class)

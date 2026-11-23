@@ -3,6 +3,8 @@
 namespace Tests\Feature;
 
 use App\Models\User;
+use App\Support\AssociationMembershipForm;
+use Carbon\Carbon;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Http\UploadedFile;
@@ -29,7 +31,7 @@ class MembershipRenewalTest extends TestCase
     protected function tearDown(): void
     {
         CarbonImmutable::setTestNow();
-        \Carbon\Carbon::setTestNow();
+        Carbon::setTestNow();
         parent::tearDown();
     }
 
@@ -163,13 +165,14 @@ class MembershipRenewalTest extends TestCase
     private function clock(string $instant): void
     {
         CarbonImmutable::setTestNow(CarbonImmutable::parse($instant));
-        \Carbon\Carbon::setTestNow(\Carbon\Carbon::parse($instant));
+        Carbon::setTestNow(Carbon::parse($instant));
     }
 
     private function requestData(string $association, object $membership): array
     {
         $settings = DB::table('association_workspace_settings')->where('association_id', $association)->first();
-        return ['version' => $settings->version, 'fee' => \App\Support\AssociationMembershipForm::formatFee($settings->yearly_fee_minor),
+
+        return ['version' => $settings->version, 'fee' => AssociationMembershipForm::formatFee($settings->yearly_fee_minor),
             'end_token' => CarbonImmutable::parse($membership->ends_at)->utc()->toIso8601String(), 'confirmed' => true];
     }
 
@@ -199,6 +202,7 @@ class MembershipRenewalTest extends TestCase
         $payment = DB::table('association_payment_requests')->where('application_id', $application)->value('id');
         $this->post("/association-payments/$payment/zero-fee")->assertSessionHasNoErrors();
         $membership = DB::table('association_memberships')->where('payment_id', $payment)->first();
+
         return [$owner, $member, $association, $membership];
     }
 }

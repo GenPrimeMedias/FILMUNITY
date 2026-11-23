@@ -2,8 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
+use App\Support\ApplicationCommunication;
 use App\Support\AssociationMembershipForm;
 use App\Support\AssociationWorkspace;
+use App\Support\MembershipApplicationView;
+use App\Support\MembershipEligibility;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\RedirectResponse;
@@ -21,7 +25,7 @@ final class MembershipApplicationController extends Controller
 {
     public function index(Request $request, bool $applying = false): Response
     {
-        \App\Support\MembershipEligibility::requireIndividual($request->user());
+        MembershipEligibility::requireIndividual($request->user());
         $member = $request->user()->getAuthIdentifier();
         $filters = $this->filters($request);
         $history = $this->listing()->where('application.member_id', $member);
@@ -43,10 +47,14 @@ final class MembershipApplicationController extends Controller
                 ...AssociationMembershipForm::present($association, $association),
             ]);
 
-        if (\App\Support\MembershipEligibility::representative($request->user())) $associations = collect();
-        if ($applying) return Inertia::render('membership-apply', [
-            'associations' => $associations, 'identity' => $request->user()->only(['name', 'email']),
-        ]);
+        if (MembershipEligibility::representative($request->user())) {
+            $associations = collect();
+        }
+        if ($applying) {
+            return Inertia::render('membership-apply', [
+                'associations' => $associations, 'identity' => $request->user()->only(['name', 'email']),
+            ]);
+        }
 
         return Inertia::render('membership-applications', [
             'associations' => $associations,
@@ -59,13 +67,14 @@ final class MembershipApplicationController extends Controller
 
     public function apply(Request $request): Response
     {
-        \App\Support\MembershipEligibility::requireIndividual($request->user());
+        MembershipEligibility::requireIndividual($request->user());
+
         return $this->index($request, true);
     }
 
     public function store(Request $request): RedirectResponse
     {
-        \App\Support\MembershipEligibility::requireIndividual($request->user());
+        MembershipEligibility::requireIndividual($request->user());
         $fields = $request->validate([
             'association_id' => ['required', 'uuid'],
             'statement' => ['nullable', 'string', 'max:2000'],
@@ -79,7 +88,7 @@ final class MembershipApplicationController extends Controller
         try {
             $applicationId = (string) Str::uuid();
             DB::transaction(function () use ($fields, $member, $request, &$paths, $applicationId): void {
-                \App\Support\MembershipEligibility::requireIndividual($request->user());
+                MembershipEligibility::requireIndividual($request->user());
                 $association = DB::table('association_registration_applications')
                     ->where('id', $fields['association_id'])->where('status', 'approved')
                     ->where('applicant_id', '!=', $member)->sharedLock()->first(['id']);
@@ -170,7 +179,7 @@ final class MembershipApplicationController extends Controller
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);
-                \App\Support\ApplicationCommunication::record($applicationId, 'submitted');
+                ApplicationCommunication::record($applicationId, 'submitted');
             });
             $saved = true;
         } catch (UniqueConstraintViolationException) {
@@ -205,6 +214,7 @@ final class MembershipApplicationController extends Controller
         }
 
         $filters = $this->filters($request, reviewing: true);
+
         return Inertia::render('association-membership-review', [
             'applications' => $this->filterListing($query, $filters, reviewing: true)->paginate(15)
                 ->appends([...$filters, 'association' => $association])
@@ -231,16 +241,21 @@ final class MembershipApplicationController extends Controller
 
         $updated = DB::transaction(function () use ($target, $fields, $request, $application): int {
             if ($fields['status'] === 'accepted_for_payment') {
-                $applicant = \App\Models\User::findOrFail((clone $target)->value('member_id'));
-                if (\App\Support\MembershipEligibility::representative($applicant)) throw ValidationException::withMessages(['status' => 'Association representatives are not eligible for another association membership.']);
+                $applicant = User::findOrFail((clone $target)->value('member_id'));
+                if (MembershipEligibility::representative($applicant)) {
+                    throw ValidationException::withMessages(['status' => 'Association representatives are not eligible for another association membership.']);
+                }
             }
             $updated = $target->where('status', 'pending')->update([
-            ...$fields,
-            'reviewer_id' => $request->user()->getAuthIdentifier(),
-            'reviewed_at' => now(),
-            'updated_at' => now(),
-        ]);
-            if ($updated === 1) \App\Support\ApplicationCommunication::record($application, $fields['status'] === 'declined' ? 'declined' : 'approved');
+                ...$fields,
+                'reviewer_id' => $request->user()->getAuthIdentifier(),
+                'reviewed_at' => now(),
+                'updated_at' => now(),
+            ]);
+            if ($updated === 1) {
+                ApplicationCommunication::record($application, $fields['status'] === 'declined' ? 'declined' : 'approved');
+            }
+
             return $updated;
         });
 
@@ -265,7 +280,7 @@ final class MembershipApplicationController extends Controller
         $record = DB::table('association_membership_applications')->where('id', $application)
             ->where(function (Builder $query) use ($request): void {
                 $user = $request->user();
-                $query->when(!\App\Support\MembershipEligibility::representative($user), fn ($own) => $own->where('member_id', $user->getAuthIdentifier()), fn ($own) => $own->whereRaw('1 = 0'))
+                $query->when(! MembershipEligibility::representative($user), fn ($own) => $own->where('member_id', $user->getAuthIdentifier()), fn ($own) => $own->whereRaw('1 = 0'))
                     ->orWhereIn('association_id', AssociationWorkspace::forAdmin($user)->select('id'));
             })->first(['form_snapshot']);
         abort_if($record === null, 404);
@@ -289,7 +304,7 @@ final class MembershipApplicationController extends Controller
 
     private function presentApplication(object $application): object
     {
-        return \App\Support\MembershipApplicationView::present($application);
+        return MembershipApplicationView::present($application);
     }
 
     private function filters(Request $request, bool $reviewing = false): array

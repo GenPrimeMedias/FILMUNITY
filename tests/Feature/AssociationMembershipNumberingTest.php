@@ -3,19 +3,20 @@
 namespace Tests\Feature;
 
 use App\Models\User;
+use Carbon\Carbon;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia as Page;
+use Tests\Support\WorkspaceMutationRequests;
 use Tests\TestCase;
 
 class AssociationMembershipNumberingTest extends TestCase
 {
-    use \Tests\Support\WorkspaceMutationRequests;
-
     use DatabaseTransactions;
+    use WorkspaceMutationRequests;
 
     protected function setUp(): void
     {
@@ -69,7 +70,7 @@ class AssociationMembershipNumberingTest extends TestCase
         $this->assertDatabaseHas('association_membership_numbering', ['association_id' => $association, 'next_number' => 2]);
         $nearExpiry = CarbonImmutable::parse($membership->ends_at)->subDays(10);
         CarbonImmutable::setTestNow($nearExpiry);
-        \Carbon\Carbon::setTestNow(\Carbon\Carbon::parse($nearExpiry->toIso8601String()));
+        Carbon::setTestNow(Carbon::parse($nearExpiry->toIso8601String()));
         try {
             $this->actingAs($member)->postWithWorkspaceLease("/membership-renewals/$membership->id", [
                 'version' => 0, 'fee' => '0.00', 'end_token' => CarbonImmutable::parse($membership->ends_at)->toIso8601String(), 'confirmed' => true,
@@ -82,7 +83,7 @@ class AssociationMembershipNumberingTest extends TestCase
             $this->assertSame(3, (int) DB::table('association_receipt_counters')->where('association_id', $association)->value('sequence'));
         } finally {
             CarbonImmutable::setTestNow();
-            \Carbon\Carbon::setTestNow();
+            Carbon::setTestNow();
         }
     }
 
@@ -116,6 +117,7 @@ class AssociationMembershipNumberingTest extends TestCase
         ]);
         DB::table('association_workspace_settings')->insert(['association_id' => $id, 'display_name' => 'Numbering Test Association',
             'accent' => '#b9d66b', 'fields' => '[]', 'version' => 0, 'yearly_fee_minor' => 0, 'lifetime_fee_minor' => 0]);
+
         return [$owner, $id];
     }
 
@@ -131,6 +133,7 @@ class AssociationMembershipNumberingTest extends TestCase
         $this->actingAs($owner)->postWithWorkspaceLease("/membership-payments/request/$application", [])->assertSessionHasNoErrors();
         $payment = DB::table('association_payment_requests')->where('application_id', $application)->whereNull('renewal_membership_id')->value('id');
         $this->postWithWorkspaceLease("/association-payments/$payment/zero-fee")->assertSessionHasNoErrors();
+
         return DB::table('association_memberships')->where('payment_id', $payment)->first();
     }
 }

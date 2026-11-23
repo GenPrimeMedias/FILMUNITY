@@ -13,14 +13,14 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia as Page;
 use Tests\Support\FinanceWorkflowFixtures;
+use Tests\Support\WorkspaceMutationRequests;
 use Tests\TestCase;
 
 class TaxCorrectionWorkflowTest extends TestCase
 {
-    use \Tests\Support\WorkspaceMutationRequests;
-
     use DatabaseTransactions;
     use FinanceWorkflowFixtures;
+    use WorkspaceMutationRequests;
 
     public function test_tax_credit_note_posts_partial_gst_and_enforces_charge_limits(): void
     {

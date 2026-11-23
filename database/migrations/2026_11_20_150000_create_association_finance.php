@@ -1,59 +1,93 @@
 <?php
+
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
-return new class extends Migration {
- public function up(): void {
-  Schema::create('association_finance_settings', function (Blueprint $t): void {
-   $t->foreignUuid('association_id')->primary()->constrained('association_registration_applications')->restrictOnDelete();
-   $t->date('starts_on'); $t->date('locked_through')->nullable(); $t->unsignedBigInteger('next_number')->default(1);
-   $t->uuid('yearly_account_id')->nullable(); $t->uuid('lifetime_account_id')->nullable();
-   $t->boolean('enabled')->default(false); $t->text('policy_note')->nullable(); $t->timestampsTz();
-  });
-  Schema::create('association_finance_accounts', function (Blueprint $t): void {
-   $t->uuid('id')->primary(); $t->foreignUuid('association_id')->constrained('association_registration_applications')->restrictOnDelete();
-   $t->string('code', 20); $t->string('name', 120); $t->string('type', 12); $t->boolean('is_money')->default(false);
-   $t->boolean('active')->default(true); $t->string('system_key', 30)->nullable(); $t->timestampsTz();
-   $t->unique(['association_id', 'code']); $t->unique(['association_id', 'system_key']);
-  });
-  Schema::create('association_finance_vouchers', function (Blueprint $t): void {
-   $t->uuid('id')->primary(); $t->foreignUuid('association_id')->constrained('association_registration_applications')->restrictOnDelete();
-   $t->string('number', 32); $t->date('entry_date'); $t->string('kind', 20); $t->string('status', 12)->default('draft');
-   $t->text('description'); $t->string('party', 160)->nullable(); $t->string('reference', 160)->nullable();
-   $t->string('source_type', 30)->nullable(); $t->uuid('source_id')->nullable();
-   $t->uuid('reversal_of')->nullable(); $t->unique('reversal_of');
-   $t->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
-   $t->foreignId('posted_by')->nullable()->constrained('users')->nullOnDelete();
-   $t->timestampTz('posted_at')->nullable(); $t->text('decision_note')->nullable();
-   $t->string('evidence_path')->nullable(); $t->timestampsTz();
-   $t->unique(['association_id', 'number']); $t->unique(['association_id', 'source_type', 'source_id'], 'finance_source_unique');
-   $t->index(['association_id', 'entry_date', 'status']);
-  });
-  // Laravel adds UUID primary keys after other create-table commands.
-  // Add this self-reference only after the voucher primary key exists.
-  Schema::table('association_finance_vouchers', function (Blueprint $t): void {
-   $t->foreign('reversal_of')->references('id')->on('association_finance_vouchers')->restrictOnDelete();
-  });
-  Schema::create('association_finance_lines', function (Blueprint $t): void {
-   $t->bigIncrements('id'); $t->foreignUuid('voucher_id')->constrained('association_finance_vouchers')->restrictOnDelete();
-   $t->foreignUuid('account_id')->constrained('association_finance_accounts')->restrictOnDelete();
-   $t->bigInteger('debit_minor')->default(0); $t->bigInteger('credit_minor')->default(0);
-   $t->date('cleared_on')->nullable(); $t->string('statement_reference', 160)->nullable();
-  });
-  Schema::create('association_finance_events', function (Blueprint $t): void {
-   $t->bigIncrements('id'); $t->foreignUuid('association_id')->constrained('association_registration_applications')->restrictOnDelete();
-   $t->foreignUuid('voucher_id')->nullable()->constrained('association_finance_vouchers')->restrictOnDelete();
-   $t->foreignId('actor_id')->nullable()->constrained('users')->nullOnDelete(); $t->string('action', 40); $t->text('note')->nullable(); $t->timestampTz('created_at');
-  });
-  DB::statement("ALTER TABLE association_finance_accounts ADD CONSTRAINT finance_account_type CHECK (type IN ('asset','liability','fund','income','expense')), ADD CONSTRAINT finance_money_asset CHECK (NOT is_money OR type = 'asset')");
-  DB::statement("ALTER TABLE association_finance_vouchers ADD CONSTRAINT finance_voucher_status CHECK (status IN ('draft','submitted','posted','reversed','rejected')), ADD CONSTRAINT finance_voucher_kind CHECK (kind IN ('receipt','payment','transfer','journal','opening','membership','reversal'))");
-  DB::statement('ALTER TABLE association_finance_lines ADD CONSTRAINT finance_line_amount CHECK ((debit_minor > 0 AND credit_minor = 0) OR (credit_minor > 0 AND debit_minor = 0))');
-  Schema::table('association_finance_settings', function (Blueprint $t): void {
-   $t->foreign('yearly_account_id')->references('id')->on('association_finance_accounts')->restrictOnDelete();
-   $t->foreign('lifetime_account_id')->references('id')->on('association_finance_accounts')->restrictOnDelete();
-  });
-  DB::unprepared(<<<'SQL'
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create('association_finance_settings', function (Blueprint $t): void {
+            $t->foreignUuid('association_id')->primary()->constrained('association_registration_applications')->restrictOnDelete();
+            $t->date('starts_on');
+            $t->date('locked_through')->nullable();
+            $t->unsignedBigInteger('next_number')->default(1);
+            $t->uuid('yearly_account_id')->nullable();
+            $t->uuid('lifetime_account_id')->nullable();
+            $t->boolean('enabled')->default(false);
+            $t->text('policy_note')->nullable();
+            $t->timestampsTz();
+        });
+        Schema::create('association_finance_accounts', function (Blueprint $t): void {
+            $t->uuid('id')->primary();
+            $t->foreignUuid('association_id')->constrained('association_registration_applications')->restrictOnDelete();
+            $t->string('code', 20);
+            $t->string('name', 120);
+            $t->string('type', 12);
+            $t->boolean('is_money')->default(false);
+            $t->boolean('active')->default(true);
+            $t->string('system_key', 30)->nullable();
+            $t->timestampsTz();
+            $t->unique(['association_id', 'code']);
+            $t->unique(['association_id', 'system_key']);
+        });
+        Schema::create('association_finance_vouchers', function (Blueprint $t): void {
+            $t->uuid('id')->primary();
+            $t->foreignUuid('association_id')->constrained('association_registration_applications')->restrictOnDelete();
+            $t->string('number', 32);
+            $t->date('entry_date');
+            $t->string('kind', 20);
+            $t->string('status', 12)->default('draft');
+            $t->text('description');
+            $t->string('party', 160)->nullable();
+            $t->string('reference', 160)->nullable();
+            $t->string('source_type', 30)->nullable();
+            $t->uuid('source_id')->nullable();
+            $t->uuid('reversal_of')->nullable();
+            $t->unique('reversal_of');
+            $t->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
+            $t->foreignId('posted_by')->nullable()->constrained('users')->nullOnDelete();
+            $t->timestampTz('posted_at')->nullable();
+            $t->text('decision_note')->nullable();
+            $t->string('evidence_path')->nullable();
+            $t->timestampsTz();
+            $t->unique(['association_id', 'number']);
+            $t->unique(['association_id', 'source_type', 'source_id'], 'finance_source_unique');
+            $t->index(['association_id', 'entry_date', 'status']);
+        });
+        // Laravel adds UUID primary keys after other create-table commands.
+        // Add this self-reference only after the voucher primary key exists.
+        Schema::table('association_finance_vouchers', function (Blueprint $t): void {
+            $t->foreign('reversal_of')->references('id')->on('association_finance_vouchers')->restrictOnDelete();
+        });
+        Schema::create('association_finance_lines', function (Blueprint $t): void {
+            $t->bigIncrements('id');
+            $t->foreignUuid('voucher_id')->constrained('association_finance_vouchers')->restrictOnDelete();
+            $t->foreignUuid('account_id')->constrained('association_finance_accounts')->restrictOnDelete();
+            $t->bigInteger('debit_minor')->default(0);
+            $t->bigInteger('credit_minor')->default(0);
+            $t->date('cleared_on')->nullable();
+            $t->string('statement_reference', 160)->nullable();
+        });
+        Schema::create('association_finance_events', function (Blueprint $t): void {
+            $t->bigIncrements('id');
+            $t->foreignUuid('association_id')->constrained('association_registration_applications')->restrictOnDelete();
+            $t->foreignUuid('voucher_id')->nullable()->constrained('association_finance_vouchers')->restrictOnDelete();
+            $t->foreignId('actor_id')->nullable()->constrained('users')->nullOnDelete();
+            $t->string('action', 40);
+            $t->text('note')->nullable();
+            $t->timestampTz('created_at');
+        });
+        DB::statement("ALTER TABLE association_finance_accounts ADD CONSTRAINT finance_account_type CHECK (type IN ('asset','liability','fund','income','expense')), ADD CONSTRAINT finance_money_asset CHECK (NOT is_money OR type = 'asset')");
+        DB::statement("ALTER TABLE association_finance_vouchers ADD CONSTRAINT finance_voucher_status CHECK (status IN ('draft','submitted','posted','reversed','rejected')), ADD CONSTRAINT finance_voucher_kind CHECK (kind IN ('receipt','payment','transfer','journal','opening','membership','reversal'))");
+        DB::statement('ALTER TABLE association_finance_lines ADD CONSTRAINT finance_line_amount CHECK ((debit_minor > 0 AND credit_minor = 0) OR (credit_minor > 0 AND debit_minor = 0))');
+        Schema::table('association_finance_settings', function (Blueprint $t): void {
+            $t->foreign('yearly_account_id')->references('id')->on('association_finance_accounts')->restrictOnDelete();
+            $t->foreign('lifetime_account_id')->references('id')->on('association_finance_accounts')->restrictOnDelete();
+        });
+        DB::unprepared(<<<'SQL'
 CREATE OR REPLACE FUNCTION filmunity_finance_guard() RETURNS trigger LANGUAGE plpgsql AS $$
 DECLARE v_status text; v_association uuid;
 BEGIN
@@ -95,6 +129,10 @@ END $$;
 CREATE CONSTRAINT TRIGGER finance_voucher_balance AFTER INSERT OR UPDATE ON association_finance_vouchers DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION filmunity_finance_balance();
 CREATE CONSTRAINT TRIGGER finance_lines_balance AFTER INSERT OR UPDATE OR DELETE ON association_finance_lines DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION filmunity_finance_balance();
 SQL);
- }
- public function down(): void { throw new RuntimeException('Financial records must be retained. Restore a coordinated verified backup rather than dropping the ledger.'); }
+    }
+
+    public function down(): void
+    {
+        throw new RuntimeException('Financial records must be retained. Restore a coordinated verified backup rather than dropping the ledger.');
+    }
 };

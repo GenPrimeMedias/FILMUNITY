@@ -70,6 +70,49 @@ class WorkspaceProtectionTest extends TestCase
         $this->postJson($base.'/lease', ['resource' => 'masters', 'operation' => 'heartbeat', 'token' => $third['token']])->assertConflict();
     }
 
+    public function test_owner_can_disable_pin_and_edit_without_pin_or_lease(): void
+    {
+        $this->travelBack();
+        [$owner, $id] = $this->association(true);
+        $base = $this->enroll($owner, $id);
+
+        $this->postJson($base.'/disable', ['pin' => '000000'])->assertUnprocessable();
+        $this->postJson($base.'/disable', ['pin' => '482617'])->assertOk()->assertJsonPath('pin_enabled', false);
+        $this->getJson($base.'?resource=workspace')
+            ->assertOk()
+            ->assertJsonPath('configured', true)
+            ->assertJsonPath('pin_enabled', false)
+            ->assertJsonPath('unlocked', true);
+
+        $this->postJson("/association-finance/$id/account", [
+            'code' => 'UNPROTECTED',
+            'name' => 'Direct edit while PIN disabled',
+            'type' => 'expense',
+            'is_money' => false,
+        ])->assertRedirect();
+        $this->assertDatabaseHas('association_finance_accounts', [
+            'association_id' => $id,
+            'code' => 'UNPROTECTED',
+        ]);
+        $this->assertDatabaseHas('association_configuration_events', [
+            'association_id' => $id,
+            'action' => 'pin_disabled',
+        ]);
+
+        $this->postJson($base.'/enable', ['pin' => '482617'])->assertOk()->assertJsonPath('pin_enabled', true);
+        $this->getJson($base.'?resource=workspace')
+            ->assertJsonPath('pin_enabled', true)
+            ->assertJsonPath('unlocked', true);
+        $this->assertDatabaseHas('association_configuration_events', [
+            'association_id' => $id,
+            'action' => 'pin_enabled',
+        ]);
+
+        $this->postJson($base.'/disable', ['pin' => '482617'])->assertOk();
+        $this->travel(11)->minutes();
+        $this->getJson($base.'?resource=workspace')->assertJsonPath('pin_enabled', true);
+    }
+
     public function test_pin_failure_lock_unlock_expiry_and_authenticated_reset_invalidate_old_grants(): void
     {
         [$owner, $id] = $this->association(true);

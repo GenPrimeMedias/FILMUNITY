@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Providers;
 
 use App\Support\IndividualMembership;
@@ -14,10 +15,13 @@ final class IndividualMembershipServiceProvider extends ServiceProvider
     {
         Event::listen(Verified::class, fn ($event) => IndividualMembership::ensure($event->user));
         Event::listen(Registered::class, function ($event): void {
-            if ($event->user->email_verified_at !== null) IndividualMembership::ensure($event->user);
+            if ($event->user->email_verified_at !== null) {
+                IndividualMembership::ensure($event->user);
+            }
         });
         Inertia::share('filmunityMembership', function (): ?array {
             $user = request()->user();
+
             return $user !== null && $user->email_verified_at !== null ? IndividualMembership::summary($user) : null;
         });
     }

@@ -1,8 +1,13 @@
 <?php
+
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
-return new class extends Migration {
- public function up(): void { DB::unprepared(<<<'SQL'
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        DB::unprepared(<<<'SQL'
 CREATE TABLE association_finance_tax_settings (
  association_id uuid PRIMARY KEY REFERENCES association_finance_settings(association_id) ON DELETE RESTRICT,
  gst_registered boolean NOT NULL DEFAULT false, gstin varchar(15), pan varchar(10), tan varchar(10), state_code varchar(2) NOT NULL,
@@ -57,6 +62,11 @@ BEGIN
  RETURN NEW;
 END $$;
 CREATE TRIGGER finance_tax_post BEFORE UPDATE ON association_finance_vouchers FOR EACH ROW EXECUTE FUNCTION filmunity_tax_post_guard();
-SQL); }
- public function down(): void { throw new RuntimeException('Retain tax history. Use reviewed forward changes or coordinated backup recovery.'); }
+SQL);
+    }
+
+    public function down(): void
+    {
+        throw new RuntimeException('Retain tax history. Use reviewed forward changes or coordinated backup recovery.');
+    }
 };

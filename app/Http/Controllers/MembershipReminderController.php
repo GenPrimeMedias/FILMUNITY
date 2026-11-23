@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use App\Support\AssociationBranding;
@@ -29,7 +30,9 @@ final class MembershipReminderController extends Controller
             $day = CarbonImmutable::now('UTC')->toDateString();
             $existing = DB::table('association_membership_reminders')->where('membership_id', $current->id)
                 ->where('expires_at', $current->ends_at)->where('reminder_on', $day)->first();
-            if ($existing !== null) return $existing->id;
+            if ($existing !== null) {
+                return $existing->id;
+            }
             $member = DB::table('users')->where('id', $current->member_id)->first(['name', 'email']);
             $id = (string) Str::uuid();
             DB::table('association_membership_reminders')->insert([
@@ -41,9 +44,11 @@ final class MembershipReminderController extends Controller
                     'url' => url('/membership-renewals/'.$current->id)], JSON_THROW_ON_ERROR),
                 'created_at' => now()->toIso8601String(), 'updated_at' => now()->toIso8601String(),
             ]);
+
             return $id;
         });
         DB::afterCommit(fn () => MembershipReminder::deliver($id));
+
         return redirect()->back()->with('status', 'Renewal reminder delivery requested. Check the delivery status in the queue.');
     }
 }

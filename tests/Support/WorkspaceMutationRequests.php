@@ -18,10 +18,15 @@ trait WorkspaceMutationRequests
         if (preg_match('~^/association-workspaces/([0-9a-f-]+)/(setup|mail|mail/review)$~', $path, $matches)) {
             $association = $matches[1];
             $resource = 'workspace';
-        } elseif (preg_match('~^/association-finance/([0-9a-f-]+)/(account|settings|masters/.*|tax/settings|tax/vendor-reviews|tally/mappings)$~', $path, $matches)) {
+        } elseif (preg_match('~^/association-board/([0-9a-f-]+)/(setup|positions|policy|terms|appointments|meetings|actions)(?:/|$)~', $path, $matches)) {
             $association = $matches[1];
-            $resource = match ($matches[2]) {
-                'settings' => 'finance-policy', 'tax/settings', 'tax/vendor-reviews' => 'tax-configuration', default => 'masters'
+            $resource = 'board';
+        } elseif (preg_match('~^/association-finance/([0-9a-f-]+)/(.*)$~', $path, $matches)) {
+            $association = $matches[1];
+            $resource = match (true) {
+                $matches[2] === 'settings' => 'finance-policy',
+                str_starts_with($matches[2], 'tax/settings') || str_starts_with($matches[2], 'tax/vendor-reviews') => 'tax-configuration',
+                default => 'masters',
             };
         }
         $user = Auth::user();

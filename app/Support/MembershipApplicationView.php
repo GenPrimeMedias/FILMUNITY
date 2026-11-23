@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
 final class MembershipApplicationView
@@ -34,8 +35,8 @@ final class MembershipApplicationView
         $application->membership = $membership === null ? null : MembershipLifecycle::present($membership,
             DB::table('association_registration_applications')->where('id', $application->association_id)->value('status'));
         $applicantId = DB::table('association_membership_applications')->where('id', $application->id)->value('member_id');
-        $applicant = \App\Models\User::find($applicantId);
-        $application->eligible_individual = $applicant !== null && !MembershipEligibility::representative($applicant);
+        $applicant = User::find($applicantId);
+        $application->eligible_individual = $applicant !== null && ! MembershipEligibility::representative($applicant);
         $application->payment_instructions = null;
         $application->plan_options = null;
         if ($application->status === 'accepted_for_payment' && $application->payment === null) {
@@ -53,8 +54,11 @@ final class MembershipApplicationView
 
         $communications = DB::table('membership_correspondence')->where('application_id', $application->id);
         $user = request()->user();
-        if (!$platformAdmin && !AssociationWorkspace::forAdmin($user)->where('id', $application->association_id)->exists()) $communications->where('recipient', $user->email);
+        if (! $platformAdmin && ! AssociationWorkspace::forAdmin($user)->where('id', $application->association_id)->exists()) {
+            $communications->where('recipient', $user->email);
+        }
         $application->communications = $communications->orderBy('created_at')->limit(30)->get(['event', 'recipient', 'sent_at', 'attempts', 'last_error', 'created_at']);
+
         return $application;
     }
 }

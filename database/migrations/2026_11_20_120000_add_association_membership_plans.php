@@ -1,10 +1,14 @@
 <?php
+
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
-return new class extends Migration {
-    public function up(): void {
+
+return new class extends Migration
+{
+    public function up(): void
+    {
         Schema::create('association_membership_plans', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->foreignUuid('association_id')->constrained('association_registration_applications')->restrictOnDelete();
@@ -31,5 +35,9 @@ return new class extends Migration {
             SELECT gen_random_uuid(), association_id, 'lifetime', 'Life-Time', 'life-time', 'lifetime', lifetime_fee_minor, true, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
             FROM association_workspace_settings WHERE lifetime_fee_minor IS NOT NULL");
     }
-    public function down(): void { throw new RuntimeException('Plan selections and financial snapshots are retained for audit. Restore a verified backup to revert.'); }
+
+    public function down(): void
+    {
+        throw new RuntimeException('Plan selections and financial snapshots are retained for audit. Restore a verified backup to revert.');
+    }
 };

@@ -5,17 +5,18 @@ namespace Tests\Feature;
 use App\Models\User;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia;
+use Tests\Support\WorkspaceMutationRequests;
 use Tests\TestCase;
 
 class AssociationWorkspaceTest extends TestCase
 {
-    use \Tests\Support\WorkspaceMutationRequests;
-
     use DatabaseTransactions;
+    use WorkspaceMutationRequests;
 
     public function test_switching_to_individual_signup_clears_association_intent(): void
     {
@@ -97,12 +98,13 @@ class AssociationWorkspaceTest extends TestCase
             fn (AssertableInertia $page) => $page->component('association-workspaces')->has('workspaces.data', 0),
         );
     }
+
     public function test_workspace_directory_search_and_sort_keep_the_owner_scope(): void
     {
         $owner = User::factory()->create(['association_signup' => true]);
         $other = User::factory()->create(['association_signup' => true]);
         foreach (range(1, 3) as $index) {
-            $id = (string) \Illuminate\Support\Str::uuid();
+            $id = (string) Str::uuid();
             DB::table('association_registration_applications')->insert([
                 'id' => $id, 'applicant_id' => $index === 3 ? $other->id : $owner->id,
                 'name' => "Directory Union $index", 'name_key' => $id,
@@ -118,5 +120,4 @@ class AssociationWorkspaceTest extends TestCase
         $this->get('/association-workspaces?q=Directory%20Union%203')
             ->assertInertia(fn (AssertableInertia $page) => $page->has('workspaces.data', 0));
     }
-
 }

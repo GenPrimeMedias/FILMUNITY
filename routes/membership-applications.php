@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\AssociationWorkspaceSetupController;
+use App\Http\Controllers\FilmunityAdminController;
 use App\Http\Controllers\MembershipApplicationController;
 use Illuminate\Support\Facades\Route;
 
@@ -13,7 +15,7 @@ Route::middleware(['auth', 'verified'])->controller(MembershipApplicationControl
         ->name('association-membership-review.decide');
 });
 
-Route::middleware(['auth', 'verified'])->controller(\App\Http\Controllers\AssociationWorkspaceSetupController::class)
+Route::middleware(['auth', 'verified'])->controller(AssociationWorkspaceSetupController::class)
     ->group(function (): void {
         Route::get('/association-workspaces/{workspace}/setup', 'edit')->whereUuid('workspace')
             ->name('association-workspace-setup.edit');
@@ -24,6 +26,6 @@ Route::middleware(['auth', 'verified'])->controller(\App\Http\Controllers\Associ
     });
 
 Route::get('/filmunity-admin/membership-applications/{application}/documents/{field}',
-    [\App\Http\Controllers\FilmunityAdminController::class, 'membershipDocument'])
+    [FilmunityAdminController::class, 'membershipDocument'])
     ->middleware(['auth', 'verified'])->whereUuid('application')->whereUuid('field')
     ->name('filmunity-admin.membership-document');

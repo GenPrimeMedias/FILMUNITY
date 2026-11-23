@@ -1,24 +1,34 @@
 <?php
+
 namespace Tests\Feature;
 
+use App\Mail\ApplicationWorkflowNotice;
 use App\Models\User;
-use App\Support\IndividualMembership;
 use App\Support\ApplicationCommunication;
+use App\Support\IndividualMembership;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia as Page;
+use Tests\Support\WorkspaceMutationRequests;
 use Tests\TestCase;
 
 class IndividualMembershipWorkflowTest extends TestCase
 {
-    use \Tests\Support\WorkspaceMutationRequests;
-
     use DatabaseTransactions;
-    protected function setUp(): void { parent::setUp(); Mail::fake(); Storage::fake('local'); config(['association-registration.reviewer_ids' => []]); }
+    use WorkspaceMutationRequests;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        Mail::fake();
+        Storage::fake('local');
+        config(['association-registration.reviewer_ids' => []]);
+    }
 
     public function test_verified_accounts_receive_one_fu_number_and_unverified_accounts_cannot_get_cards(): void
     {
@@ -77,7 +87,7 @@ class IndividualMembershipWorkflowTest extends TestCase
         $membership = DB::table('association_memberships')->where('payment_id', $payment)->first();
         $this->actingAs($member)->get("/membership-cards/association/$membership->id")->assertOk()->assertSee($membership->number);
         $cardToken = DB::table('association_membership_card_tokens')->where('membership_id', $membership->id)->first();
-        $token = \Illuminate\Support\Facades\Crypt::decryptString($cardToken->token_encrypted);
+        $token = Crypt::decryptString($cardToken->token_encrypted);
         DB::table('association_memberships')->where('id', $membership->id)->update(['status' => 'suspended']);
         $this->get('/verify-membership/association/'.$token)->assertSee('suspended')->assertDontSee($member->email);
         $stranger = User::factory()->create();
@@ -95,7 +105,7 @@ class IndividualMembershipWorkflowTest extends TestCase
         $this->actingAs($stranger)->postWithWorkspaceLease("/association-workspaces/$association/setup", $payload)->assertNotFound();
         $this->actingAs($owner)->postWithWorkspaceLease("/association-workspaces/$association/setup", $payload)->assertSessionHasNoErrors();
         $this->assertDatabaseHas('association_registration_applications', ['id' => $association, 'official_contact_email' => 'new-office@example.org']);
-        $mail = new \App\Mail\ApplicationWorkflowNotice(['association_id' => $association, 'heading' => 'Test notice', 'body' => 'Test', 'reply_to' => 'new-office@example.org']);
+        $mail = new ApplicationWorkflowNotice(['association_id' => $association, 'heading' => 'Test notice', 'body' => 'Test', 'reply_to' => 'new-office@example.org']);
         $mail->build();
         $this->assertSame(config('mail.from.address'), $mail->from[0]['address']);
         $this->assertSame('new-office@example.org', $mail->replyTo[0]['address']);
@@ -108,7 +118,9 @@ class IndividualMembershipWorkflowTest extends TestCase
         $this->actingAs($member)->postWithWorkspaceLease('/membership-applications', ['association_id' => $association, 'statement' => 'My work'])->assertSessionHasNoErrors();
         $id = DB::table('association_membership_applications')->where('member_id', $member->id)->value('id');
         $this->assertSame(2, DB::table('membership_correspondence')->where('application_id', $id)->count());
-        foreach (DB::table('membership_correspondence')->where('application_id', $id)->pluck('id') as $notice) ApplicationCommunication::deliver($notice);
+        foreach (DB::table('membership_correspondence')->where('application_id', $id)->pluck('id') as $notice) {
+            ApplicationCommunication::deliver($notice);
+        }
         $this->get('/membership-applications')->assertInertia(fn (Page $page) => $page->has('applications.data.0.communications', 1));
         $stranger = User::factory()->create();
         $this->actingAs($stranger)->postWithWorkspaceLease("/membership-applications/$id/retry-notices")->assertNotFound();
@@ -117,12 +129,14 @@ class IndividualMembershipWorkflowTest extends TestCase
 
     private function association(): array
     {
-        $owner = User::factory()->create(['association_signup' => true]); $id = (string) Str::uuid();
+        $owner = User::factory()->create(['association_signup' => true]);
+        $id = (string) Str::uuid();
         DB::table('association_registration_applications')->insert(['id' => $id, 'applicant_id' => $owner->id, 'name' => 'Identity Association', 'name_key' => $id,
             'organisation_type' => 'Association', 'industry' => 'Tamil', 'city' => 'Chennai', 'representative_role' => 'Secretary', 'status' => 'approved',
             'official_contact_email' => 'office@example.org', 'created_at' => now(), 'updated_at' => now()]);
         DB::table('association_workspace_settings')->insert(['association_id' => $id, 'display_name' => 'Identity Association', 'accent' => '#b9d66b', 'fields' => '[]', 'version' => 0,
             'yearly_fee_minor' => 0, 'lifetime_fee_minor' => 50000, 'payment_instructions' => 'Transfer to the office account.']);
+
         return [$owner, $id];
     }
 }

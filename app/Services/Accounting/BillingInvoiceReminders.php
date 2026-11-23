@@ -5,6 +5,7 @@ namespace App\Services\Accounting;
 use App\Exceptions\BillingReminderNotSent;
 use App\Mail\BillingInvoiceReminder;
 use App\Support\AssociationFinance as Finance;
+use App\Support\AssociationMailer;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Facades\DB;
@@ -87,7 +88,7 @@ final class BillingInvoiceReminders
             } else {
                 $values['snapshot'] = json_encode($invoice, JSON_THROW_ON_ERROR);
                 try {
-                    \App\Support\AssociationMailer::send($association, $notice->recipient, new BillingInvoiceReminder((array) $invoice));
+                    AssociationMailer::send($association, $notice->recipient, new BillingInvoiceReminder((array) $invoice));
                     $values += ['status' => 'simulated', 'last_error' => null];
                 } catch (Throwable $error) {
                     report($error);

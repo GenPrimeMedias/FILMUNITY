@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
+use App\Support\AssociationBranding;
 use App\Support\AssociationMembershipForm;
 use App\Support\AssociationPayment;
 use App\Support\AssociationWorkspace;
 use App\Support\FilmunityReviewer;
+use App\Support\MembershipEligibility;
 use App\Support\PaymentNotification;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\RedirectResponse;
@@ -32,7 +35,7 @@ final class AssociationPaymentController extends Controller
             abort_unless((clone $owned)->exists(), 403);
             $query->whereIn('payment.association_id', $owned->select('id'));
         } else {
-            \App\Support\MembershipEligibility::requireIndividual($user);
+            MembershipEligibility::requireIndividual($user);
             $query->where('payment.member_id', $user->getAuthIdentifier());
         }
         $filters = $this->filters($request);
@@ -68,6 +71,7 @@ final class AssociationPaymentController extends Controller
             ->through(function (object $payment): object {
                 $payment->amount = AssociationMembershipForm::formatFee($payment->amount_minor);
                 unset($payment->amount_minor);
+
                 return $payment;
             });
 
@@ -94,7 +98,7 @@ final class AssociationPaymentController extends Controller
             }
             AssociationPayment::requireState(in_array($record->membership_type, ['yearly', 'lifetime'], true)
                 && $record->fee_minor !== null && $record->currency === 'INR', 'The applicant must confirm the membership type and fee first.');
-            AssociationPayment::requireState(!\App\Support\MembershipEligibility::representative(\App\Models\User::findOrFail($record->member_id)), 'This applicant represents an association and cannot start another association membership.');
+            AssociationPayment::requireState(! MembershipEligibility::representative(User::findOrFail($record->member_id)), 'This applicant represents an association and cannot start another association membership.');
             $association = DB::table('association_registration_applications')->where('id', $record->association_id)->first();
             $settings = DB::table('association_workspace_settings')->where('association_id', $record->association_id)->first();
             $member = DB::table('users')->where('id', $record->member_id)->first(['name', 'email']);
@@ -155,12 +159,16 @@ final class AssociationPaymentController extends Controller
         $snapshot = json_decode($record->snapshot, true, flags: JSON_THROW_ON_ERROR);
         if (empty($snapshot['logo'])) {
             $associationId = $record->association_id ?? DB::table('association_payment_requests')->where('id', $record->payment_id)->value('association_id');
-            if ($associationId) $snapshot['logo'] = \App\Support\AssociationBranding::data($associationId)['logo'];
+            if ($associationId) {
+                $snapshot['logo'] = AssociationBranding::data($associationId)['logo'];
+            }
         }
         $receipt = DB::table('association_payment_receipts')->where('payment_id', $payment)->first(['id', 'number']);
         $membership = DB::table('association_memberships')->where(function ($query) use ($payment, $record): void {
             $query->where('payment_id', $payment);
-            if ($record->renewal_membership_id !== null) $query->orWhere('id', $record->renewal_membership_id);
+            if ($record->renewal_membership_id !== null) {
+                $query->orWhere('id', $record->renewal_membership_id);
+            }
         })->first(['id', 'number', 'starts_at', 'ends_at', 'status']);
 
         return Inertia::render('membership-payment', [
@@ -173,7 +181,7 @@ final class AssociationPaymentController extends Controller
                 'acknowledged_at' => $record->acknowledged_at, 'snapshot' => $snapshot,
             ],
             'isAuditor' => FilmunityReviewer::allows($request->user()),
-            'canManage' => $owned, 'isApplicant' => !\App\Support\MembershipEligibility::representative($request->user()) && (string) $record->member_id === (string) $request->user()->getAuthIdentifier(),
+            'canManage' => $owned, 'isApplicant' => ! MembershipEligibility::representative($request->user()) && (string) $record->member_id === (string) $request->user()->getAuthIdentifier(),
             'proofFilters' => $proofFilters,
             'submissions' => $submissions, 'events' => $events, 'receipt' => $receipt, 'membership' => $membership,
             'pendingEmails' => DB::table('association_payment_notifications')->where('payment_id', $payment)->whereNull('sent_at')->count(),
@@ -182,7 +190,7 @@ final class AssociationPaymentController extends Controller
 
     public function submit(Request $request, string $payment): RedirectResponse
     {
-        \App\Support\MembershipEligibility::requireIndividual($request->user());
+        MembershipEligibility::requireIndividual($request->user());
         $visible = AssociationPayment::visible($request->user())->where('id', $payment)->first(['member_id']);
         abort_if($visible === null, 404);
         abort_unless((string) $visible->member_id === (string) $request->user()->getAuthIdentifier(), 403);
@@ -293,7 +301,9 @@ final class AssociationPaymentController extends Controller
         $snapshot = json_decode($record->snapshot, true, flags: JSON_THROW_ON_ERROR);
         if (empty($snapshot['logo'])) {
             $associationId = $record->association_id ?? DB::table('association_payment_requests')->where('id', $record->payment_id)->value('association_id');
-            if ($associationId) $snapshot['logo'] = \App\Support\AssociationBranding::data($associationId)['logo'];
+            if ($associationId) {
+                $snapshot['logo'] = AssociationBranding::data($associationId)['logo'];
+            }
         }
         $headers = ['Cache-Control' => 'private, no-store', 'X-Content-Type-Options' => 'nosniff'];
         if ($request->boolean('download')) {

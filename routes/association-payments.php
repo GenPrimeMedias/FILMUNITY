@@ -2,12 +2,13 @@
 
 use App\Http\Controllers\AssociationMemberController;
 use App\Http\Controllers\AssociationPaymentController;
+use App\Http\Controllers\LegacyMembershipPreviewController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'verified'])->group(function (): void {
-    Route::get('/association-members/legacy-preview', [\App\Http\Controllers\LegacyMembershipPreviewController::class, 'index']);
-    Route::get('/association-members/{association}/legacy-template', [\App\Http\Controllers\LegacyMembershipPreviewController::class, 'template'])->whereUuid('association');
-    Route::post('/association-members/{association}/legacy-preview', [\App\Http\Controllers\LegacyMembershipPreviewController::class, 'preview'])->whereUuid('association')->middleware('throttle:10,1');
+    Route::get('/association-members/legacy-preview', [LegacyMembershipPreviewController::class, 'index']);
+    Route::get('/association-members/{association}/legacy-template', [LegacyMembershipPreviewController::class, 'template'])->whereUuid('association');
+    Route::post('/association-members/{association}/legacy-preview', [LegacyMembershipPreviewController::class, 'preview'])->whereUuid('association')->middleware('throttle:10,1');
     Route::controller(AssociationPaymentController::class)->group(function (): void {
         Route::get('/membership-payments', 'index')->name('membership-payments.index');
         Route::get('/association-payments', 'index')->defaults('scope', 'admin')->name('association-payments.index');

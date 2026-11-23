@@ -26,6 +26,7 @@ return new class extends Migration
             $table->index(['association_id', 'created_at']);
         });
     }
+
     public function down(): void
     {
         throw new RuntimeException('Reminder delivery history is retained for audit. Use a verified backup to revert.');

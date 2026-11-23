@@ -27,7 +27,7 @@ class AssociationHelpTest extends TestCase
         $unverified->forceFill(['email_verified_at' => null])->save();
         $this->actingAs($unverified)->get('/association-help/profile')->assertRedirect(route('verification.notice'));
         $user = $this->representative('approved');
-        $this->actingAs($user)->get('/association-help/finance?topic=expense')->assertInertia(fn (Page $page) => $page->component('association-help')->where('topicId', 'expense')->where('sectionId', 'finance')->has('catalog.sections', 4));
+        $this->actingAs($user)->get('/association-help/finance?topic=expense')->assertInertia(fn (Page $page) => $page->component('association-help')->where('topicId', 'expense')->where('sectionId', 'finance')->has('catalog.sections', 5));
     }
 
     public function test_pending_representative_has_profile_help_but_not_admin_guides(): void
@@ -49,7 +49,7 @@ class AssociationHelpTest extends TestCase
     public function test_all_help_articles_have_complete_how_to_structure(): void
     {
         $catalog = json_decode(file_get_contents(resource_path('help/association-admin.json')), true, flags: JSON_THROW_ON_ERROR);
-        $this->assertCount(4, $catalog['sections']);
+        $this->assertCount(5, $catalog['sections']);
         $count = 0;
         foreach ($catalog['sections'] as $section) {
             $ids = [];
@@ -108,7 +108,7 @@ class AssociationHelpTest extends TestCase
     public function test_pending_representative_download_contains_only_accessible_profile_help(): void
     {
         $this->actingAs($this->representative('pending'))->get('/association-help/profile/download')->assertOk()->assertSee('Fields in screen order')->assertDontSee('?topic=tds-challans', false)->assertDontSee('?topic=legacy-preview', false);
-        foreach (['association', 'members', 'finance'] as $section) {
+        foreach (['association', 'members', 'finance', 'board'] as $section) {
             $this->get('/association-help/'.$section)->assertNotFound();
             $this->get('/association-help/'.$section.'/download')->assertNotFound();
         }

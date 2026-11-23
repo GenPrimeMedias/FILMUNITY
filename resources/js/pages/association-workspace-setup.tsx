@@ -56,7 +56,7 @@ function WorkspaceEditor({ workspaceId, settings, saved, onSaved }: {
         setPreview((values) => ({ ...values, [id]: '' }));
     };
 
-    return <WorkspaceEditProtection association={workspaceId} resource="workspace" dirty={form.isDirty || mailDirty} onDiscard={() => { form.reset(); setMailDirty(false); setMailRevision(value => value + 1); }} onSaved={(path) => { if (path.endsWith('/setup')) form.setDefaults(); }}>
+    return <WorkspaceEditProtection association={workspaceId} resource="workspace" allowPinReset dirty={form.isDirty || mailDirty} onDiscard={() => { form.reset(); setMailDirty(false); setMailRevision(value => value + 1); }} onSaved={(path) => { if (path.endsWith('/setup')) form.setDefaults(); }}>
         <main className="grid w-full min-w-0 gap-4 p-4">
             <Head title="Workspace setup" />
             <header className="flex flex-wrap items-start justify-between gap-3">

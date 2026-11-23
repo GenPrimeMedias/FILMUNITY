@@ -8,14 +8,14 @@ use App\Services\Accounting\BillSettlementService as Bills;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
 use Tests\Support\FinanceWorkflowFixtures;
+use Tests\Support\WorkspaceMutationRequests;
 use Tests\TestCase;
 
 class MultiLineTaxTest extends TestCase
 {
-    use \Tests\Support\WorkspaceMutationRequests;
-
     use DatabaseTransactions;
     use FinanceWorkflowFixtures;
+    use WorkspaceMutationRequests;
 
     public function test_multi_rate_invoice_posts_with_separate_charge_snapshots_and_one_party_entry(): void
     {

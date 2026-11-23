@@ -1,5 +1,5 @@
 {
-    "reviewed": "2026-11-21",
+    "reviewed": "2026-11-22",
     "scope": "Current application routes, visible workflow screens, controllers/validation, services and feature tests. This inventory supports Help Centre maintenance; it is not a claim that every project test was run in this pass.",
     "role_access": {
         "approved_association_applicant": "All four Help Centre sections; association data still resolved and authorized by each destination.",
@@ -14,7 +14,7 @@
         "Recurring generation has a Laravel daily registration, but this work does not enable a production scheduler.",
         "Accounts reported a successful TallyPrime 7.2 import with no errors. Per-ledger reconciliation and repeat-import behavior remain pending unless separately evidenced; this help review did not independently witness the import.",
         "No database reset, migrations, import write phase, push or deployment in this help pass.",
-        "Workspace/master edits require PIN enrollment, a session unlock and a resource lease. Ordinary financial work remains available.",
+        "Workspace and Financial Management edits use PIN enrollment, session unlock and resource leases when protection is enabled; disabled workspaces preserve direct authorized editing and automatically re-enable after ten minutes.",
         "Three additive workspace/mail/tax migrations applied only to filmunity_test in this feature pass; development/production untouched.",
         "Live SMTP/provider and browser/PDF/mobile verification remain manual. Recurring invoices remain non-tax drafts; tax setup versioning does not automate legal applicability."
     ],
@@ -37,6 +37,7 @@
             "controller": "app/Http/Controllers/AssociationFinanceController.php",
             "articles": [
                 "finance/start",
+                "finance/finance-protection",
                 "finance/initialize",
                 "finance/accounts",
                 "finance/membership-clearing",
@@ -492,6 +493,50 @@
                 "tests/Feature/VendorTdsControlsTest.php"
             ],
             "screens": []
+        },
+        {
+            "controller": "app/Http/Controllers/BoardManagementController.php",
+            "articles": [
+                "association/board-management",
+                "board/start",
+                "board/governance-setup",
+                "board/terms",
+                "board/members",
+                "board/meetings",
+                "board/minutes",
+                "board/actions",
+                "board/directory"
+            ],
+            "routes": [
+                {
+                    "method": "GET|HEAD",
+                    "path": "/association-board/{association}",
+                    "action": "index"
+                },
+                {
+                    "method": "GET|HEAD",
+                    "path": "/association-board/{association}/setup|terms|meetings|minutes|actions",
+                    "action": "section views"
+                },
+                {
+                    "method": "POST|PATCH",
+                    "path": "/association-board/{association}/setup|terms|appointments|meetings|minutes|actions|reviewers|governance-settings",
+                    "action": "protected governance mutations"
+                },
+                {
+                    "method": "GET",
+                    "path": "/association-board/{association}/directory|print/{kind}|meetings/{meeting}/calendar",
+                    "action": "private directory and document views"
+                }
+            ],
+            "tests": [
+                "tests/Feature/BoardManagementTest.php",
+                "app/Http/Controllers/BoardPrintController.php",
+                "app/Jobs/SendBoardNotification.php"
+            ],
+            "screens": [
+                "resources/js/pages/board-management.tsx"
+            ]
         },
         {
             "controller": "app/Http/Controllers/AssociationHelpController.php",
@@ -1107,6 +1152,16 @@
                 },
                 {
                     "method": "POST",
+                    "path": "/association-workspaces/{workspace}/protection/disable",
+                    "action": "disable"
+                },
+                {
+                    "method": "POST",
+                    "path": "/association-workspaces/{workspace}/protection/enable",
+                    "action": "enable"
+                },
+                {
+                    "method": "POST",
                     "path": "/association-workspaces/{workspace}/protection/lease",
                     "action": "lease"
                 }
@@ -1208,6 +1263,54 @@
             "section": "profile",
             "title": "Maintain account identity and security",
             "path": "/association-help/profile?topic=account-settings",
+            "change": "added"
+        },
+        {
+            "section": "board",
+            "title": "Start here: the Board Management workflow",
+            "path": "/association-help/board?topic=start",
+            "change": "added"
+        },
+        {
+            "section": "board",
+            "title": "Configure the governing body and reviewed policy",
+            "path": "/association-help/board?topic=governance-setup",
+            "change": "added"
+        },
+        {
+            "section": "board",
+            "title": "Create and activate a governing term",
+            "path": "/association-help/board?topic=terms",
+            "change": "added"
+        },
+        {
+            "section": "board",
+            "title": "Appoint members and manage vacancies",
+            "path": "/association-help/board?topic=members",
+            "change": "added"
+        },
+        {
+            "section": "board",
+            "title": "Schedule a meeting and manage quorum",
+            "path": "/association-help/board?topic=meetings",
+            "change": "added"
+        },
+        {
+            "section": "board",
+            "title": "Record minutes, resolutions and approval",
+            "path": "/association-help/board?topic=minutes",
+            "change": "added"
+        },
+        {
+            "section": "board",
+            "title": "Turn decisions into action items",
+            "path": "/association-help/board?topic=actions",
+            "change": "added"
+        },
+        {
+            "section": "board",
+            "title": "Review and publish the Board directory safely",
+            "path": "/association-help/board?topic=directory",
             "change": "added"
         },
         {
@@ -1487,6 +1590,12 @@
             "change": "added"
         },
         {
+            "section": "finance",
+            "title": "Protect Financial Management edits with the workspace PIN",
+            "path": "/association-help/finance?topic=finance-protection",
+            "change": "added"
+        },
+        {
             "section": "members",
             "title": "Print membership applications for offline review",
             "path": "/association-help/members?topic=application-printing",
@@ -1497,7 +1606,13 @@
             "title": "Retain tax setup versions and review affected drafts",
             "path": "/association-help/finance?topic=tax-configuration-versions",
             "change": "added"
+        },
+        {
+            "section": "association",
+            "title": "Configure and operate Board Management",
+            "path": "/association-help/association?topic=board-management",
+            "change": "added"
         }
     ],
-    "article_count": 51
+    "article_count": 52
 }

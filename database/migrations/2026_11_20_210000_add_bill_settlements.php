@@ -1,9 +1,13 @@
 <?php
+
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
-return new class extends Migration {
- public function up(): void {
-  DB::unprepared(<<<'SQL'
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        DB::unprepared(<<<'SQL'
 ALTER TABLE association_finance_vouchers DROP CONSTRAINT finance_voucher_kind,
  ADD CONSTRAINT finance_voucher_kind CHECK(kind IN ('receipt','payment','transfer','journal','opening','membership','reversal','invoice','bill')),
  ADD CONSTRAINT finance_voucher_tenant_id UNIQUE(association_id,id);
@@ -120,6 +124,10 @@ BEGIN
 END $$;
 CREATE TRIGGER bill_allocation_guard BEFORE INSERT OR UPDATE OR DELETE ON association_bill_allocations FOR EACH ROW EXECUTE FUNCTION filmunity_bill_allocation_guard();
 SQL);
- }
- public function down(): void { throw new RuntimeException('Bill and allocation history must be retained. Use a coordinated backup or a reviewed forward correction.'); }
+    }
+
+    public function down(): void
+    {
+        throw new RuntimeException('Bill and allocation history must be retained. Use a coordinated backup or a reviewed forward correction.');
+    }
 };

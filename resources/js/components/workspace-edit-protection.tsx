@@ -7,6 +7,7 @@ import {
     useState,
     type ReactNode,
 } from 'react';
+import { Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const EditContext = createContext({
@@ -38,6 +39,7 @@ type Status = {
         created_at: string;
     }[];
     configured: boolean;
+    pin_enabled: boolean;
     unlocked: boolean;
     editor: string | null;
     google: boolean;
@@ -82,13 +84,20 @@ export function WorkspaceEditProtection({
     dirty,
     onDiscard,
     onSaved,
+    allowPinReset = false,
     children,
 }: {
     association: string;
-    resource: 'workspace' | 'masters' | 'finance-policy' | 'tax-configuration';
+    resource:
+        | 'workspace'
+        | 'masters'
+        | 'finance-policy'
+        | 'tax-configuration'
+        | 'board';
     dirty: boolean;
     onDiscard?: () => void;
     onSaved?: (path: string) => void;
+    allowPinReset?: boolean;
     children: ReactNode;
 }) {
     const base = `/association-workspaces/${association}/protection`;
@@ -96,6 +105,7 @@ export function WorkspaceEditProtection({
     const [lease, setLease] = useState<Lease | null>(null);
     const [message, setMessage] = useState('Loading workspace protection…');
     const [password, setPassword] = useState('');
+    const [passwordVisible, setPasswordVisible] = useState(false);
     const [pin, setPin] = useState('');
     const [confirmation, setConfirmation] = useState('');
     const [reset, setReset] = useState(false);
@@ -120,7 +130,11 @@ export function WorkspaceEditProtection({
             setMessage(
                 value.editor
                     ? `Read-only: ${value.editor} holds an edit lease.`
-                    : 'Read-only until PIN unlock and Start protected edit.',
+                    : value.pin_enabled
+                      ? value.unlocked
+                          ? 'PIN unlocked. Start protected edit to make changes.'
+                          : 'PIN protection is enabled. Unlock and start protected edit to make changes.'
+                    : 'PIN protection is disabled. Forms are editable without PIN protection.',
             );
         });
     useEffect(() => {
@@ -128,6 +142,14 @@ export function WorkspaceEditProtection({
         setLease(null);
         void load().catch((error) => setMessage(error.message));
     }, [base, resource]);
+
+    useEffect(() => {
+        if (!status?.configured || status.pin_enabled) return;
+        const timer = window.setTimeout(() => {
+            void load().catch((error) => setMessage(error.message));
+        }, 10 * 60 * 1000);
+        return () => window.clearTimeout(timer);
+    }, [base, resource, status?.configured, status?.pin_enabled]);
 
     const release = (keepalive = false) => {
         const active = liveLease.current;
@@ -172,20 +194,27 @@ export function WorkspaceEditProtection({
                       `/association-workspaces/${association}/mail/review`,
                   ].includes(pathname)
                 : resource === 'masters'
-                  ? pathname.startsWith(
-                        `/association-finance/${association}/masters/`,
-                    ) ||
-                    [
-                        `/association-finance/${association}/account`,
-                        `/association-finance/${association}/tally/mappings`,
-                    ].includes(pathname)
+                  ? pathname.startsWith(`/association-finance/${association}/masters/`) ||
+                    pathname.startsWith(`/association-finance/${association}/vouchers`) ||
+                    pathname.startsWith(`/association-finance/${association}/billing/`) ||
+                    pathname.startsWith(`/association-finance/${association}/account`) ||
+                    pathname === `/association-finance/${association}/sync` ||
+                    pathname === `/association-finance/${association}/close` ||
+                    pathname === `/association-finance/${association}/tally/mappings`
                   : resource === 'finance-policy'
                     ? pathname ===
                       `/association-finance/${association}/settings`
-                    : [
-                          `/association-finance/${association}/tax/settings`,
-                          `/association-finance/${association}/tax/vendor-reviews`,
-                      ].includes(pathname);
+                    : resource === 'tax-configuration'
+                      ? [
+                            `/association-finance/${association}/tax/settings`,
+                            `/association-finance/${association}/tax/vendor-reviews`,
+                        ].includes(pathname) ||
+                        pathname.startsWith(`/association-finance/${association}/tax/documents`) ||
+                        pathname.startsWith(`/association-finance/${association}/tax/challans`) ||
+                        pathname.startsWith(`/association-finance/${association}/billing/reminders`)
+                      : pathname.startsWith(
+                            `/association-board/${association}`,
+                        );
         const before = router.on('before', (event) => {
             const visit = event.detail.visit;
             if (visit.method !== 'get' && matches(visit.url.pathname)) {
@@ -359,11 +388,15 @@ export function WorkspaceEditProtection({
 
     return (
         <EditContext.Provider
-            value={{ editable: !!lease, association, resource }}
+            value={{
+                editable: status ? !status.pin_enabled || !!lease : !!lease,
+                association,
+                resource,
+            }}
         >
             <div
                 ref={container}
-                className="contents"
+                className="block w-full min-w-0"
                 onChangeCapture={() => {
                     clean.current = false;
                 }}
@@ -378,11 +411,61 @@ export function WorkspaceEditProtection({
                     </p>
                     <p className="text-sm text-muted-foreground">
                         The six-digit PIN adds editing protection; it never
-                        replaces login or association permissions. Unlock lasts
-                        10 minutes; leases expire after 90 seconds without a
-                        heartbeat. Members continue using saved settings.
+                        replaces login or association permissions. When disabled,
+                        authorized users can edit forms directly.
                     </p>
-                    {status && (!status.configured || reset) && (
+                    {status?.configured && (
+                        <div className="flex flex-wrap items-center gap-3 rounded-lg border p-3">
+                            <div className="mr-auto">
+                                <p className="font-medium">
+                                    PIN protection: {status.pin_enabled ? 'Enabled' : 'Disabled'}
+                                </p>
+                                <p className="text-sm text-muted-foreground">
+                                    {status.pin_enabled
+                                        ? 'Editors must unlock the workspace PIN before starting a protected edit.'
+                                        : 'Authorized editors can update forms directly without PIN or edit-lease prompts.'}
+                                </p>
+                            </div>
+                            {status.pin_enabled ? (
+                                <>
+                                    <label className="grid min-w-44 gap-1 text-sm">
+                                        Existing six-digit PIN
+                                        <input
+                                            className={input}
+                                            type="password"
+                                            inputMode="numeric"
+                                            autoComplete="current-password"
+                                            maxLength={6}
+                                            value={pin}
+                                            onChange={(event) => setPin(event.target.value)}
+                                        />
+                                    </label>
+                                    <Button type="button" variant="outline" disabled={busy || !/^\d{6}$/.test(pin)} onClick={() => void action('disable', { pin })}>
+                                        Disable PIN protection
+                                    </Button>
+                                </>
+                            ) : (
+                                <>
+                                    <label className="grid min-w-44 gap-1 text-sm">
+                                        Existing six-digit PIN
+                                        <input
+                                            className={input}
+                                            type="password"
+                                            inputMode="numeric"
+                                            autoComplete="current-password"
+                                            maxLength={6}
+                                            value={pin}
+                                            onChange={(event) => setPin(event.target.value)}
+                                        />
+                                    </label>
+                                    <Button type="button" variant="outline" disabled={busy || !/^\d{6}$/.test(pin)} onClick={() => void action('enable', { pin })}>
+                                        Enable PIN protection
+                                    </Button>
+                                </>
+                            )}
+                        </div>
+                    )}
+                    {status && (!status.configured || (reset && allowPinReset)) && (
                         <div className="grid gap-3">
                             <p>
                                 Confirm your account, then create a new
@@ -390,34 +473,58 @@ export function WorkspaceEditProtection({
                                 recovered. Reset invalidates all existing
                                 unlocks and edit leases.
                             </p>
-                            <label className="grid">
-                                Account password
-                                <input
-                                    className={input}
-                                    type="password"
-                                    autoComplete="current-password"
-                                    value={password}
-                                    onChange={(event) =>
-                                        setPassword(event.target.value)
-                                    }
-                                />
-                            </label>
-                            <Button
-                                type="button"
-                                disabled={busy || !password}
-                                onClick={() =>
-                                    void action('confirm', { password })
-                                }
-                            >
-                                Confirm account password
-                            </Button>
                             {status.google && (
-                                <a
-                                    className="underline"
-                                    href="/workspace-security/google/redirect"
-                                >
-                                    Reauthenticate linked Google account
-                                </a>
+                                <div className="grid gap-2 rounded-lg border p-3">
+                                    <p className="text-sm">
+                                        This account uses Google sign-in. Reauthenticate with Google to confirm this change; no local account password is required.
+                                    </p>
+                                    <a
+                                        className="w-fit rounded-md border px-3 py-2 underline"
+                                        href="/workspace-security/google/redirect"
+                                    >
+                                        Reauthenticate with Google
+                                    </a>
+                                </div>
+                            )}
+                            {!status.google && (
+                                <>
+                                    <label className="grid gap-1">
+                                        Account password
+                                        <div className="relative">
+                                            <input
+                                                className={`${input} w-full pr-10`}
+                                                type={passwordVisible ? 'text' : 'password'}
+                                                autoComplete="current-password"
+                                                value={password}
+                                                onChange={(event) =>
+                                                    setPassword(event.target.value)
+                                                }
+                                            />
+                                            <button
+                                                type="button"
+                                                className="absolute inset-y-0 right-2 grid place-items-center px-1"
+                                                aria-label={passwordVisible ? 'Hide account password' : 'Show account password'}
+                                                onClick={() => setPasswordVisible((visible) => !visible)}
+                                            >
+                                                {passwordVisible ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                                            </button>
+                                        </div>
+                                    </label>
+                                    <Button
+                                        type="button"
+                                        disabled={busy || !password}
+                                        onClick={() =>
+                                            void action('confirm', { password })
+                                        }
+                                    >
+                                        Confirm account password
+                                    </Button>
+                                </>
+                            )}
+                            {status.google && (
+                                <p className="text-sm text-muted-foreground">
+                                    After Google reauthentication, return here and create the PIN.
+                                </p>
                             )}
                             <label className="grid">
                                 New six-digit PIN
@@ -465,9 +572,9 @@ export function WorkspaceEditProtection({
                             </Button>
                         </div>
                     )}
-                    {status?.configured && !status.unlocked && !reset && (
-                        <div className="flex flex-wrap gap-3">
-                            <label className="grid">
+                    {status?.configured && status.pin_enabled && !status.unlocked && !reset && (
+                        <div className="flex flex-wrap items-end gap-3">
+                            <label className="grid gap-1">
                                 Six-digit PIN
                                 <input
                                     className={input}
@@ -490,25 +597,33 @@ export function WorkspaceEditProtection({
                             </Button>
                         </div>
                     )}
-                    <p className="text-sm">
-                        {status?.locked_until
+                    {status?.pin_enabled && <p className="text-sm">
+                        {status.locked_until
                             ? `PIN attempt lock until ${status.locked_until}.`
                             : ''}
-                    </p>
-                    <details>
+                    </p>}
+                    {status?.pin_enabled && <details>
                         <summary>
                             Recent protection/configuration activity
                         </summary>
-                        {status?.events?.map((event, index) => (
-                            <p className="text-sm" key={index}>
-                                {event.created_at} ?{' '}
-                                {event.action.replaceAll('_', ' ')} ?{' '}
-                                {event.resource} ? administrator{' '}
-                                {event.actor_id}
-                            </p>
-                        ))}
-                    </details>
-                    <div className="flex flex-wrap gap-3">
+                        <div className="mt-2 max-h-48 overflow-y-auto rounded-lg border p-2">
+                            {status?.events?.length ? (
+                                status.events.map((event, index) => (
+                                    <p className="text-sm" key={index}>
+                                        {event.created_at} ·{' '}
+                                        {event.action.replaceAll('_', ' ')} ·{' '}
+                                        {event.resource} · administrator{' '}
+                                        {event.actor_id}
+                                    </p>
+                                ))
+                            ) : (
+                                <p className="text-sm text-muted-foreground">
+                                    No recent activity.
+                                </p>
+                            )}
+                        </div>
+                    </details>}
+                    {status?.pin_enabled && <div className="flex flex-wrap gap-3">
                         {status?.unlocked && !lease && (
                             <Button
                                 type="button"
@@ -533,7 +648,7 @@ export function WorkspaceEditProtection({
                                 Cancel protected edit
                             </Button>
                         )}
-                        {status?.configured && !lease && (
+                        {allowPinReset && status?.configured && !lease && (
                             <Button
                                 type="button"
                                 variant="outline"
@@ -542,7 +657,7 @@ export function WorkspaceEditProtection({
                                 Reset PIN with account confirmation
                             </Button>
                         )}
-                    </div>
+                    </div>}
                 </section>
                 {children}
             </div>

@@ -1,7 +1,8 @@
+import { ProtectedFields, WorkspaceEditProtection } from '@/components/workspace-edit-protection';
 import { SearchableSelect } from '@/components/searchable-select';
 import { useLiveFilters } from '@/hooks/use-live-filters';
 import { Head, Link, router, useForm } from '@inertiajs/react';
-import { Fragment, useRef, useState } from 'react';
+import { Fragment, useEffect, useRef, useState } from 'react';
 import { QuickLedgerDialog } from '@/components/accounting/quick-ledger-dialog';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -21,7 +22,7 @@ type Original = { id: string; number: string; entry_date: string; flow: 'invoice
 const isCorrection = (kind: string): kind is NoteKind => kind === 'credit_note' || kind === 'debit_note';
 const noteLabel = (kind: NoteKind) => kind === 'credit_note' ? 'Member credit note' : 'Vendor debit note';
 type Flow = 'invoice' | 'bill' | 'receipt' | 'payment';
-type Account = { id: string; code: string; member_number?: string | null; vendor_reference?: string | null; name: string; type: string; is_money: boolean; membership_id: string | null; vendor_id: string | null };
+type Account = { id: string; code: string; member_number?: string | null; vendor_reference?: string | null; name: string; type: string; is_money: boolean; membership_id: string | null; vendor_id: string | null; group_key?: string | null; group_name?: string | null };
 type Allocation = { id: string; amount: string; allocation_date: string; note: string; voided_at: string | null; void_note: string | null; settlement_number: string; bill_number: string };
 type Row = { note: { original_document_id: string; original_number: string; original_date: string; reason: string; tax_correction: TaxCorrection | null } | null; id: string; number: string; kind: string; name: string; entry_date: string; due_date: string | null; status: string; flow: Flow; party_account_id: string; amount: string; remaining: string; description: string; reference: string | null; decision_note: string | null; bridge_source_id: string | null; evidence_url: string | null; lines: { account_id: string; name: string; debit: string; credit: string }[]; allocations: Allocation[]; events: { action: string; note: string | null; actor_id: number | null; created_at: string }[] };
 type Available = { id: string; kind: string; number: string; party_name: string; party_code: string; party_account_id: string; flow: Flow; remaining: string };
@@ -31,6 +32,7 @@ const card = 'grid gap-4 rounded-xl border border-t-4 border-t-[#b9d66b] bg-card
 const input = 'min-w-0 w-full rounded-lg border bg-background px-3 py-2 text-sm';
 const cell = 'border-t px-3 py-3 align-top';
 const today = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+const addDays = (date: string, days: number) => { const value = new Date(`${date}T00:00:00`); value.setDate(value.getDate() + days); return value.toISOString().slice(0, 10); };
 const money = (amount: string) => { const negative = amount.startsWith('-'); const [whole, fraction = ''] = (negative ? amount.slice(1) : amount).split('.'); const minor = BigInt(whole) * 100n + BigInt(fraction.padEnd(2, '0')); return formatMinor(negative ? -minor : minor); };
 const token = () => crypto.randomUUID();
 function Errors({ errors }: { errors: object }) { return <div role="alert">{Object.entries(errors).map(([key, value]) => <p className="text-sm text-destructive" key={key}>{String(value)}</p>)}</div>; }
@@ -61,6 +63,11 @@ export default function AssociationBilling({ association, filters, records, acco
  const [noteEditing, setNoteEditing] = useState<string | null>(null);
  const correction = useForm({ client_token: token(), kind: 'credit_note' as NoteKind, original_document_id: '', entry_date: today(), amount: '', reason: '', reference: '', evidence: null as File | null, chargeAmounts: {} as Record<string, string>, tds_reversal: '0.00', tds_review: '' });
  const noteSource = originals.find((original) => original.id === correction.data.original_document_id);
+ useEffect(() => { if (dialog !== 'correction') return; const mount = () => { const modal = document.querySelector('[role="dialog"]') as HTMLElement | null; const formElement = modal?.querySelector('form') as HTMLElement | null; if (!modal || !formElement) return; let footer = modal.querySelector('[data-finance-modal-footer]') as HTMLElement | null; if (!footer) { footer = document.createElement('div'); footer.dataset.financeModalFooter = 'true'; footer.className = 'flex shrink-0 items-center justify-end gap-3 border-t bg-background px-6 py-3'; modal.appendChild(footer); } const buttons = [...formElement.querySelectorAll('button')].filter((button) => ['Save correction draft'].includes(button.textContent?.trim() ?? '')); buttons.forEach((button) => footer?.appendChild(button)); }; mount(); const observer = new MutationObserver(mount); observer.observe(document.body, { subtree: true, childList: true }); return () => observer.disconnect(); }, [dialog]);
+ useEffect(() => { if (dialog !== 'correction') return; const sync = () => { const modal = document.querySelector('[role="dialog"]') as HTMLElement | null; if (!modal) return; Object.assign(modal.style, { width: '100vw', maxWidth: 'none', height: '100dvh', inset: '0', transform: 'none', borderRadius: '0', display: 'flex', flexDirection: 'column', overflow: 'hidden' }); const formElement = modal.querySelector('form') as HTMLElement | null; if (formElement) Object.assign(formElement.style, { width: '100%', maxWidth: 'none', minHeight: '0', flex: '1', overflowY: 'auto' }); const actions = [...modal.querySelectorAll('button')].find((button) => button.textContent?.includes('Save correction draft'))?.parentElement as HTMLElement | null; if (actions) Object.assign(actions.style, { position: 'sticky', bottom: '0', zIndex: '10', background: 'hsl(var(--card))', paddingTop: '1rem', paddingBottom: '1rem' }); }; sync(); const observer = new MutationObserver(sync); observer.observe(document.body, { subtree: true, childList: true }); return () => observer.disconnect(); }, [dialog]);
+ useEffect(() => { if (dialog !== 'correction') return; const label = [...document.querySelectorAll('label')].find((node) => node.textContent?.startsWith('Correction amount (INR)')); const pill = label?.querySelector('[data-original-balance-pill]'); const input = label?.querySelector('input'); if (label && pill && input) label.insertBefore(pill, input); }, [dialog, noteSource?.id]);
+ useEffect(() => { if (dialog !== 'correction' || !noteSource) return; const label = [...document.querySelectorAll('label')].find((node) => node.textContent?.startsWith('Correction amount (INR)')); if (!label || label.querySelector('[data-original-balance-pill]')) return; const pill = document.createElement('span'); pill.dataset.originalBalancePill = 'true'; pill.className = 'ml-2 inline-flex rounded-full border px-2 py-0.5 text-xs text-muted-foreground'; pill.textContent = `Original ${money(noteSource.amount)} · Remaining ${money(noteSource.note_available)}`; label.appendChild(pill); }, [dialog, noteSource?.id, noteSource?.amount, noteSource?.note_available]);
+ useEffect(() => { if (dialog !== 'correction') return; const label = [...document.querySelectorAll('label')].find((node) => node.textContent?.startsWith('Correction amount (INR)')); const input = label?.querySelector('input') as HTMLInputElement | null; if (!label || !input || !noteSource) return; if (!label.querySelector('[data-original-balance-pill]')) { const pill = document.createElement('span'); pill.dataset.originalBalancePill = 'true'; pill.className = 'ml-2 inline-flex rounded-full border px-2 py-0.5 text-xs text-muted-foreground'; pill.textContent = `Original ${money(noteSource.amount)} · Remaining ${money(noteSource.note_available)}`; label.querySelector('span')?.appendChild(pill); } input.max = noteSource.note_available; const clamp = () => { const value = Number(input.value); const maximum = Number(noteSource.note_available); if (Number.isFinite(value) && value > maximum) { input.value = noteSource.note_available; input.dispatchEvent(new Event('input', { bubbles: true })); } }; input.addEventListener('input', clamp); return () => input.removeEventListener('input', clamp); }, [dialog, noteSource?.id, noteSource?.amount, noteSource?.note_available]);
  const taxSource = taxSources[correction.data.original_document_id];
  const openNote = (kind: NoteKind, row?: Row, origin = '') => {
   const tax = row?.note?.tax_correction;
@@ -75,7 +82,7 @@ export default function AssociationBilling({ association, filters, records, acco
   });
   setDialog('correction');
  };
- const blank = (flow: Flow = 'invoice') => ({ client_token: token(), flow, party_account_id: '', counter_account_id: '', entry_date: today(), due_date: today(), amount: '', description: '', reference: '', evidence: null as File | null });
+ const blank = (flow: Flow = 'invoice') => ({ client_token: token(), flow, party_account_id: '', counter_account_id: '', entry_date: today(), due_date: ['invoice', 'bill'].includes(flow) ? addDays(today(), 7) : today(), amount: '', description: '', reference: '', evidence: null as File | null });
  const form = useForm(blank(filters.entry || 'invoice'));
  // Laravel can serialize empty filters as an array, whose sort property is a method.
  const selectedSort = typeof filters.sort === 'string' ? filters.sort : undefined;
@@ -87,15 +94,91 @@ export default function AssociationBilling({ association, filters, records, acco
  const decision = useForm({ action: 'submit', entry_date: today(), note: '', confirmed: false });
  const [agingSearch, setAgingSearch] = useState(''); const [agingPage, setAgingPage] = useState(1); const [agingAsc, setAgingAsc] = useState(true); const [agingExpanded, setAgingExpanded] = useState<string | null>(null);
  const agingRows = aging.filter((a) => a.name.toLowerCase().includes(agingSearch.toLowerCase())).sort((a, b) => (agingAsc ? 1 : -1) * a.name.localeCompare(b.name));
- const openEntry = (flow: Flow, row?: Row) => { if (form.processing) return; setEditing(row?.id || null); form.clearErrors(); form.setData(row ? { ...blank(row.flow), party_account_id: row.party_account_id, counter_account_id: row.lines.find((l) => l.account_id !== row.party_account_id)?.account_id || '', entry_date: row.entry_date, due_date: row.due_date || today(), amount: row.amount, description: row.description, reference: row.reference || '' } : blank(flow)); setDialog('entry'); };
+ const openEntry = (flow: Flow, row?: Row) => { if (form.processing) return; setEditing(row?.id || null); form.clearErrors(); form.setData(row ? { ...blank(row.flow), party_account_id: row.party_account_id, counter_account_id: row.lines.find((l) => l.account_id !== row.party_account_id)?.account_id || '', entry_date: row.entry_date, due_date: row.due_date || (['invoice', 'bill'].includes(row.flow) ? addDays(row.entry_date, 7) : today()), amount: row.amount, description: row.description, reference: row.reference || '' } : blank(flow)); setDialog('entry'); };
  useAccountingHotkeys({ enabled: (!dialog || dialog === 'entry' || dialog === 'correction') && !releaseId && !decisionId && !quickLedger, voucherOpen: dialog === 'entry' || dialog === 'correction', processing: form.processing || correction.processing, formRef: dialog === 'correction' ? noteRef : formRef, openVoucher: (kind) => { if (dialog) return; if (kind === 'invoice' || kind === 'bill' || kind === 'receipt' || kind === 'payment') openEntry(kind); else router.visit(`${base}?tab=vouchers`); }, createLedger: () => setQuickLedger(true) });
- const parties = accounts.filter((a) => ['invoice', 'receipt'].includes(form.data.flow) ? a.membership_id : a.vendor_id);
- const counters = accounts.filter((a) => !a.membership_id && !a.vendor_id && (form.data.flow === 'invoice' ? !a.is_money && ['income', 'fund', 'liability'].includes(a.type) : form.data.flow === 'bill' ? !a.is_money && ['expense', 'asset'].includes(a.type) : a.is_money));
+ const parties = accounts.filter((a) => form.data.flow === 'invoice' ? Boolean(a.membership_id) || a.group_key === 'debtors' : form.data.flow === 'bill' ? Boolean(a.vendor_id) || a.group_key === 'creditors' : form.data.flow === 'receipt' ? Boolean(a.membership_id) : Boolean(a.vendor_id));
+ const counters = accounts.filter((a) => !a.membership_id && !a.vendor_id && (form.data.flow === 'invoice' ? !a.is_money && (['income', 'fund'].includes(a.type) || ['corpus', 'deferred'].includes(a.group_key || '') || (a.type === 'liability' && a.name.toLowerCase().includes('deferred'))) : form.data.flow === 'bill' ? !a.is_money && (a.type === 'expense' || a.group_key === 'fixed_assets') : a.is_money));
+ const partyLabel = form.data.flow === 'invoice' ? 'Member / Debtor Ledger' : form.data.flow === 'bill' ? 'Vendor / Creditor Ledger' : form.data.flow === 'receipt' ? 'Member ledger' : 'Vendor ledger';
+ const counterLabel = form.data.flow === 'invoice' ? 'Income / Fund Account' : form.data.flow === 'bill' ? 'Expense / Asset Account' : 'Cash / bank account';
+ const referenceLabel = form.data.flow === 'bill' ? 'Vendor Invoice / Bill No.' : form.data.flow === 'invoice' ? 'Reference / Event Note' : 'External reference';
  const source = available.find((a) => a.id === allocation.data.settlement_id);
  const targets = available.filter((a) => a.party_account_id === source?.party_account_id && a.flow === (source?.flow === 'receipt' ? 'invoice' : 'bill'));
+ useEffect(() => {
+  if (dialog !== 'allocate' || available.some((item) => ['receipt', 'payment'].includes(item.flow))) return;
+  const addHint = () => {
+   const field = document.querySelector<HTMLElement>('[aria-label="Settlement or correction credit"]')?.closest('label');
+   if (!field || field.querySelector('[data-settlement-empty-hint]')) return;
+   const hint = document.createElement('p'); hint.dataset.settlementEmptyHint = 'true'; hint.className = 'text-xs text-muted-foreground'; hint.textContent = 'No unallocated posted receipts, payments, or credit/debit notes found. Post a receipt/payment as \'Advance\' or \'On Account\' first.'; field.appendChild(hint);
+  };
+  addHint();
+  const observer = new MutationObserver(addHint);
+  observer.observe(document.body, { childList: true, subtree: true });
+  return () => observer.disconnect();
+ }, [dialog, available.length]);
  const act = (row: Row, action: string) => { decision.clearErrors(); decision.setData({ action, entry_date: today(), note: '', confirmed: false }); setDecisionId(row.id); };
  const sort = (column: string) => router.get(`${base}/billing`, { ...search.params(), sort: column, direction: selectedSort === column && filters.direction !== 'desc' ? 'desc' : 'asc' });
- return <><Head title={notesView ? 'Credit and debit notes' : 'Invoices and settlements'} /><main className="flex flex-col gap-5 p-4 md:p-6">
+ useEffect(() => {
+  const formRoot = formRef.current;
+  if (formRoot) {
+   const partyInput = formRoot.querySelector<HTMLElement>('[data-accounting-order="10"]');
+   const counterInput = formRoot.querySelector<HTMLElement>('[data-accounting-order="11"]');
+   const referenceInput = formRoot.querySelector<HTMLInputElement>('[data-accounting-order="14"]');
+   const party = partyInput?.closest('label');
+   const counter = counterInput?.closest('label');
+   const reference = referenceInput?.closest('label');
+   if (party?.firstChild) party.firstChild.textContent = partyLabel;
+   if (counter?.firstChild) counter.firstChild.textContent = `${counterLabel} · Alt+C to create`;
+   if (reference?.firstChild) reference.firstChild.textContent = `${referenceLabel}${form.data.flow === 'bill' ? ' *' : ''}`;
+   partyInput?.setAttribute('aria-label', partyLabel);
+   partyInput?.setAttribute('placeholder', `Choose ${partyLabel.toLowerCase()}`);
+   counterInput?.setAttribute('aria-label', counterLabel);
+   if (referenceInput) referenceInput.required = form.data.flow === 'bill';
+   const bookDate = formRoot.querySelector<HTMLInputElement>('input[type="date"][data-accounting-order="1"]');
+   const dueDate = formRoot.querySelector<HTMLInputElement>('input[type="date"][data-accounting-order="13"]');
+   const updateDueDate = () => { if (bookDate && dueDate && ['invoice', 'bill'].includes(form.data.flow)) { const next = addDays(bookDate.value, 7); dueDate.value = next; form.setData('due_date', next); } };
+   bookDate?.addEventListener('change', updateDueDate);
+   return () => bookDate?.removeEventListener('change', updateDueDate);
+  }
+ }, [dialog, form.data.flow, form.data.entry_date, partyLabel, counterLabel, referenceLabel]);
+ useEffect(() => {
+  const applyContextLabels = () => {
+   const partyInput = document.querySelector<HTMLElement>('[data-accounting-order="10"]');
+   const counterInput = document.querySelector<HTMLElement>('[data-accounting-order="11"]');
+   const referenceInput = document.querySelector<HTMLInputElement>('[data-accounting-order="14"]');
+   const partyLabelNode = partyInput?.closest('label')?.firstChild;
+   const counterLabelNode = counterInput?.closest('label')?.firstChild;
+   const referenceLabelNode = referenceInput?.closest('label')?.firstChild;
+   const nextReferenceLabel = `${referenceLabel}${form.data.flow === 'bill' ? ' *' : ''}`;
+   const counterFieldLabel = counterInput?.closest('label');
+   if (counterFieldLabel) {
+    const textNodes = Array.from(counterFieldLabel.childNodes).filter((node) => node.nodeType === Node.TEXT_NODE);
+    const desiredCounterLabel = `${counterLabel} ${String.fromCharCode(183)} Alt+C to create`;
+    if (textNodes.length !== 1 || textNodes[0]?.textContent !== desiredCounterLabel) {
+     textNodes.forEach((node) => node.remove());
+     counterFieldLabel.insertBefore(document.createTextNode(desiredCounterLabel), counterFieldLabel.firstChild);
+    }
+   }
+   if (partyLabelNode && partyLabelNode.textContent !== partyLabel) partyLabelNode.textContent = partyLabel;
+   if (counterLabelNode && counterLabelNode.textContent !== `${counterLabel} · Alt+C to create`) counterLabelNode.textContent = `${counterLabel} · Alt+C to create`;
+   if (referenceLabelNode && referenceLabelNode.textContent !== nextReferenceLabel) referenceLabelNode.textContent = nextReferenceLabel;
+   partyInput?.setAttribute('aria-label', partyLabel);
+   partyInput?.setAttribute('placeholder', form.data.flow === 'bill' ? 'Choose vendor' : 'Choose member');
+   counterInput?.setAttribute('aria-label', counterLabel);
+   if (referenceInput) referenceInput.required = form.data.flow === 'bill';
+   document.querySelectorAll<HTMLElement>('[role="dialog"] h2').forEach((title) => { if (title.textContent?.trim() === 'post voucher') title.textContent = 'Post voucher'; });
+  };
+  applyContextLabels();
+  const observer = new MutationObserver(applyContextLabels);
+  observer.observe(document.body, { childList: true, subtree: true });
+  return () => observer.disconnect();
+ }, [dialog, form.data.flow, partyLabel, counterLabel, referenceLabel]);
+ useEffect(() => {
+  const actionCells = Array.from(document.querySelectorAll<HTMLTableCellElement>('td')).filter((cell) => cell.textContent?.includes('Open / Print') || cell.textContent?.includes('Details'));
+  const added: HTMLButtonElement[] = [];
+  actionCells.forEach((cell, index) => { const row = records.data[index]; if (!row || cell.querySelector('[data-finance-direct-action]')) return; if (!['draft', 'submitted'].includes(row.status)) return; const button = document.createElement('button'); button.type = 'button'; button.dataset.financeDirectAction = 'true'; button.className = 'inline-flex h-9 items-center justify-center rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90'; button.textContent = row.status === 'submitted' ? 'Post' : 'Submit'; button.addEventListener('click', () => act(row, row.status === 'submitted' ? 'post' : 'submit')); cell.insertBefore(button, cell.firstChild); added.push(button); });
+  return () => added.forEach((button) => button.remove());
+ }, [records.data, decisionId]);
+ return <WorkspaceEditProtection association={association.id} resource="masters" dirty={false} onDiscard={() => undefined}><><Head title={notesView ? 'Credit and debit notes' : 'Invoices and settlements'} /><main className="finance-scroll-scope flex flex-col gap-5 p-4 md:p-6">
   <header className="flex flex-wrap items-center justify-between gap-3"><div><h1 className="text-xl font-semibold">{notesView ? 'Credit and debit notes' : 'Invoices and settlements'}</h1><p className="text-sm text-muted-foreground">{association.name} · Member dues, vendor bills, partial settlements and advances.</p></div><div className="flex flex-wrap gap-2"><Button asChild variant="outline"><Link href={`${base}/tax`}>GST / TDS billing</Link></Button>{notesView && <Button asChild variant="outline"><Link href={`${base}/billing`}>All invoices and settlements</Link></Button>}<Button asChild variant="outline"><Link href={base}>Accounting Gateway</Link></Button></div></header>
   <section className={card}><h2 className="font-semibold">Create, review, post, then allocate</h2><p className="text-sm text-muted-foreground">An invoice records money owed; a receipt records money received. A vendor bill records a payable; a payment records money paid. Unallocated posted receipts/payments remain available as advances. These entries do not activate memberships or issue membership payment receipts.</p><div className="flex flex-wrap gap-2">{!notesView && (['invoice', 'bill', 'receipt', 'payment'] as Flow[]).map((flow) => <Button key={flow} variant={flow === 'invoice' ? 'default' : 'outline'} onClick={() => openEntry(flow)}>New {flow}{flow === 'invoice' ? ' · F8' : flow === 'bill' ? ' · F9' : ''}</Button>)}<Button variant="outline" onClick={() => openNote('credit_note')}>Member credit note</Button><Button variant="outline" onClick={() => openNote('debit_note')}>Vendor debit note</Button><Button variant="outline" onClick={() => { allocation.clearErrors(); allocation.setData({ client_token: token(), settlement_id: '', document_id: '', amount: '', allocation_date: today(), note: '' }); setDialog('allocate'); }}>Apply settlement / credit</Button><Button variant="outline" disabled={!legacy.length} onClick={() => { bridge.clearErrors(); setDialog('bridge'); }}>Link existing membership receipt</Button><Button asChild variant="outline"><Link href={`${base}/masters`}>Party ledgers</Link></Button><Button asChild variant="outline"><Link href={`${base}/billing/templates`}>Recurring member invoices</Link></Button><Button asChild variant="outline"><Link href={`${base}/billing/reminders`}>Invoice reminder preview</Link></Button></div></section>
   <form className="flex flex-wrap items-end gap-3" onSubmit={(e) => { e.preventDefault(); search.submit(); }}><label className="grid gap-1 text-sm">Search records<input className={input} placeholder="Voucher, party or reference" value={search.data.q} maxLength={120} onChange={(e) => search.setData('q', e.target.value)} /></label><label className="grid gap-1 text-sm">Type<select className={input} value={search.data.flow} onChange={(e) => search.setData('flow', e.target.value)}><option value="">All types</option>{(notesView ? ['credit_note', 'debit_note'] : ['invoice', 'bill', 'receipt', 'payment', 'credit_note', 'debit_note']).map((v) => <option key={v} value={v}>{isCorrection(v) ? noteLabel(v) : v}</option>)}</select></label><label className="grid gap-1 text-sm">Status<select className={input} value={search.data.status} onChange={(e) => search.setData('status', e.target.value)}><option value="">All statuses</option>{['draft', 'submitted', 'posted', 'reversed', 'rejected'].map((v) => <option key={v}>{v}</option>)}</select></label><label className="flex gap-2 text-sm"><input type="checkbox" checked={search.data.open} onChange={(e) => search.setData('open', e.target.checked)} />Posted with outstanding / available balance</label><p role="status" className="text-xs text-muted-foreground">{search.processing ? 'Updating results…' : 'Filters update automatically'}</p><Errors errors={search.errors} /></form>
@@ -131,5 +214,5 @@ export default function AssociationBilling({ association, filters, records, acco
   <Dialog open={releaseId !== null} onOpenChange={(open) => { if (!open && !release.processing) setReleaseId(null); }}><DialogContent className="max-h-[92dvh] overflow-y-auto sm:max-w-2xl"><DialogHeader><DialogTitle>Release allocation</DialogTitle><DialogDescription>Reopens the bill and makes the settlement amount available again. Closed-period allocations cannot be released here.</DialogDescription></DialogHeader><form className={card} onSubmit={(e) => { e.preventDefault(); release.post(`${base}/billing/allocations/${releaseId}/release`, { onSuccess: () => setReleaseId(null) }); }}><label className="grid gap-1 text-sm">Reason<textarea required maxLength={2000} className={input} value={release.data.note} onChange={(e) => release.setData('note', e.target.value)} /></label><label className="flex gap-2 text-sm"><input type="checkbox" required checked={release.data.confirmed} onChange={(e) => release.setData('confirmed', e.target.checked)} />I confirm this correction.</label><Errors errors={release.errors} /><Button disabled={release.processing}>Release with audit note</Button></form></DialogContent></Dialog>
   <Dialog open={decisionId !== null} onOpenChange={(open) => { if (!open && !decision.processing) setDecisionId(null); }}><DialogContent className="max-h-[92dvh] overflow-y-auto sm:max-w-2xl"><DialogHeader><DialogTitle>{decision.data.action} voucher</DialogTitle><DialogDescription>Review entry lines and allocations. Release active allocations before reversal.</DialogDescription></DialogHeader><form className={card} onSubmit={(e) => { e.preventDefault(); decision.post(`${base}/vouchers/${decisionId}/decision`, { onSuccess: () => setDecisionId(null) }); }}>{decisionTax && <TaxCorrectionReview tax={decisionTax} />}{decision.data.action === 'reverse' && <label className="grid gap-1 text-sm">Reversal date<input required type="date" max={today()} className={input} value={decision.data.entry_date} onChange={(e) => decision.setData('entry_date', e.target.value)} /></label>}<label className="grid gap-1 text-sm">Decision note<textarea required className={input} maxLength={2000} value={decision.data.note} onChange={(e) => decision.setData('note', e.target.value)} /></label><label className="flex gap-2 text-sm"><input type="checkbox" required checked={decision.data.confirmed} onChange={(e) => decision.setData('confirmed', e.target.checked)} />I confirm this decision.</label><Errors errors={decision.errors} /><Button disabled={decision.processing}>Confirm</Button></form></DialogContent></Dialog>
  <QuickLedgerDialog open={quickLedger} base={base} onClose={() => { setQuickLedger(false); requestAnimationFrame(() => formRef.current?.querySelector<HTMLElement>('[data-accounting-ledger]')?.focus()); }} onCreated={(id) => { form.setData('counter_account_id', id); setQuickLedger(false); requestAnimationFrame(() => formRef.current?.querySelector<HTMLElement>('[data-accounting-ledger]')?.focus()); }} />
- </main></>;
+ </main></></WorkspaceEditProtection>;
 }

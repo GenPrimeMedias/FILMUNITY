@@ -5,6 +5,7 @@ namespace Tests\Support;
 use App\Models\User;
 use App\Services\Accounting\AccountingMasters;
 use App\Services\Accounting\AssociationTaxService as Tax;
+use App\Services\Accounting\TaxConfigurationVersions;
 use App\Support\AssociationFinance as Finance;
 use Carbon\Carbon;
 use Carbon\CarbonImmutable;
@@ -41,7 +42,7 @@ trait FinanceWorkflowFixtures
 
     private function data(string $id, string $party, string $flow = 'invoice'): array
     {
-        return ['tax_configuration_id' => \App\Services\Accounting\TaxConfigurationVersions::effective($id, '2026-11-20')?->configuration_version_id, 'client_token' => (string) Str::uuid(), 'flow' => $flow, 'entry_date' => '2026-11-20', 'due_date' => '2026-11-25', 'party_account_id' => $party, 'counter_account_id' => DB::table('association_finance_accounts')->where('association_id', $id)->where('system_key', $flow === 'invoice' ? 'yearly' : 'expense')->value('id'), 'description' => 'Services', 'reference' => 'SOURCE-100', 'taxable_base' => '10000.00', 'exempt_base' => '1000.00', 'gst_rate' => '18.00', 'mode' => 'cgst', 'tds_base' => $flow === 'bill' ? '10000.00' : '0.00', 'tds_rate' => $flow === 'bill' ? '10.00' : '0.00', 'hsn_sac' => '999599', 'place_state' => '33', 'supplier_state' => '33', 'party_name' => 'Test party', 'party_address' => 'Chennai', 'party_gstin' => '33AAAAA0000A1Z5', 'party_pan' => 'AAAAA0000A', 'tds_reference' => $flow === 'bill' ? '393(1) Table reviewed' : '', 'tds_event_date' => '2026-11-20', 'claim_itc' => $flow === 'bill', 'review_note' => 'Rate, threshold and treatment reviewed.', 'confirmed' => true];
+        return ['tax_configuration_id' => TaxConfigurationVersions::effective($id, '2026-11-20')?->configuration_version_id, 'client_token' => (string) Str::uuid(), 'flow' => $flow, 'entry_date' => '2026-11-20', 'due_date' => '2026-11-25', 'party_account_id' => $party, 'counter_account_id' => DB::table('association_finance_accounts')->where('association_id', $id)->where('system_key', $flow === 'invoice' ? 'yearly' : 'expense')->value('id'), 'description' => 'Services', 'reference' => 'SOURCE-100', 'taxable_base' => '10000.00', 'exempt_base' => '1000.00', 'gst_rate' => '18.00', 'mode' => 'cgst', 'tds_base' => $flow === 'bill' ? '10000.00' : '0.00', 'tds_rate' => $flow === 'bill' ? '10.00' : '0.00', 'hsn_sac' => '999599', 'place_state' => '33', 'supplier_state' => '33', 'party_name' => 'Test party', 'party_address' => 'Chennai', 'party_gstin' => '33AAAAA0000A1Z5', 'party_pan' => 'AAAAA0000A', 'tds_reference' => $flow === 'bill' ? '393(1) Table reviewed' : '', 'tds_event_date' => '2026-11-20', 'claim_itc' => $flow === 'bill', 'review_note' => 'Rate, threshold and treatment reviewed.', 'confirmed' => true];
     }
 
     private function postTax(User $owner, string $id, string $v): void

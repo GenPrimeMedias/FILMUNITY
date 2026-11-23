@@ -6,21 +6,22 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia;
+use Tests\Support\WorkspaceMutationRequests;
 use Tests\TestCase;
 
 class MembershipApplicationTest extends TestCase
 {
-    use \Tests\Support\WorkspaceMutationRequests;
-
     use DatabaseTransactions;
+    use WorkspaceMutationRequests;
 
     protected function setUp(): void
     {
         parent::setUp();
-        \Illuminate\Support\Facades\Mail::fake();
+        Mail::fake();
     }
 
     public function test_members_can_apply_to_multiple_approved_associations_and_owners_review_their_own_queue(): void
@@ -195,7 +196,7 @@ class MembershipApplicationTest extends TestCase
 
     public function test_plan_is_chosen_after_approval_and_current_fee_is_retained(): void
     {
-        \Illuminate\Support\Facades\Mail::fake();
+        Mail::fake();
         $owner = User::factory()->create();
         $member = User::factory()->create();
         $association = $this->association($owner, 'approved');

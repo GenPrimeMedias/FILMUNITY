@@ -6,6 +6,7 @@ use App\Exceptions\BillingReminderNotSent;
 use App\Jobs\DeliverBillingInvoiceReminder;
 use App\Mail\BillingInvoiceReminder;
 use App\Support\AssociationFinance as Finance;
+use App\Support\AssociationMailer;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Facades\Bus;
@@ -88,7 +89,7 @@ final class BillingReminderQueue
                 $reason = 'Live sending is disabled. No message was sent.';
             } else {
                 try {
-                    \App\Support\AssociationMailer::send($association, $row->recipient, new BillingInvoiceReminder((array) $invoice));
+                    AssociationMailer::send($association, $row->recipient, new BillingInvoiceReminder((array) $invoice));
                     $status = 'sent';
                     $reason = 'Delivered to test mail fake only; no live message sent.';
                 } catch (BillingReminderNotSent $error) {

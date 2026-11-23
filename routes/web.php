@@ -3,11 +3,12 @@
 use App\Http\Controllers\Auth\GoogleAuthenticationController;
 use App\Http\Controllers\ProfessionalProfileController;
 use App\Http\Controllers\PublicProfessionalProfileController;
+use App\Http\Controllers\PublicHomeController;
+use App\Http\Controllers\PublicTalentDirectoryController;
 use App\Http\Middleware\RedirectReviewerDashboard;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', fn (Request $request) => redirect()->route($request->user() ? 'dashboard' : 'login'))->name('home');
+Route::get('/', [PublicHomeController::class, 'index'])->name('home');
 
 Route::middleware(['guest', 'throttle:20,1'])->group(function () {
     Route::get('/auth/google/redirect', [GoogleAuthenticationController::class, 'redirect'])->name('auth.google.redirect');
@@ -16,6 +17,8 @@ Route::middleware(['guest', 'throttle:20,1'])->group(function () {
 
 Route::get('/community/@{username}', [PublicProfessionalProfileController::class, 'show'])
     ->where('username', '[a-z0-9_]{3,30}')->name('community.profile');
+
+Route::get('/community/talents', [PublicTalentDirectoryController::class, 'index'])->name('community.talents');
 
 Route::get('/professional-profile/avatar', [ProfessionalProfileController::class, 'avatar'])
     ->middleware('auth')->name('professional-profile.avatar');
@@ -53,3 +56,7 @@ require __DIR__.'/association-help.php';
 require __DIR__.'/application-print.php';
 
 require __DIR__.'/workspace-controls.php';
+
+require __DIR__.'/association-board.php';
+require __DIR__.'/association-board-print.php';
+require __DIR__.'/association-board-public.php';

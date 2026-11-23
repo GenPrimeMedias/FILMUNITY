@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Support;
 
 use Illuminate\Mail\Mailable;
@@ -12,7 +13,10 @@ final class AssociationCorrespondence
         $name = AssociationBranding::data($association)['association_name'];
         $mail->from(config('mail.from.address'), $name.' via FILMUNITY');
         $reply = $replyTo ?? $official;
-        if (is_string($reply) && filter_var($reply, FILTER_VALIDATE_EMAIL)) $mail->replyTo($reply);
+        if (is_string($reply) && filter_var($reply, FILTER_VALIDATE_EMAIL)) {
+            $mail->replyTo($reply);
+        }
+
         return $mail;
     }
 }

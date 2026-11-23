@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 
 export function RecordsTable({ children }: { children: ReactNode }) {
-    return <div className="overflow-x-auto rounded-xl border border-t-4 border-t-[#b9d66b] bg-card text-card-foreground">
+    return <div data-records-table className="overflow-x-auto rounded-xl border border-t-4 border-t-[#b9d66b] bg-card text-card-foreground">
         <table className="w-full min-w-[48rem] text-left text-sm">{children}</table>
     </div>;
 }

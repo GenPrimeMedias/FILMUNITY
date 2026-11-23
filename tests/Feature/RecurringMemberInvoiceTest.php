@@ -11,14 +11,14 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia as Page;
 use Tests\Support\FinanceWorkflowFixtures;
+use Tests\Support\WorkspaceMutationRequests;
 use Tests\TestCase;
 
 class RecurringMemberInvoiceTest extends TestCase
 {
-    use \Tests\Support\WorkspaceMutationRequests;
-
     use DatabaseTransactions;
     use FinanceWorkflowFixtures;
+    use WorkspaceMutationRequests;
 
     public function test_recurring_monthly_drafts_duplicates_pause_resume_and_frozen_lines(): void
     {

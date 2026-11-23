@@ -1,5 +1,5 @@
 {
-    "version": "2026-11-21",
+    "version": "2026-11-23",
     "sections": [
         {
             "id": "profile",
@@ -1098,20 +1098,22 @@
                 {
                     "id": "workspace-protection",
                     "title": "Unlock protected settings and avoid conflicting edits",
-                    "why": "A PIN, session unlock and exclusive edit lease protect setup changes while members and ordinary accounting continue using saved settings.",
+                    "why": "A workspace PIN, session unlock and exclusive edit lease protect configuration and financial mutations while preserving ordinary read access and saved history.",
                     "before": [
-                        "Who: the approved association registration applicant using a verified account. Start: Workspace setup or the protected master/settings form. Existing associations must enroll before protected edits.",
+                        "Who: the approved association registration applicant using a verified account. Start: Workspace setup or a protected finance/master/settings form. Existing associations must enroll before protected edits.",
                         "Have your account password or access to your linked Google account. The deployment administrator must authorize the workspace Google callback before Google step-up works."
                     ],
                     "steps": [
-                        "In Workspace edit protection, enter Account password and choose Confirm account password, or Reauthenticate linked Google account. Account confirmation lasts five minutes.",
-                        "Enter New six-digit PIN and Confirm new PIN, then Create / reset workspace PIN. Only a secure hash is retained; the previous PIN cannot be recovered.",
-                        "Enter Six-digit PIN and choose Unlock protected editing, then Start protected edit. Unlock lasts ten minutes; a lease expires after ninety seconds without its twenty-five-second heartbeat.",
+                        "In Workspace edit protection, enter Account password and choose Confirm account password, or Reauthenticate linked Google account. Local password fields support browser autofill and show/hide; Google users do not need a local password. Account confirmation lasts five minutes.",
+                        "Enter New six-digit PIN and Confirm new PIN, then Create / reset workspace PIN. Only a secure hash is retained; the PIN is not displayed or recoverable.",
+                        "When PIN protection is enabled, enter Six-digit PIN and choose Unlock protected editing, then Start protected edit. Unlock lasts ten minutes; a lease expires after ninety seconds without its twenty-five-second heartbeat.",
+                        "Workspace and Financial Management mutations use the same protection state. Voucher, accounting-master, tax, billing and reconciliation saves require the active lease after PIN enrollment; reads and reports remain available.",
+                        "To disable protection, enter the existing PIN beside Disable PIN protection. To enable it again, enter that same existing PIN. A disabled PIN automatically re-enables after ten minutes, including when an open page refreshes its state.",
                         "Make the protected change and use its Save action. A successful save consumes the lease. Choose Start protected edit again for another protected save. Cancel protected edit releases the lease and discards unsaved values after confirmation.",
                         "Another tab/session sees read-only editing until release/expiry. If connection, unlock or version checks fail, retain your notes and reload/review saved values before acquiring another lease; never assume a failed request saved.",
-                        "Use Reset PIN with account confirmation for recovery. A new authenticated PIN reset revokes previous unlocks and leases. Review Recent protection/configuration activity."
+                        "PIN reset is available only from Workspace Setup. A new authenticated PIN reset revokes previous unlocks and leases. Review Recent protection/configuration activity only when protection is enabled."
                     ],
-                    "result": "Server mutation endpoints enforce owner permissions, the session-bound PIN unlock and lease/version checks. Ordinary invoices, payments, member workflows and posted history remain available.",
+                    "result": "Server mutation endpoints enforce owner permissions, the session-bound PIN unlock and lease/version checks across workspace and Financial Management changes. Ordinary reads and posted history remain available.",
                     "example": "Two tabs may read one workspace. Once tab A acquires its workspace lease, tab B cannot save workspace/email changes until A saves/cancels or the lease expires.",
                     "avoid": [
                         "Five wrong PIN checks lock verification for fifteen minutes; request throttles also apply. Never put a PIN/password in notes.",
@@ -1404,6 +1406,89 @@
                             "section": "association",
                             "topic": "branding",
                             "label": "Association branding is separate"
+                        }
+                    ]
+                },
+                {
+                    "id": "board-management",
+                    "title": "Configure and operate Board Management",
+                    "why": "Board Management keeps governing bodies, terms, appointments, meetings, minutes and actions association-scoped and based on a reviewed policy rather than silently assuming one legal model.",
+                    "before": [
+                        "Who: approved association administrator with the workspace PIN enrolled and unlocked. Start: Board Management.",
+                        "Have the association's approved governing document or reviewed policy reference available. The software does not certify legal compliance.",
+                        "Use fictional sample names in demonstrations; do not upload real confidential documents to a test workspace."
+                    ],
+                    "steps": [
+                        "Open Governance setup and define the governing body name, body type, position titles, seat capacity, responsibilities, office-bearer status and voting eligibility. Save governing body and position changes separately from policy changes.",
+                        "In Reviewed policy, choose either fixed-count or percentage quorum so only the relevant input is used. Configure the effective date, timezone, denominator, rounding policy, voting rule, notice days and policy reference, then save a new policy version only after the association's authorized review.",
+                        "Optionally set the default term duration (one, two or three years, or a custom number of months) and maximum consecutive terms. These settings guide future term-cycle and election workflows; they do not automatically change appointments.",
+                        "Create a term under Positions and terms, then record member appointments. A board title does not create a FILMUNITY login, membership or administrative privilege.",
+                        "Schedule meetings with a governing body, term, date/time, mode, venue and visibility. Invite participants, record attendance, recheck quorum, add agenda items and record supported votes. Joining details are protected; notice publication is separate from meeting execution.",
+                        "Configure explicit approver/publisher reviewers and the self-approval setting. Draft minutes as a version, submit them for review, approve the exact submitted version, and publish only an authorized redacted version when appropriate. Approved versions are retained; corrections require an amendment.",
+                        "Use the private directory for current and historical appointments, upload only safe portrait files, and use controlled resignation/removal/replacement history. Public directory publication is disabled until explicitly enabled.",
+                        "Create actions from governance work and track owner, due date, priority and status. Reassign outstanding actions during handover with retained history. Board notices use association mail delivery with duplicate suppression; accounting execution remains in Financial Management."
+                    ],
+                    "result": "The association has a traceable governance record with tenant-scoped configuration, protected mutations and preserved historical policy snapshots.",
+                    "example": "Synthetic Example Film Union: Governing Board, 3 seats, 2-person fixed quorum, reviewed policy GOV-2026-01 effective 2026-01-01, term 2026 Board from 2026-01-01 through 2026-12-31.",
+                    "avoid": [
+                        "Do not treat a software administrator, board position or recorded vote as automatic authority to approve minutes, spend money or change application permissions.",
+                        "Do not edit or delete finalized minutes, appointment history or a policy that was snapshotted by a meeting. Use a new version, controlled state transition or amendment.",
+                        "Do not use internal meeting voting as a secret-ballot election system. Election Management remains a placeholder and is intentionally not implemented here.",
+                        "If the association uses a complex rule that the configuration cannot represent, use an authorized manual determination with a reason and evidence rather than inventing a default."
+                    ],
+                    "table": [
+                        ["Record", "State or rule", "Safe correction"],
+                        ["Policy", "Draft or reviewed; versioned by effective date", "Create a new reviewed version"],
+                        ["Term", "Draft, scheduled, active, completed or cancelled", "Use a controlled transition with reason"],
+                        ["Minutes", "Draft, submitted, changes requested, approved or published", "Create a new version or linked amendment; never overwrite approved content"],
+                        ["Finance reference", "Governance approval only", "Complete accounting workflow separately"]
+                    ],
+                    "terms": [
+                        ["Policy snapshot", "The reviewed rule set frozen onto a meeting or decision."],
+                        ["Quorum denominator", "The configured population used to determine the required attendance count."],
+                        ["Redacted publication", "A separately prepared public/member version that does not replace the internal approved minutes."],
+                        ["Protected edit", "A PIN-unlocked, leased mutation that rejects stale or concurrent saves."]
+                    ],
+                    "fields": [
+                        {
+                            "label": "Governing body name",
+                            "purpose": "Association-defined board or committee title",
+                            "required": "Required",
+                            "example": "Governing Board",
+                            "validation": "Maximum 160 characters; unique within the association."
+                        },
+                        {
+                            "label": "Policy reference",
+                            "purpose": "Approved governing document or review reference",
+                            "required": "Required for reviewed configuration",
+                            "example": "GOV-2026-01",
+                            "validation": "Keep the reference and effective date reproducible; do not imply legal certification."
+                        },
+                        {
+                            "label": "Quorum denominator",
+                            "purpose": "Population used by the configured quorum rule",
+                            "required": "Required",
+                            "example": "Eligible seats",
+                            "validation": "Choose only an explicitly reviewed supported denominator."
+                        },
+                        {
+                            "label": "Visibility",
+                            "purpose": "Meeting or directory audience",
+                            "required": "Required",
+                            "example": "Administrators",
+                            "validation": "Public/member publication must be an explicit authorized action."
+                        }
+                    ],
+                    "related": [
+                        {
+                            "section": "association",
+                            "topic": "workspace-protection",
+                            "label": "Protected editing"
+                        },
+                        {
+                            "section": "finance",
+                            "topic": "start",
+                            "label": "Financial Management remains separate"
                         }
                     ]
                 }
@@ -2416,6 +2501,140 @@
             ]
         },
         {
+            "id": "board",
+            "title": "Board Management",
+            "summary": "Set up governing bodies and policies, create terms, appoint board members, run meetings, approve minutes and resolutions, publish an appropriate directory, and track actions to completion.",
+            "articles": [
+                {
+                    "id": "start",
+                    "title": "Start here: the Board Management workflow",
+                    "why": "Board Management keeps the governance record in sequence: define the body, activate a term, fill seats, hold meetings, approve minutes and convert decisions into action items.",
+                    "before": [
+                        "Who: the authorized association administrator. Board records are association-scoped and do not grant software permissions or certify legal compliance.",
+                        "Have the reviewed governing document, current office-bearer list, term dates and association notice rule available. Use synthetic examples when testing.",
+                        "Open Board Management from the association workspace. Every Board Management page shows Workspace edit protection; if the PIN is enabled, unlock it and choose Start protected edit before saving."
+                    ],
+                    "steps": [
+                        "Open Governance setup and save the governing body name, body type, positions, seat counts, office-bearer flags and voting eligibility.",
+                        "Save the reviewed policy separately. Choose fixed-count or percentage quorum, voting rule, notice days, default term duration and external-appointee policy.",
+                        "Open Positions and terms, create a term with its start and end dates, then schedule and activate it when the governing period begins.",
+                        "Open Board members to appoint members into vacant seats. The roster shows filled and vacant seats for the selected term.",
+                        "Schedule the meeting, take attendance, confirm live quorum, record minutes and resolutions, then assign follow-up actions.",
+                        "Use Board directory for internal or public-safe views. Use Action tracker to review ownership, due dates and completion."
+                    ],
+                    "result": "The association has a traceable path from its governing policy to a current roster, meeting record and measurable follow-up.",
+                    "example": "Synthetic Example Film Union defines a Governing Board with President and Secretary seats, activates the 2026-2028 term, appoints Meena as President, records the December meeting and assigns the approved bank-signatory task to the Secretary. The secretary unlocks the PIN before saving the appointment and minutes, then starts a fresh protected edit for the action item.",
+                    "avoid": [
+                        "Do not use Board Management to create elections or automatic accounting entries; those remain outside this workflow.",
+                        "Do not publish private phone numbers, personal emails or confidential evidence in a public directory.",
+                        "An approved minutes version is locked. Correct it through the supported amendment workflow rather than overwriting history."
+                    ],
+                    "table": [],
+                    "terms": [["Term", "A dated governing period, such as 2026–2028 Executive Term."], ["Voting member", "A seat whose attendance may count toward quorum and whose vote may be recorded."], ["Quorum", "The policy-defined minimum presence required before binding decisions can be finalized."]],
+                    "fields": [{"label": "Board Management", "purpose": "Open the governance workflow", "required": "Authorized association admin", "example": "Association workspace → Board Management", "validation": "Access is association-scoped and may require workspace PIN unlock."}],
+                    "related": [{"section": "board", "topic": "governance-setup", "label": "Configure the governing body and reviewed policy"}, {"section": "board", "topic": "meetings", "label": "Schedule a meeting and manage quorum"}]
+                },
+                {
+                    "id": "governance-setup",
+                    "title": "Configure the governing body and reviewed policy",
+                    "why": "Positions and policy rules control seat capacity, voting eligibility, quorum and notice behavior throughout the later workflow.",
+                    "before": ["Prepare the approved body name and policy wording. Example: Governing Board, fixed quorum of 2, seven notice days.", "Decide which seats are office bearers and which observers or advisors are non-voting."],
+                    "steps": ["Open Board Management → Governance setup.", "In Governing body, enter the body name and choose Board, Executive Committee or Advisory Council.", "Add each position. Set Display order, Seats, Responsibilities, Office bearer and Voting member independently. A Youth observer can be one seat, non-office-bearer and non-voting.", "In Reviewed policy, choose Fixed count or Percentage quorum. Only the relevant quorum input is shown. Add notice days, voting rule, default term duration and maximum consecutive terms where applicable.", "Save governing body and positions. Correcting a position responsibility does not create a new policy version.", "Save a new reviewed policy version only when the quorum, voting, notice or term rules change."],
+                    "result": "The setup distinguishes editable positions from versioned policy rules, and future terms inherit clear governance defaults.",
+                    "example": "For five seats, the association sets a percentage quorum of 50% with ceiling rounding, seven notice days, a two-year default term and Treasurer as an office-bearing voting seat.",
+                    "avoid": ["Do not mark observers as voting members just because they attend meetings.", "Do not silently rely on ordinary majority when the configured voting rule is unsupported or incomplete; save a supported reviewed policy first."],
+                    "table": [],
+                    "terms": [],
+                    "fields": [{"label": "Seats", "purpose": "Maximum seats for a position", "required": "At least 1", "example": "2", "validation": "Positive integer; appointments cannot exceed capacity."}, {"label": "Voting member", "purpose": "Controls quorum and vote eligibility", "required": "Review each position", "example": "Unchecked for Youth observer", "validation": "Snapshot is retained on meeting participants."}],
+                    "related": [{"section": "board", "topic": "terms", "label": "Create and activate a governing term"}]
+                },
+                {
+                    "id": "terms",
+                    "title": "Create and activate a governing term",
+                    "why": "A term gives appointments and historical directories a precise governing period.",
+                    "before": ["Confirm the active policy and its default term duration. Example: start 23 November 2026 with a two-year duration.", "Have an appointment reference such as AGM Election Minutes #2026-01 or a Board Resolution reference."],
+                    "steps": ["Open Positions and terms and choose Create a governing term.", "Select the governing body, enter a clear name such as 2026–2028 Executive Term, and choose Starts. Ends is calculated from the policy default and remains editable.", "Enter the appointment reference and create the term. New terms begin as Draft.", "Use Schedule when the term is ready for planning. Use Activate only when it has begun; if another term is active for the same body, confirm that it should be completed.", "Choose Manage roster to open Board members with the term pre-selected."],
+                    "result": "The term lifecycle and handoff to appointments are recorded without mixing term creation with roster maintenance.",
+                    "example": "The secretary creates 2026–2028 Executive Term from 23 November 2026 through 22 November 2028, schedules it after the AGM minutes are filed, then activates it on its start date.",
+                    "avoid": ["Do not delete a completed term to fix a historical mistake; preserve the term and use the supported correction path.", "Only one term for a governing body can be active at a time."],
+                    "table": [],
+                    "terms": [],
+                    "fields": [{"label": "Appointment reference", "purpose": "Evidence reference for the term", "required": "Optional but recommended", "example": "AGM Election Minutes #2026-01", "validation": "Text up to the configured field limit."}],
+                    "related": [{"section": "board", "topic": "members", "label": "Appoint members and fill vacancies"}]
+                },
+                {
+                    "id": "members",
+                    "title": "Appoint members and manage vacancies",
+                    "why": "The Board members page keeps seat capacity, term dates and mid-term changes visible in one place.",
+                    "before": ["The term must exist and positions must have seat capacity. Association members must already be active members.", "For a mid-term replacement, know the effective start date and appointment method."],
+                    "steps": ["Open Board members and select the term. The appointment form pre-fills the term start date and offers only vacant seats for the selected position.", "Choose a position, then choose a vacant Seat number. Select an association member or, only when the reviewed policy allows it, enter an external appointee.", "Choose Elected, Appointed, Ex-Officio or Co-opted / Interim, review Starts and record the appointment.", "Use Term roster & vacancies to see Filled and Vacant rows. Select Fill seat on a vacant row to return to the form with the seat selected.", "For a departure, choose End / Resign, enter an End date on or after Starts and choose Resigned, Term Completed or Removed. The original record remains in history.", "Appoint the replacement as a new record; permissions are not automatically granted or transferred by an appointment."],
+                    "result": "The selected term shows an accurate roster, vacancy count and retained tenure history.",
+                    "example": "Treasurer Seat 1 becomes vacant on 10 March 2027 because the office bearer resigns. The secretary ends that appointment with reason Resigned, then records Anil as Co-opted / Interim from 11 March 2027.",
+                    "avoid": ["Do not type a seat number outside the position capacity.", "Do not backdate an end date before the appointment starts.", "Do not assume an appointment changes application, finance or workspace permissions."],
+                    "table": [],
+                    "terms": [],
+                    "fields": [{"label": "End / Resign", "purpose": "Close a tenure without deleting it", "required": "End date and reason", "example": "10 March 2027 · Resigned", "validation": "End date must be on or after Starts."}],
+                    "related": [{"section": "board", "topic": "directory", "label": "Review internal and public directory views"}]
+                },
+                {
+                    "id": "meetings",
+                    "title": "Schedule a meeting and manage quorum",
+                    "why": "Meeting records snapshot the applicable policy and provide an attendance workspace before minutes are written.",
+                    "before": ["Know the meeting type, title, start time, mode and venue or joining details.", "Check the policy Notice days value. The form shows whether the selected start meets the rule."],
+                    "steps": ["Open Board meetings. Select the governing body and term, then choose Regular, Special / Emergency or AGM / EGM.", "Enter the title, Starts and venue or joining details. Ends auto-fills one hour later and can be edited.", "Add Agenda items / summary. This text is carried into the Minutes / discussion notes editor.", "Review the green Meets notice rule or amber Short notice indicator before scheduling.", "Open Manage attendance on the meeting row. Active board appointments for that term and meeting date are listed with Voting or Non-voting badges.", "Set each attendance status to Present, Excused or Absent. The live banner shows whether the required voting quorum is met.", "Use Save attendance & open minutes when attendance is complete."],
+                    "result": "The meeting has a policy snapshot, attendance record and a defensible quorum result ready for minutes and resolutions.",
+                    "example": "A Regular meeting on 5 December 2026 has a seven-day notice rule. The secretary schedules it early enough to show Meets 7-day notice rule, marks two of three voting members Present and sees Quorum Met.",
+                    "avoid": ["Do not finalize a formal resolution when quorum is not met.", "Treat joining details as confidential meeting information; calendar downloads omit private joining details."],
+                    "table": [],
+                    "terms": [["Present", "Attendance status counted by the quorum calculator when the participant is voting-eligible."], ["Non-voting", "A participant who may attend but does not count toward voting quorum." ]],
+                    "fields": [{"label": "Notice days", "purpose": "Minimum notice period used by meeting guidance", "required": "Reviewed policy", "example": "7", "validation": "Non-negative whole number of days."}],
+                    "related": [{"section": "board", "topic": "minutes", "label": "Record minutes, resolutions and approval"}]
+                },
+                {
+                    "id": "minutes",
+                    "title": "Record minutes, resolutions and approval",
+                    "why": "Versioned minutes connect the meeting context, agenda, quorum, votes and approval decision without overwriting the historical record.",
+                    "before": ["Complete attendance first. A Record minutes link from Board meetings pre-selects the meeting.", "Review the agenda summary and resolution details before submitting minutes for review."],
+                    "steps": ["Open Minutes and resolutions and select a meeting using the searchable Meeting selector.", "Review the context banner: date, attendance count and Quorum Met or No Quorum.", "Edit the pre-populated Minutes / discussion notes. Add a resolution with its title and description.", "After quorum is met, record For, Against or Abstain votes for present voting participants and finalize the outcome as Passed, Rejected or Tabled.", "Save draft while preparing. Choose Submit for review when the secretary has completed the record.", "An authorized reviewer chooses Approve & lock. The version displays Approved by and Approved at and cannot be edited through normal save, vote or resolution endpoints.", "Use + Assign action item next to a resolution to carry the decision into Action tracker."],
+                    "result": "The approved meeting record preserves its version, content hash, quorum context, resolution tally and reviewer approval.",
+                    "example": "The board approves RES-2026-0001 to renew the office lease: For 4, Against 0, Abstain 1. The reviewer approves version 2, after which the minutes and resolution controls are locked.",
+                    "avoid": ["Do not treat a Draft or Under Review version as an approved record.", "Do not edit an Approved & Locked version. Use an amendment so the original remains visible.", "Approval requires an authorized reviewer and follows the configured self-approval policy."],
+                    "table": [],
+                    "terms": [["Under Review", "Submitted minutes awaiting an authorized reviewer."], ["Approved & Locked", "An approved version that is immutable through ordinary editing." ]],
+                    "fields": [{"label": "Term name", "purpose": "Human-readable governing period", "required": "Required", "example": "2026–2028 Executive Term", "validation": "Keep names unique within the governing body."}],
+                    "related": [{"section": "board", "topic": "actions", "label": "Turn a resolution into an action item"}]
+                },
+                {
+                    "id": "actions",
+                    "title": "Turn decisions into action items",
+                    "why": "Action Tracker assigns an owner, deadline and priority so approved decisions become measurable work.",
+                    "before": ["Have an approved or agreed meeting decision, an active board appointee and a realistic due date.", "Use the resolution handoff when possible so the source meeting and resolution are retained."],
+                    "steps": ["Open Action tracker or choose + Assign action item beside a resolution.", "Select the optional Source meeting and Source resolution, enter the task title and instructions, then choose an active board member.", "Set Due date and Low, Medium or High priority. Add the action.", "Use All, Open, In Progress, Overdue or Completed filter pills to focus the work list. Overdue is highlighted when the due date has passed and the action is not complete.", "Use the row status selector to move an action to In Progress or Completed. Review the assignee and due date before the next meeting.", "During a handover, use the existing reassignment workflow so the change reason and history are retained."],
+                    "result": "Secretaries can see ownership, deadlines and overdue work without reopening every meeting record.",
+                    "example": "After approving the lease resolution, the secretary assigns “Collect three renewal quotations” to the General Secretary, due 15 December 2026, with High priority. It turns amber on 16 December until marked Completed.",
+                    "avoid": ["Do not assign a task to a person who is no longer an active board appointee.", "Do not mark an item Completed without checking the real-world evidence or progress note required by your association."],
+                    "table": [],
+                    "terms": [],
+                    "fields": [{"label": "Due date", "purpose": "Deadline used by Overdue filter", "required": "Recommended", "example": "2026-12-15", "validation": "Past-due open items are highlighted."}],
+                    "related": [{"section": "board", "topic": "start", "label": "Read the Board Management overview"}]
+                },
+                {
+                    "id": "directory",
+                    "title": "Review and publish the Board directory safely",
+                    "why": "The directory provides a current or historical board view while separating internal contact details from member or public presentation.",
+                    "before": ["Appointments and positions must be recorded. Confirm that public directory publication is authorized in governance settings.", "Decide whether you need Internal Board View or Member / Public Preview."],
+                    "steps": ["Open Board directory and choose the active term or a past term from the searchable selector.", "Choose Internal Board View for authorized phone, email, method and exact tenure information. Choose Member / Public Preview to hide private contact details.", "Review Office bearers first, then Executive & committee members in display order. Vacant seats appear as muted placeholders.", "In public preview, confirm that vacant cards do not expose administrative Fill from Board members links.", "Use Export CSV for a data file or Print / PDF for the records-only directory. The print table repeats its heading on later pages.", "Publish only the view and fields explicitly authorized by the association."],
+                    "result": "Members and auditors can inspect the appropriate current or historical roster without receiving private contact data.",
+                    "example": "The secretary exports the Internal Board View for a bank-signatory filing, then switches to Member / Public Preview for the AGM handout so private emails and phone numbers are excluded.",
+                    "avoid": ["Do not publish internal contact details merely because a member is an office bearer.", "A vacant seat is not a member record; never invent a representative name for it."],
+                    "table": [],
+                    "terms": [],
+                    "fields": [{"label": "Association member", "purpose": "Person appointed to the selected vacant seat", "required": "Required for member appointment", "example": "Anil Example", "validation": "Must be an active association member; seat capacity and overlap rules apply."}],
+                    "related": [{"section": "board", "topic": "members", "label": "Return to Board members and fill a vacancy"}]
+                }
+            ]
+        },
+        {
             "id": "finance",
             "title": "Financial Management",
             "summary": "Start with setup, then enter, review and post documents, allocate settlements, reconcile bank and TDS, and export. Tax and threshold examples are illustrative; live invoice reminder delivery remains disabled. Accounts reported a successful TallyPrime 7.2 import with no errors; per-ledger reconciliation and repeat-import behavior remain pending.",
@@ -2736,7 +2955,7 @@
                     "before": [
                         "Who: the signed-in applicant of an approved association registration, managing that association. There is no separate delegated finance approver role in this release.",
                         "Start: Financial Management → Accounts → New account; use Party ledgers from Invoices and settlements for accounting masters (Ledger, Member, Vendor and Groups). Books must be initialized.",
-                        "Protected master/settings changes require owner PIN unlock and Start protected edit; ordinary document entry/posting is not lease-protected."
+                        "Protected master, document and settings changes require owner PIN unlock and Start protected edit when the workspace PIN is enabled."
                     ],
                     "steps": [
                         "Choose New account in Accounts, enter the fields below, and Create account. Choose the permanent financial type carefully.",
@@ -2745,7 +2964,7 @@
                         "Open ledger statement to check movements. Membership clearing classifications are configured separately in Settings."
                     ],
                     "result": "New ledgers are available in this association only. Classification affects reports; grouping does not alter existing posted amounts.",
-                    "example": "",
+                    "example": "Example chart: create Bank Accounts > Main Bank with an opening balance of INR 200,000 Dr and Corpus / Capital Fund with INR 200,000 Cr. The Accounts opening-balance banner should show equal debit and credit totals before day-to-day vouchers are entered.",
                     "avoid": [
                         "Do not create a generic expense account as a substitute for a vendor creditor ledger.",
                         "Existing party-ledger identity and financial type are not freely editable; a matching-nature group is a separate classification.",
@@ -2839,7 +3058,7 @@
                     "before": [
                         "Who: approved association registration applicant, within their association.",
                         "Finance initialized, receipt policy enabled and actual bank/cash evidence available.",
-                        "Protected master/settings changes require owner PIN unlock and Start protected edit; ordinary document entry/posting is not lease-protected."
+                        "Protected master, document and settings changes require owner PIN unlock and Start protected edit when the workspace PIN is enabled."
                     ],
                     "steps": [
                         "Acknowledge verified membership payment in Application Payments. With finance enabled, its receipt creates one source-linked journal.",
@@ -2850,7 +3069,7 @@
                         "To settle a bill-wise member invoice with an already-accounted membership receipt, use Invoices and settlements → Link existing membership receipt. Review and post its two offsetting reclassification lines, then Apply settlement / credit; it retains the original cash/clearing and prevents duplicate income."
                     ],
                     "result": "The acknowledged receipt is classified once and its verified money destination appears in the books.",
-                    "example": "",
+                    "example": "Example clearing: a verified INR 5,000 membership payment is acknowledged, then the receipt is posted to Bank and Membership collection clearing. The treasurer reviews the clearing ledger before linking the receipt to the member invoice, avoiding duplicate income.",
                     "avoid": [
                         "Do not also create a separate Receipt crediting income for the same membership payment: that would double count it.",
                         "A zero-fee membership does not need a zero-value journal.",
@@ -3145,7 +3364,7 @@
                     "before": [
                         "Who: the signed-in applicant of an approved association registration, managing that association. There is no separate delegated finance approver role in this release.",
                         "Start: GST / TDS billing → Configure GST / TDS (or Edit GST / TDS settings). Initialize books first. Have accountant-reviewed identity and policy information.",
-                        "Protected master/settings changes require owner PIN unlock and Start protected edit; ordinary document entry/posting is not lease-protected."
+                        "Protected master, document and settings changes require owner PIN unlock and Start protected edit when the workspace PIN is enabled."
                     ],
                     "steps": [
                         "Complete the fields in the order below. Use your verified identity; synthetic examples here deliberately omit taxpayer identifiers.",
@@ -3647,7 +3866,7 @@
                     "before": [
                         "Who: approved association registration applicant, within that association.",
                         "Start: GST / TDS billing → Vendor TDS reviews. Create the existing vendor in Vendor master first.",
-                        "Protected master/settings changes require owner PIN unlock and Start protected edit; ordinary document entry/posting is not lease-protected."
+                        "Protected master, document and settings changes require owner PIN unlock and Start protected edit when the workspace PIN is enabled."
                     ],
                     "steps": [
                         "Select Vendor and Effective date. Enter Reviewed legal reference, Reviewed rate (%), Review notes and optional Supporting reference.",
@@ -3773,7 +3992,7 @@
                     "before": [
                         "Who: approved association registration applicant, within that association.",
                         "Start: GST / TDS billing → Vendor TDS reviews to record; New tax-aware invoice / bill → Vendor bill to use. Have a reviewed certificate and vendor profile.",
-                        "Protected master/settings changes require owner PIN unlock and Start protected edit; ordinary document entry/posting is not lease-protected."
+                        "Protected master, document and settings changes require owner PIN unlock and Start protected edit when the workspace PIN is enabled."
                     ],
                     "steps": [
                         "Record Certificate reference (optional), Certificate valid from, Certificate valid until (inclusive), Reviewed rate (%) and any Supporting reference/private evidence using Record reviewed profile.",
@@ -3935,7 +4154,7 @@
                     "before": [
                         "Who: approved association registration applicant, within that association.",
                         "Start: Vendor TDS reviews → Optional accountant-reviewed threshold comparison settings. Read the resulting panel in a tax-aware vendor bill after choosing vendor and Book date.",
-                        "Protected master/settings changes require owner PIN unlock and Start protected edit; ordinary document entry/posting is not lease-protected."
+                        "Protected master, document and settings changes require owner PIN unlock and Start protected edit when the workspace PIN is enabled."
                     ],
                     "steps": [
                         "Enter Configured threshold (INR), Reviewed eligibility basis and Reviewed aggregation period. Confirm both accountant review and historical-completeness review only if actually completed; document rationale in Review notes.",
@@ -4158,7 +4377,7 @@
                         "Expand the saved row, submit, then review and post. Match the bank line to the statement in Ledger."
                     ],
                     "result": "Rent expense increases by ₹12,000 and Bank decreases by ₹12,000 after posting.",
-                    "example": "",
+                    "example": "Example payment: record November office rent of INR 12,000 in Payment (F5), with Line 1 Dr Rent expense and Line 2 Cr Bank. The voucher footer must show Debit INR 12,000, Credit INR 12,000 and Difference INR 0.00 before saving.",
                     "avoid": [
                         "For an outstanding vendor payable use New bill, then a separately posted payment and allocation. A direct expense payment records immediate cash movement.",
                         "For GST/TDS use the dedicated tax-aware bill form; generic payment lines do not calculate tax."
@@ -4395,7 +4614,7 @@
                         "Save, submit and post after review. Record statement/cash-count clearance separately."
                     ],
                     "result": "One cash/bank account increases and the other decreases, with no new income or expense.",
-                    "example": "",
+                    "example": "Example transfer: move INR 10,000 from Main Bank to Petty Cash in Contra (F4): Line 1 Dr Petty Cash and Line 2 Cr Main Bank. The same ledger is filtered out of the opposite line, so Cash cannot accidentally be transferred to itself.",
                     "avoid": [
                         "Do not record the withdrawal itself as an expense; the later purchase is the expense."
                     ],
@@ -4521,7 +4740,7 @@
                         "Create and post the correct replacement, including a reference to the original/reversal. Recheck the affected ledgers and reconciliation."
                     ],
                     "result": "The original and linked opposite entry remain visible, while the replacement records the corrected treatment.",
-                    "example": "",
+                    "example": "Example review: a submitted INR 10,000 member invoice is checked from Invoices and settlements and posted from the list. A later mistake is reversed in an open period with a reason, then a corrected voucher is created and reviewed.",
                     "avoid": [
                         "Reversal is not a bank refund and does not cancel a membership or its operational receipt.",
                         "The current association admin can submit and post; independent Treasurer/Approver roles are a future module, not an existing second approval.",
@@ -4679,7 +4898,7 @@
                         "Retain reports and review evidence. Later corrections must use an open period; there is no reopen control in this release."
                     ],
                     "result": "The reviewed period stays protected against backdated postings and clearance changes.",
-                    "example": "",
+                    "example": "Example close: for 2026-11-20 through 2026-11-23, the treasurer checks the four Overview KPIs, expands Income & Expenditure and Financial Position in Reports, reviews the selected-date Day Book, then locks the reviewed period in Settings.",
                     "avoid": [
                         "Balanced debits/credits do not by themselves prove correct classification or authorization.",
                         "Operational reports are not automatically certified statutory accounts; year-end recognition/adjustments need the adopted accounting process."
@@ -5051,7 +5270,7 @@
                     "before": [
                         "Who: approved association registration applicant for this association.",
                         "Start: Finance → Reports → TallyPrime XML export. Have posted basic accounting vouchers and independently verified ledger mappings in a separate TallyPrime 7.2 test company. Do not import into live books.",
-                        "Protected master/settings changes require owner PIN unlock and Start protected edit; ordinary document entry/posting is not lease-protected."
+                        "Protected master, document and settings changes require owner PIN unlock and Start protected edit when the workspace PIN is enabled."
                     ],
                     "steps": [
                         "Select From and To, then Review batch. Read Included vouchers, Excluded records, counts, debit/credit totals and Movement by target ledger · INR. Supported types are Receipt, Payment, Contra and Journal, including supported-source reversals as Journal.",
@@ -5210,6 +5429,70 @@
                             "section": "finance",
                             "topic": "exports",
                             "label": "Export safely before migration or audit"
+                        }
+                    ]
+                },
+                {
+                    "id": "finance-protection",
+                    "title": "Protect Financial Management edits with the workspace PIN",
+                    "why": "Financial Management uses the workspace protection state so voucher, master, tax, billing and reconciliation changes are deliberate and isolated from ordinary read-only work.",
+                    "before": [
+                        "Who: the approved association administrator using a verified account.",
+                        "Open Financial Management or Workspace setup. The first PIN enrollment requires account password confirmation or Google reauthentication."
+                    ],
+                    "steps": [
+                        "If the workspace PIN is enabled, open the protection panel, unlock with the six-digit PIN and choose Start protected edit before saving a financial change.",
+                        "Use the voucher, accounting-master, tax, billing or reconciliation form normally. A successful save consumes the edit lease; acquire another protected edit for the next save.",
+                        "If the workspace PIN is disabled, authorized forms are directly editable and the PIN/lease controls are hidden. The existing PIN is preserved.",
+                        "To disable protection, enter the existing PIN beside Disable PIN protection. To re-enable it, enter the same existing PIN beside Enable PIN protection; a wrong PIN is rejected and repeated failures are temporarily locked.",
+                        "If a disabled workspace remains open for about ten minutes, protection automatically re-enables on the next state refresh. Return to Workspace setup if you need to reset the PIN; reset is not offered inside ordinary finance pages.",
+                        "If a save reports a stale lease or version, keep your notes, reload the saved record and acquire a fresh protected edit."
+                    ],
+                    "result": "Financial changes use the same tenant-scoped owner, PIN, session and lease/version controls as other protected workspace mutations, without changing accounting validation, posting or audit rules.",
+                    "example": "Example protected workflow: a treasurer opens Credit and debit notes, unlocks the page-level Workspace edit protection panel and chooses Start protected edit. After saving the correction, the lease is consumed; a fresh protected edit is required before the next bill, voucher, report mapping or Board action is saved.",
+                    "avoid": [
+                        "Do not share the workspace PIN or place it in a voucher note.",
+                        "Disabling PIN protection is not a permission grant; association authorization and owner checks still apply.",
+                        "Do not treat a rejected or stale save as successful. Verify the saved record after reloading."
+                    ],
+                    "table": [
+                        ["State", "Finance behavior", "Next action"],
+                        ["PIN enabled", "Save requires PIN unlock and an active edit lease", "Unlock and start protected edit"],
+                        ["PIN disabled", "Authorized forms can be edited directly", "Enter the existing PIN to re-enable"],
+                        ["PIN reset", "Existing unlocks and leases are revoked", "Use Workspace setup only"]
+                    ],
+                    "terms": ["workspace PIN", "edit lease", "stale version", "voucher", "posted history"],
+                    "fields": [
+                        {
+                            "label": "Existing six-digit PIN",
+                            "purpose": "Disable or re-enable the preserved workspace PIN",
+                            "required": "Required for disable and re-enable",
+                            "example": "Your private six-digit PIN",
+                            "validation": "Exactly six ASCII digits; repeated failures may trigger a temporary lock."
+                        },
+                        {
+                            "label": "Start protected edit",
+                            "purpose": "Acquire an exclusive save lease",
+                            "required": "Required when PIN protection is enabled",
+                            "example": "Start before saving a voucher or finance configuration",
+                            "validation": "Lease expires after ninety seconds without heartbeat and is consumed after a successful save."
+                        }
+                    ],
+                    "related": [
+                        {
+                            "section": "association",
+                            "topic": "workspace-protection",
+                            "label": "Unlock protected settings and avoid conflicting edits"
+                        },
+                        {
+                            "section": "finance",
+                            "topic": "start",
+                            "label": "Start here: the financial workflow"
+                        },
+                        {
+                            "section": "finance",
+                            "topic": "review-correct",
+                            "label": "Review, reject or correct a voucher"
                         }
                     ]
                 },
